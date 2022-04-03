@@ -1,3 +1,4 @@
+import { IUniqueIdentified } from "./IUniqueIdentified";
 import { Point } from "./Point";
 import { PolylineBase, Polyline } from "./Polyline";
 import { Segment, SegmentCrossState } from "./Segment";
@@ -10,7 +11,8 @@ enum Orientation {
     Bottom
 }
 
-export class ConnectPolyline extends PolylineBase {
+export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
+    public guid: string;
     public departure: Point;
     //public departureShape: PolylineBase;
     public destination: Point;

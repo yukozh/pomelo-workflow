@@ -1,3 +1,4 @@
+import { IUniqueIdentified } from "./IUniqueIdentified";
 import { Point } from "./Point";
 import { PolylineBase } from "./Polyline";
 
@@ -17,7 +18,8 @@ export class Anchor {
     }
 }
 
-export class Shape extends PolylineBase {
+export class Shape extends PolylineBase implements IUniqueIdentified {
+    public guid: string;
     public width: number;
     public height: number;
     public anchors: Anchor[];

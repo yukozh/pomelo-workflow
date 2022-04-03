@@ -6,7 +6,7 @@
     <RootNamespace>Pomelo.Workflow.Frontend</RootNamespace>
     <JavaScriptTestFramework>mocha</JavaScriptTestFramework>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
-    <JavaScriptTestRoot>tests\</JavaScriptTestRoot>
+    <JavaScriptTestRoot>Tests\</JavaScriptTestRoot>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -70,7 +70,8 @@
     </TypeScriptCompile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="tests\" />
+    <Folder Include="Models\" />
+    <Folder Include="Tests\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
