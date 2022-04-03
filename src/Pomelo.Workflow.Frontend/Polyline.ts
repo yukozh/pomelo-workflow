@@ -70,6 +70,10 @@ export abstract class PolylineBase {
             ret.push(new Segment(this.points[i], this.points[i + 1]));
         }
 
+        if (this.points.length > 2) {
+            ret.push(new Segment(this.points[0], this.points[this.points.length - 1]));
+        }
+
         return ret;
     }
 }

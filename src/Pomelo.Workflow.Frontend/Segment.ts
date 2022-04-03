@@ -1,4 +1,5 @@
 import { Point } from "./Point";
+import { PolylineBase } from "./Polyline";
 
 export enum SegmentCrossState {
     None,
@@ -12,14 +13,14 @@ enum SegmentSiteState {
     Parallel
 }
 
-export class Segment {
-    private points: Point[] = [];
+export class Segment extends PolylineBase {
 
     public getPoints(): Point[] {
         return this.points;
     }
 
     public constructor(depatrue: Point, destination: Point) {
+        super();
         this.points.push(depatrue);
         this.points.push(destination);
     }
@@ -79,6 +80,10 @@ export class Segment {
         } else {
             return SegmentSiteState.Opposite;
         }
+    }
+
+    public getCrossedPointWithSegment(segment: Segment): Point {
+        throw 'Not implemented';
     }
 
     public isCrossedBySegment(segment: Segment): boolean {
