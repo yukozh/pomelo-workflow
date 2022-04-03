@@ -1,8 +1,24 @@
 import { Point } from "./Point";
 import { Segment } from "./Segment";
 
-class PolylineBase {
-    public points: Array<Point>;
+export abstract class PolylineBase {
+    public points: Point[];
+    public isPolygon(): boolean {
+        if (this.points.length <= 2) {
+            return false;
+        }
+
+        let segments = this.toSegments();
+        if (this.points.some(x => this.points.filter(y => y.equal(x)).length > 1)) {
+            return false;
+        }
+
+        if (segments.some(x => this.points.some(y => x.isPointInSegment(y)))) {
+            return false;
+        }
+
+        return true;
+    }
 
     public isPointInPolygon(point: Point): boolean {
         let checkPoint: number[] = [point.x, point.y];
@@ -59,30 +75,3 @@ class PolylineBase {
 }
 
 export class Polyline extends PolylineBase { }
-export class Shape extends PolylineBase {
-    
-}
-
-export class ConnectPolyline extends PolylineBase {
-    public departure: Point;
-    public destination: Point
-    public polyline: PolylineBase;
-
-    public initFromDepartureAndDestination(departure: Point, destination: Point) {
-        
-    }
-
-    public initFromPolyline(polyline: PolylineBase) {
-        this.polyline = polyline;
-        if (polyline.points.length < 2) {
-            throw 'Invalid polyline';
-        }
-
-        this.departure = polyline.points[0];
-        this.destination = polyline.points[polyline.points.length - 1];
-    }
-
-    private static buildPath() {
-
-    }
-}

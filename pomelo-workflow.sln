@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32210.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "Pomelo.Workflow.Frontend", "Pomelo.Workflow.Frontend\Pomelo.Workflow.Frontend.njsproj", "{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D5F93320-E9F9-48BA-8FFB-BBC54D58B51C}"
+EndProject
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "Pomelo.Workflow.Frontend", "src\Pomelo.Workflow.Frontend\Pomelo.Workflow.Frontend.njsproj", "{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,6 +20,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1} = {D5F93320-E9F9-48BA-8FFB-BBC54D58B51C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7038CFAC-8C07-488C-ABDA-FDEB0A3DEE37}
