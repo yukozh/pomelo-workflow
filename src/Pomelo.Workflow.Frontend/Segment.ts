@@ -1,5 +1,11 @@
 import { Point } from "./Point";
 
+export enum SegmentCrossState {
+    None,
+    Single,
+    Infinite
+}
+
 export class Segment {
     private points: Point[] = [];
 
@@ -22,7 +28,13 @@ export class Segment {
         return error - 0.1 <= Number.EPSILON;
     }
 
+    public determineCrossStateWithSegment(segment: Segment): SegmentCrossState {
+        if (!this.isCrossedBySegment(segment)) {
+            return SegmentCrossState.None;
+        }
 
+
+    }
 
     public isCrossedBySegment(segment: Segment): boolean {
         let x1 = this.points[0].x,

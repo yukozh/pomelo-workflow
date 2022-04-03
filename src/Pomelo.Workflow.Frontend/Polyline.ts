@@ -9,7 +9,7 @@ export abstract class PolylineBase {
         }
 
         let segments = this.toSegments();
-        if (this.points.some(x => this.points.filter(y => y.equal(x)).length > 1)) {
+        if (this.points.some(x => this.points.filter(y => y.equalsTo(x)).length > 1)) {
             return false;
         }
 

@@ -30,40 +30,76 @@ export class ConnectPolyline extends PolylineBase {
         this.destination = path.points[path.points.length - 1];
     }
 
-    private calculateBorder(elements: PolylineBase[]): Point {
-        var point: Point = <Point>{ x: 0, y: 0 };
+    private calculateBorder(elements: PolylineBase[]): Point[] {
+        var point1: Point = <Point>{ x: 0, y: 0 };
+        var point2: Point = <Point>{ x: 0, y: 0 };
 
         if (!elements.length) {
-            return point;
+            return [point1, point2];
         }
 
+        let isFirstPoint = true;
         for (let i = 0; i < elements.length; ++i) {
             for (let j = 0; j < elements[i].points.length; ++j) {
                 let _point = elements[i].points[j];
-                point.x = Math.max(point.x, _point.x);
-                point.y = Math.max(point.y, _point.y);
+
+                if (isFirstPoint) {
+                    isFirstPoint = false;
+                    point1.x = _point.x;
+                    point1.y = _point.y;
+                    point2.x = _point.x;
+                    point2.y = _point.y;
+                }
+
+                point1.x = Math.min(point1.x, _point.x);
+                point1.y = Math.min(point1.y, _point.y);
+                point2.x = Math.max(point2.x, _point.x);
+                point2.y = Math.max(point2.y, _point.y);
             }
         }
 
-        return point;
+        return [point1, point2];
     }
 
-    private buildPath(point: Point, previousOrientation: Orientation | null = null, depth = 0): boolean {
+    private buildPath(point: Point, elements: PolylineBase[], previousOrientation: Orientation | null = null, depth = 0): boolean {
         this.path.points.push(point);
 
         if (depth >= 100) {
             return false;
         }
 
-        if (point.equal(this.destination)) {
+        if (point.equalsTo(this.destination)) {
             return true;
         }
 
-        let orientations: Orientation[] = [Orientation.Top, Orientation.Bottom, Orientation.Left, Orientation.Right];
+        let orientations: Orientation[] = [];
+
+        if (this.destination.x - point.x > 0) {
+            orientations.push(Orientation.Right);
+        } else {
+            orientations.push(Orientation.Left);
+        }
+
+        if (this.destination.y - point.y > 0) {
+            orientations.push(Orientation.Top);
+        } else {
+            orientations.push(Orientation.Bottom);
+        }
+
         if (previousOrientation != null && orientations.indexOf(previousOrientation) >= 0) {
             orientations.splice(orientations.indexOf(previousOrientation), 1);
         }
+    }
 
-
+    private generateSegment(point: Point, orientation: Orientation, border: Point[]) {
+        if (orientation == Orientation.Bottom) {
+            return <Point>{ x: point.x, y: border[1].y + this.padding };
+        } else if (orientation == Orientation.Top) {
+            return <Point>{ x: point.x, y: Math.max(border[0].y - this.padding, 0) }
+        } else if (orientation == Orientation.Right) {
+            return <Point>{ x: border[1].x + this.padding, y: point.y };
+        } else { // Left
+            return <Point>{ x: Math.max(border[0].x - this.padding, 0), y: point.y };
+        }
     }
 }
