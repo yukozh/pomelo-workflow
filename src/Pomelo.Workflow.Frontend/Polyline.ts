@@ -2,23 +2,7 @@ import { Point } from "./Point";
 import { Segment } from "./Segment";
 
 export abstract class PolylineBase {
-    public points: Point[];
-    public isPolygon(): boolean {
-        if (this.points.length <= 2) {
-            return false;
-        }
-
-        let segments = this.toSegments();
-        if (this.points.some(x => this.points.filter(y => y.equalsTo(x)).length > 1)) {
-            return false;
-        }
-
-        if (segments.some(x => this.points.some(y => x.isPointInSegment(y)))) {
-            return false;
-        }
-
-        return true;
-    }
+    public points: Point[] = [];
 
     public isPointInPolygon(point: Point): boolean {
         let checkPoint: number[] = [point.x, point.y];
@@ -57,24 +41,6 @@ export abstract class PolylineBase {
 
     public isPolygonCrossed(polygon: PolylineBase): boolean {
         return polygon.points.some(point => this.isPointInPolygon(point));
-    }
-
-    public toSegments(): Segment[] {
-        let ret: Segment[] = [];
-
-        if (this.points.length < 2) {
-            return ret;
-        }
-
-        for (let i = 0; i < this.points.length - 1; ++i) {
-            ret.push(new Segment(this.points[i], this.points[i + 1]));
-        }
-
-        if (this.points.length > 2) {
-            ret.push(new Segment(this.points[0], this.points[this.points.length - 1]));
-        }
-
-        return ret;
     }
 }
 

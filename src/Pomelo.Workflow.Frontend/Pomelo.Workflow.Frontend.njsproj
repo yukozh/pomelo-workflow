@@ -54,6 +54,10 @@
     <TypeScriptCompile Include="Segment.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="tests\ConnectPolylineTests.ts">
+      <SubType>Code</SubType>
+      <TestFramework>Mocha</TestFramework>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="tests\SegmentTests.ts">
       <SubType>Code</SubType>
       <TestFramework>Mocha</TestFramework>

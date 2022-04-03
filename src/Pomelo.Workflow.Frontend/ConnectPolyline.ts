@@ -17,17 +17,21 @@ export class ConnectPolyline extends PolylineBase {
     public path: PolylineBase = new Polyline();
     public padding = 10;
 
-    public initFromDepartureAndDestination(departure: Point, /*departureShape: PolylineBase,*/ destination: Point, /*destinationShape: PolylineBase,*/ elements: PolylineBase[] /* TODO: Use shape type */) {
+    public constructor() {
+        super();
+    }
+
+    public initFromDepartureAndDestination(departure: Point, /*departureShape: PolylineBase,*/ destination: Point, /*destinationShape: PolylineBase,*/ elements: PolylineBase[] /* TODO: Use shape type */): boolean {
         this.departure = departure;
         this.destination = destination;
         let segments: Segment[] = [];
         for (let i = 0; i < elements.length; ++i) {
-            let _segments = elements[i].toSegments();
+            let _segments = ConnectPolyline.polylineToSegments(elements[i]);
             for (let j = 0; j < _segments.length; ++j) {
                 segments.push(_segments[j]);
             }
         }
-        this.buildPath(departure, segments, null, 0);
+        return this.buildPath(departure, segments, null, 0);
     }
 
     public initFromPath(path: PolylineBase) {
@@ -40,13 +44,27 @@ export class ConnectPolyline extends PolylineBase {
         this.destination = path.points[path.points.length - 1];
     }
 
-    private calculateBorder(elements: PolylineBase[]): Point[] {
-        var point1: Point = <Point>{ x: 0, y: 0 };
-        var point2: Point = <Point>{ x: 0, y: 0 };
+    private static polylineToSegments(polyline: Polyline): Segment[] {
+        let ret: Segment[] = [];
 
-        if (!elements.length) {
-            return [point1, point2];
+        if (polyline.points.length < 2) {
+            return ret;
         }
+
+        for (let i = 0; i < polyline.points.length - 1; ++i) {
+            ret.push(new Segment(polyline.points[i], polyline.points[i + 1]));
+        }
+
+        if (polyline.points.length > 2) {
+            ret.push(new Segment(polyline.points[0], polyline.points[polyline.points.length - 1]));
+        }
+
+        return ret;
+    }
+
+    private calculateBorder(elements: PolylineBase[]): Point[] {
+        var point1: Point = new Point(0, 0);
+        var point2: Point = new Point(0, 0);
 
         let isFirstPoint = true;
         for (let i = 0; i < elements.length; ++i) {
@@ -67,6 +85,16 @@ export class ConnectPolyline extends PolylineBase {
                 point2.y = Math.max(point2.y, _point.y + this.padding);
             }
         }
+
+        point1.x = Math.min(point1.x, this.departure.x);
+        point1.y = Math.min(point1.y, this.departure.y);
+        point2.x = Math.max(point2.x, this.departure.x);
+        point2.y = Math.max(point2.y, this.departure.y);
+
+        point1.x = Math.min(point1.x, this.destination.x);
+        point1.y = Math.min(point1.y, this.destination.y);
+        point2.x = Math.max(point2.x, this.destination.x);
+        point2.y = Math.max(point2.y, this.destination.y);
 
         return [point1, point2];
     }
@@ -104,15 +132,15 @@ export class ConnectPolyline extends PolylineBase {
             }
 
             if (this.destination.y - point.y > 0) {
-                orientations.push(Orientation.Top);
-            } else {
                 orientations.push(Orientation.Bottom);
+            } else {
+                orientations.push(Orientation.Top);
             }
         } else {
             if (this.destination.y - point.y > 0) {
-                orientations.push(Orientation.Top);
-            } else {
                 orientations.push(Orientation.Bottom);
+            } else {
+                orientations.push(Orientation.Top);
             }
 
             if (this.destination.x - point.x > 0) {
@@ -160,16 +188,20 @@ export class ConnectPolyline extends PolylineBase {
 
         // DFS for 4 orientations
         for (let i = 0; i < orientations.length; ++i) {
-            let o = orientations[i];
+            let o: Orientation = orientations[i];
             let seg = this.generateSegment(point, o, border);
             let points = ConnectPolyline.getCrossedPoints(seg, elements, o, this.destination);
             if (points.length > 0) { // If crossed point found
                 if (!this.buildPath(points[0], elements, o, depth + 1)) { // Loop with the nearest point
                     continue;
+                } else {
+                    return true;
                 }
             } else { // Extend the current segment
                 if (!this.buildPath(this.extendSegment(seg, o), elements, o, depth + 1)) { // Loop with the nearest point
                     continue;
+                } else {
+                    return true;
                 }
             }
         }
@@ -198,22 +230,22 @@ export class ConnectPolyline extends PolylineBase {
         switch (orientation) {
             case Orientation.Bottom:
                 if (expectedPoint.y > segment.points[0].y) {
-                    ret.push(<Point>{ x: segment.points[0].x, y: expectedPoint.y });
+                    ret.push(new Point(segment.points[0].x, expectedPoint.y));
                 }
                 break;
             case Orientation.Top:
                 if (expectedPoint.y < segment.points[0].y) {
-                    ret.push(<Point>{ x: segment.points[0].x, y: expectedPoint.y });
+                    ret.push(new Point(segment.points[0].x, expectedPoint.y));
                 }
                 break;
             case Orientation.Right:
                 if (expectedPoint.x > segment.points[0].x) {
-                    ret.push(<Point>{ x: expectedPoint.x, y: segment.points[0].y });
+                    ret.push(new Point(expectedPoint.x, segment.points[0].y));
                 }
                 break;
             case Orientation.Left:
                 if (expectedPoint.x < segment.points[0].x) {
-                    ret.push(<Point>{ x: expectedPoint.x, y: segment.points[0].y });
+                    ret.push(new Point(expectedPoint.x, segment.points[0].y));
                 }
                 break;
         }
@@ -228,26 +260,26 @@ export class ConnectPolyline extends PolylineBase {
 
     private extendSegment(segment: Segment, orientation: Orientation): Point {
         if (orientation == Orientation.Top) {
-            return <Point>{ x: segment.points[1].x, y: Math.max(segment.points[1].y - this.padding, 0) };
+            return new Point(segment.points[1].x, Math.max(segment.points[1].y - this.padding, 0));
         } else if (orientation == Orientation.Bottom) {
-            return <Point>{ x: segment.points[1].x, y: segment.points[1].y + this.padding };
+            return new Point(segment.points[1].x, segment.points[1].y + this.padding);
         } else if (orientation == Orientation.Left) {
-            return <Point>{ x: Math.max(segment.points[1].x - this.padding, 0), y: segment.points[1].y };
+            return new Point(Math.max(segment.points[1].x - this.padding, 0), segment.points[1].y);
         } else { // Right
-            return <Point>{ x: segment.points[1].x + this.padding, y: segment.points[1].y };
+            return new Point(segment.points[1].x + this.padding, segment.points[1].y);
         }
     }
 
     private generateSegment(point: Point, orientation: Orientation, border: Point[]): Segment {
         let destination: Point;
         if (orientation == Orientation.Bottom) {
-            destination = <Point>{ x: point.x, y: border[1].y + this.padding };
+            destination = new Point(point.x, border[1].y + this.padding);
         } else if (orientation == Orientation.Top) {
-            destination = <Point>{ x: point.x, y: Math.max(border[0].y - this.padding, 0) }
+            destination = new Point(point.x, Math.max(border[0].y - this.padding, 0));
         } else if (orientation == Orientation.Right) {
-            destination = <Point>{ x: border[1].x + this.padding, y: point.y };
+            destination = new Point(border[1].x + this.padding, point.y);
         } else { // Left
-            destination = <Point>{ x: Math.max(border[0].x - this.padding, 0), y: point.y };
+            destination = new Point(Math.max(border[0].x - this.padding, 0), point.y);
         }
 
         return new Segment(point, destination);
