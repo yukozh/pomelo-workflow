@@ -41,7 +41,6 @@
     <TypeScriptCompile Include="ConnectPolyline.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="Element.ts" />
     <TypeScriptCompile Include="Drawing.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -54,11 +53,18 @@
     <TypeScriptCompile Include="Segment.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="Shape.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="tests\ConnectPolylineTests.ts">
       <SubType>Code</SubType>
       <TestFramework>Mocha</TestFramework>
     </TypeScriptCompile>
     <TypeScriptCompile Include="tests\SegmentTests.ts">
+      <SubType>Code</SubType>
+      <TestFramework>Mocha</TestFramework>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="tests\ShapeTests.ts">
       <SubType>Code</SubType>
       <TestFramework>Mocha</TestFramework>
     </TypeScriptCompile>

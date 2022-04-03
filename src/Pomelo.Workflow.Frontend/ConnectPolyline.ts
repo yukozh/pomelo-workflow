@@ -1,6 +1,7 @@
 import { Point } from "./Point";
 import { PolylineBase, Polyline } from "./Polyline";
 import { Segment, SegmentCrossState } from "./Segment";
+import { Anchor } from "./Shape";
 
 enum Orientation {
     Left,
@@ -21,6 +22,10 @@ export class ConnectPolyline extends PolylineBase {
         super();
     }
 
+    public initFromDepartureAndDestinationAnchors(departure: Anchor, destination: Anchor, elements: PolylineBase[]): boolean {
+        return this.initFromDepartureAndDestination(departure.toPoint(), destination.toPoint(), elements);
+    }
+
     public initFromDepartureAndDestination(departure: Point, /*departureShape: PolylineBase,*/ destination: Point, /*destinationShape: PolylineBase,*/ elements: PolylineBase[] /* TODO: Use shape type */): boolean {
         this.departure = departure;
         this.destination = destination;
@@ -32,16 +37,6 @@ export class ConnectPolyline extends PolylineBase {
             }
         }
         return this.buildPath(departure, segments, null, 0);
-    }
-
-    public initFromPath(path: PolylineBase) {
-        this.path = path;
-        if (path.points.length < 2) {
-            throw 'Invalid polyline';
-        }
-
-        this.departure = path.points[0];
-        this.destination = path.points[path.points.length - 1];
     }
 
     private static polylineToSegments(polyline: Polyline): Segment[] {
