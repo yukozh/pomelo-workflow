@@ -13,24 +13,23 @@ enum Orientation {
 
 export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
     public guid: string;
-    public departure: Point;
-    //public departureShape: PolylineBase;
-    public destination: Point;
-    //public destinationShape: PolylineBase;
+    public departure: Anchor;
+    public destination: Anchor;
     public path: PolylineBase = new Polyline();
     public padding = 10;
+    public departurePoint: Point;
+    public destinationPoint: Point;
 
     public constructor() {
         super();
     }
 
-    public initFromDepartureAndDestinationAnchors(departure: Anchor, destination: Anchor, elements: PolylineBase[]): boolean {
-        return this.initFromDepartureAndDestination(departure.toPoint(), destination.toPoint(), elements);
-    }
-
-    public initFromDepartureAndDestination(departure: Point, /*departureShape: PolylineBase,*/ destination: Point, /*destinationShape: PolylineBase,*/ elements: PolylineBase[] /* TODO: Use shape type */): boolean {
+    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, elements: PolylineBase[]): boolean {
         this.departure = departure;
         this.destination = destination;
+        this.departurePoint = departure.toPoint();
+        this.destinationPoint = destination.toPoint();
+
         let segments: Segment[] = [];
         for (let i = 0; i < elements.length; ++i) {
             let _segments = ConnectPolyline.polylineToSegments(elements[i]);
@@ -38,7 +37,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
                 segments.push(_segments[j]);
             }
         }
-        return this.buildPath(departure, segments, null, 0);
+        return this.buildPath(departure.toPoint(), segments, null, 0);
     }
 
     private static polylineToSegments(polyline: Polyline): Segment[] {
@@ -60,22 +59,17 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
     }
 
     private calculateBorder(elements: PolylineBase[]): Point[] {
-        var point1: Point = new Point(0, 0);
-        var point2: Point = new Point(0, 0);
+        var point1: Point = new Point(this.departurePoint.x, this.departurePoint.y);
+        var point2: Point = new Point(this.departurePoint.x, this.departurePoint.y);
 
-        let isFirstPoint = true;
+        point1.x = Math.min(point1.x, this.destinationPoint.x);
+        point1.y = Math.min(point1.y, this.destinationPoint.y);
+        point2.x = Math.max(point2.x, this.destinationPoint.x);
+        point2.y = Math.max(point2.y, this.destinationPoint.y);
+
         for (let i = 0; i < elements.length; ++i) {
             for (let j = 0; j < elements[i].points.length; ++j) {
                 let _point = elements[i].points[j];
-
-                if (isFirstPoint) {
-                    isFirstPoint = false;
-                    point1.x = _point.x;
-                    point1.y = _point.y;
-                    point2.x = _point.x;
-                    point2.y = _point.y;
-                }
-
                 point1.x = Math.min(point1.x, _point.x);
                 point1.y = Math.min(point1.y, _point.y);
                 point2.x = Math.max(point2.x, _point.x + this.padding);
@@ -83,23 +77,13 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
             }
         }
 
-        point1.x = Math.min(point1.x, this.departure.x);
-        point1.y = Math.min(point1.y, this.departure.y);
-        point2.x = Math.max(point2.x, this.departure.x);
-        point2.y = Math.max(point2.y, this.departure.y);
-
-        point1.x = Math.min(point1.x, this.destination.x);
-        point1.y = Math.min(point1.y, this.destination.y);
-        point2.x = Math.max(point2.x, this.destination.x);
-        point2.y = Math.max(point2.y, this.destination.y);
-
         return [point1, point2];
     }
 
     private buildPath(point: Point, elements: Segment[], previousOrientation: Orientation | null = null, depth = 0): boolean {
         this.path.points.push(point);
 
-        if (point.equalsTo(this.destination)) {
+        if (point.equalsTo(this.destinationPoint)) {
             return true;
         }
 
@@ -118,29 +102,29 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         // Greedy to decrease distance between departure and destination
         let orientations: Orientation[] = [];
 
-        let absX = Math.abs(this.destination.x - point.x);
-        let absY = Math.abs(this.destination.y - point.y);
+        let absX = Math.abs(this.destinationPoint.x - point.x);
+        let absY = Math.abs(this.destinationPoint.y - point.y);
 
         if (absX > absY) {
-            if (this.destination.x - point.x > 0) {
+            if (this.destinationPoint.x - point.x > 0) {
                 orientations.push(Orientation.Right);
             } else {
                 orientations.push(Orientation.Left);
             }
 
-            if (this.destination.y - point.y > 0) {
+            if (this.destinationPoint.y - point.y > 0) {
                 orientations.push(Orientation.Bottom);
             } else {
                 orientations.push(Orientation.Top);
             }
         } else {
-            if (this.destination.y - point.y > 0) {
+            if (this.destinationPoint.y - point.y > 0) {
                 orientations.push(Orientation.Bottom);
             } else {
                 orientations.push(Orientation.Top);
             }
 
-            if (this.destination.x - point.x > 0) {
+            if (this.destinationPoint.x - point.x > 0) {
                 orientations.push(Orientation.Right);
             } else {
                 orientations.push(Orientation.Left);
@@ -187,7 +171,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         for (let i = 0; i < orientations.length; ++i) {
             let o: Orientation = orientations[i];
             let seg = this.generateSegment(point, o, border);
-            let points = ConnectPolyline.getCrossedPoints(seg, elements, o, this.destination);
+            let points = ConnectPolyline.getCrossedPoints(seg, elements, o, this.destinationPoint);
             if (points.length > 0) { // If crossed point found
                 if (!this.buildPath(points[0], elements, o, depth + 1)) { // Loop with the nearest point
                     continue;
