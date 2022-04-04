@@ -14,7 +14,7 @@ export class Anchor {
     }
 
     public toPoint(): Point {
-        return new Point(this.shape.points[0].y + this.xPercentage * this.shape.width, this.shape.points[0].y + this.yPercentage * this.shape.height);
+        return new Point(this.shape.points[0].x + this.xPercentage * this.shape.width, this.shape.points[0].y + this.yPercentage * this.shape.height);
     }
 }
 

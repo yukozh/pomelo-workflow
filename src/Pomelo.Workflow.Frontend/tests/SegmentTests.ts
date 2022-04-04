@@ -29,7 +29,14 @@ describe("Segment Tests", () => {
         let segment3 = new Segment(new Point(3, 3), new Point(4, 4));
 
         assert.equal(segment1.getCrossStateWithSegment(segment2), SegmentCrossState.Infinite);
+
+        assert.ok(segment1.points[1].equalsTo(segment3.points[0]));
+        assert.ok(segment1.isPointInSegment(segment3.points[0]));
+        assert.ok(!segment1.isPointInSegment(segment3.points[1]));
+        assert.ok(!segment3.isPointInSegment(segment1.points[0]));
+        assert.ok(segment3.isPointInSegment(segment1.points[1]));
         assert.equal(segment1.getCrossStateWithSegment(segment3), SegmentCrossState.Single);
+
         assert.ok(segment1.isCrossedBySegment(segment2), "This shouldn't fail");
         assert.ok(segment1.isCrossedBySegment(segment3), "This shouldn't fail");
     });
@@ -40,6 +47,24 @@ describe("Segment Tests", () => {
 
         assert.equal(segment1.getCrossStateWithSegment(segment2), SegmentCrossState.None);
         assert.ok(!segment1.isCrossedBySegment(segment2), "This shouldn't fail");
+    });
+
+    it("Cover Test", () => {
+        let segment1 = new Segment(new Point(20, 20), new Point(20, 30));
+        let segment2 = new Segment(new Point(20, 20), new Point(20, 130));
+
+        assert.ok(segment2.isPointInSegment(segment1.points[0]));
+        assert.ok(segment2.isPointInSegment(segment1.points[1]));
+        assert.equal(segment1.getCrossStateWithSegment(segment2), SegmentCrossState.Infinite);
+    });
+
+    it("Point In Segment Test", () => {
+        let segment = new Segment(new Point(1, 1), new Point(3, 3));
+        let point = new Point(4, 4);
+        let point2 = new Point(2, 2);
+
+        assert.ok(!segment.isPointInSegment(point));
+        assert.ok(segment.isPointInSegment(point2));
     });
 
     it("NaN Test", () => {
