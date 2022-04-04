@@ -7,12 +7,6 @@ export enum SegmentCrossState {
     Infinite
 }
 
-enum SegmentSiteState {
-    Same,
-    Opposite,
-    Parallel
-}
-
 export class Segment extends PolylineBase {
 
     public getPoints(): Point[] {
@@ -36,50 +30,37 @@ export class Segment extends PolylineBase {
     }
 
     public getCrossStateWithSegment(segment: Segment): SegmentCrossState {
-        let a = this.points[0];
-        let b = this.points[1];
-        let c = segment.getPoints()[0];
-        let d = segment.getPoints()[1];
-
-        let ab = this.diff(a, b);
-
-        let ac = this.diff(a, c);
-        let ad = this.diff(a, d);
-
-        let bc = this.diff(b, c);
-        let bd = this.diff(b, d);
-
-        let siteState1 = this.getSiteState(ac, ad, ab);
-        let siteState2 = this.getSiteState(bc, bd, ab);
-
-        if (siteState1 == SegmentSiteState.Opposite && siteState2 == SegmentSiteState.Opposite) {
-            return SegmentCrossState.Single;
-        } else if (siteState1 == SegmentSiteState.Opposite || siteState2 == SegmentSiteState.Opposite) {
+        if (!this.isCrossedBySegment(segment)) {
             return SegmentCrossState.None;
         } else {
-            return SegmentCrossState.Infinite;
+            if (this.isParallelWith(segment)) {
+                if (segment.points[0].equalsTo(this.points[0])
+                    || segment.points[0].equalsTo(this.points[1])
+                    || segment.points[1].equalsTo(this.points[0])
+                    || segment.points[1].equalsTo(this.points[1])) {
+                    return SegmentCrossState.Single;
+                } else {
+                    return SegmentCrossState.Infinite;
+                }
+            } else {
+                return SegmentCrossState.Single;
+            }
         }
     }
 
-    private cross(vector1: Point, vector2: Point): number {
-        return vector1.x * vector2.y - vector1.y * vector2.x;
-    }
-
-    private diff(vector1: Point, vector2: Point): Point {
-        return new Point(vector1.x - vector2.x, vector1.y - vector2.y);
-    }
-
-    private getSiteState(a: Point, b: Point, target: Point): SegmentSiteState {
-        let ca = Math.sign(this.cross(a, target));
-        let cb = Math.sign(this.cross(b, target));
-
-        if (ca == 1 && cb == -1 || ca == -1 && cb == 1) {
-            return SegmentSiteState.Opposite;
-        } else if (ca == 1 && cb == 1 || ca == -1 && cb == -1) {
-            return SegmentSiteState.Same;
+    private getSlope(): number | null {
+        let p1 = this.points[0];
+        let p2 = this.points[1];
+        let ret = (p1.y - p2.y) / (p1.x - p2.x);
+        if (isNaN(ret)) {
+            return null;
         } else {
-            return SegmentSiteState.Opposite;
+            return ret;
         }
+    }
+
+    public isParallelWith(segment: Segment): boolean {
+        return this.getSlope() == segment.getSlope();
     }
 
     public getCrossedPointWithSegment(segment: Segment): Point | null {
@@ -88,31 +69,24 @@ export class Segment extends PolylineBase {
         let c = segment.points[0];
         let d = segment.points[1];
 
-        var denominator = (b.y - a.y) * (d.x - c.x) - (a.x - b.x) * (c.y - d.y);
+        let denominator = (b.y - a.y) * (d.x - c.x) - (a.x - b.x) * (c.y - d.y);
         if (denominator == 0) {
             return null;
         }
 
-        // 线段所在直线的交点坐标 (x , y)      
-        var x = ((b.x - a.x) * (d.x - c.x) * (c.y - a.y)
+        let x = ((b.x - a.x) * (d.x - c.x) * (c.y - a.y)
             + (b.y - a.y) * (d.x - c.x) * a.x
             - (d.y - c.y) * (b.x - a.x) * c.x) / denominator;
-        var y = -((b.y - a.y) * (d.y - c.y) * (c.x - a.x)
+        let y = -((b.y - a.y) * (d.y - c.y) * (c.x - a.x)
             + (b.x - a.x) * (d.y - c.y) * a.y
             - (d.x - c.x) * (b.y - a.y) * c.y) / denominator;
 
-        /** 2 判断交点是否在两条线段上 **/
         if (
-            // 交点在线段1上  
             (x - a.x) * (x - b.x) <= 0 && (y - a.y) * (y - b.y) <= 0
-            // 且交点也在线段2上  
             && (x - c.x) * (x - d.x) <= 0 && (y - c.y) * (y - d.y) <= 0
         ) {
-
-            // 返回交点p  
             return new Point(x, y);
         }
-        //否则不相交  
         return null;
     }
 

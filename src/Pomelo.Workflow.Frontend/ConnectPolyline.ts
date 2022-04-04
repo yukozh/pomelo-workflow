@@ -80,6 +80,19 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         return [point1, point2];
     }
 
+    private getReversedOrientation(orientation: Orientation): Orientation {
+        switch (orientation) {
+            case Orientation.Bottom:
+                return Orientation.Top;
+            case Orientation.Top:
+                return Orientation.Bottom;
+            case Orientation.Left:
+                return Orientation.Right;
+            case Orientation.Right:
+                return Orientation.Left;
+        }
+    }
+
     private buildPath(point: Point, elements: Segment[], previousOrientation: Orientation | null = null, depth = 0): boolean {
         this.path.points.push(point);
 
@@ -140,8 +153,11 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         }
 
         // Don't go back
-        if (previousOrientation != null && orientations.indexOf(previousOrientation) >= 0) {
-            orientations.splice(orientations.indexOf(previousOrientation), 1);
+        if (previousOrientation != null) {
+            let reversedOrientation = this.getReversedOrientation(previousOrientation);
+            if (orientations.indexOf(reversedOrientation)) {
+                orientations.splice(orientations.indexOf(reversedOrientation), 1);
+            }
         }
 
         // Get whole shape border, determine if the point is overflow
