@@ -62,9 +62,12 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
             }
         }
 
-        console.log('Element Segments:');
-        console.log(segments.map(x => `(${x.points[0].x},${x.points[0].y}) (${x.points[1].x},${x.points[1].y})`));
+        //console.log('Element Segments:');
+        //console.log(segments.map(x => `(${x.points[0].x},${x.points[0].y}) (${x.points[1].x},${x.points[1].y})`));
         let ret = this.buildPath(departure.toPoint(), segments, null, 0);
+        if (ret) {
+            this.optmizePath();
+        }
         return ret;
     }
 
@@ -197,7 +200,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
             }
         }
 
-        console.log(orientations);
+        //console.log(orientations);
 
         // Get whole shape border, determine if the point is overflow
         let border = this.calculateBorder(elements);
@@ -228,7 +231,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
             let seg = this.generateSegment(point, o, border);
             let result = this.getCrossedPoints(seg, elements, o, this.destinationPoint);
             if (!result.isValid) {
-                console.log('Invalid ' + o);
+                //console.log('Invalid ' + o);
                 continue;
             }
             //console.log('Valid ' + o + ' ' + result.points.length);
@@ -358,6 +361,56 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         }
 
         return new Segment(point, destination);
+    }
+
+    private optmizePath(): void {
+        if (this.path.points.length < 2) {
+            return;
+        }
+
+        let segments: Segment[] = [];
+        for (let i = 0; i < this.path.points.length - 1; ++i) {
+            let point1 = this.path.points[i];
+            let point2 = this.path.points[i + 1];
+            segments.push(new Segment(point1, point2));
+        }
+
+        for (let i = 1; i < segments.length; ++i) {
+            let seg = segments[i];
+            for (let j = 0; j < i; ++j) {
+                let point = seg.getCrossedPointWithSegment(segments[j]);
+                if (!point
+                    || point.equalsTo(seg.points[0])
+                    || point.equalsTo(seg.points[1])
+                    || point.equalsTo(segments[j].points[0])
+                    || point.equalsTo(segments[j].points[1])) {
+                    continue;
+                }
+
+                segments[j].points[1] = point;
+                seg.points[0] = point;
+                if (j + 1 < segments.length && i - j - 1 > 0) {
+                    segments.splice(j + 1, i - j - 1);
+                }
+                this.generatePath(segments);
+
+                return this.optmizePath();
+            }
+        }
+
+        return;
+    }
+
+    private generatePath(segments: Segment[]): void {
+        if (!segments.length) {
+            return;
+        }
+
+        this.path.points.splice(0, this.path.points.length);
+        this.path.points.push(segments[0].points[0]);
+        for (let i = 0; i < segments.length; ++i) {
+            this.path.points.push(segments[i].points[1]);
+        }
     }
 
     public generateSvg(): string {
