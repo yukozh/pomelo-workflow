@@ -212,12 +212,12 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
             return false;
         }
 
-        if (point.x > border[1].x + 3 * this.padding) {
+        if (point.x > border[1].x + 1 * this.padding) {
             this.pop();
             return false;
         }
 
-        if (point.y > border[1].y + 3 * this.padding) {
+        if (point.y > border[1].y + 1 * this.padding) {
             this.pop();
             return false;
         }
@@ -335,13 +335,13 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
 
     private extendSegment(segment: Segment, orientation: Orientation): Point {
         if (orientation == Orientation.Top) {
-            return new Point(segment.points[1].x, Math.max(segment.points[1].y - this.padding, 0));
+            return new Point(segment.points[0].x, Math.max(segment.points[0].y - this.padding, 0));
         } else if (orientation == Orientation.Bottom) {
-            return new Point(segment.points[1].x, segment.points[1].y + this.padding);
+            return new Point(segment.points[0].x, segment.points[0].y + this.padding);
         } else if (orientation == Orientation.Left) {
-            return new Point(Math.max(segment.points[1].x - this.padding, 0), segment.points[1].y);
+            return new Point(Math.max(segment.points[0].x - this.padding, 0), segment.points[0].y);
         } else { // Right
-            return new Point(segment.points[1].x + this.padding, segment.points[1].y);
+            return new Point(segment.points[0].x + this.padding, segment.points[0].y);
         }
     }
 
@@ -363,12 +363,12 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
     public generateSvg(): string {
         let points = this.path.points.map(x => x.x + ',' + x.y);
         let elements = this.elements.map(el => `<polyline points="${el.points.map(x => x.x + ',' + x.y).join(' ')} ${el.points[0].x},${el.points[0].y}"
-style="fill:white;stroke:blue;stroke-width:2"/>`);
+style="fill:none;stroke:blue;stroke-width:2"/>`);
         let ret = `<svg width="100%" height="100%" version="1.1"
 xmlns="http://www.w3.org/2000/svg">
 ${elements.join('\r\n')}
 <polyline points="${points.join(' ')}"
-style="fill:white;stroke:red;stroke-width:2"/>
+style="fill:none;stroke:red;stroke-width:2"/>
 
 </svg>`;
         return ret;
