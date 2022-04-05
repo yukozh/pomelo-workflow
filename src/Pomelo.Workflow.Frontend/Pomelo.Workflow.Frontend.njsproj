@@ -69,7 +69,7 @@
     <TypeScriptCompile Include="Shape.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="Tests\ConnectPolylineBaseTests.ts" />
+    <TypeScriptCompile Include="Tests\DrawingTests.ts" />
     <TypeScriptCompile Include="tests\ConnectPolylineTests.ts">
       <SubType>Code</SubType>
       <TestFramework>Mocha</TestFramework>

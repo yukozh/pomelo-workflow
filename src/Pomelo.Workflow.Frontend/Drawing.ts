@@ -67,7 +67,11 @@ export class Drawing implements IUniqueIdentified {
                 left: shape.points[0].x,
                 top: shape.points[0].y,
                 width: shape.getWidth(),
-                height: shape.getHeight()
+                height: shape.getHeight(),
+                anchors: shape.getAnchors().map(anchor => <AnchorModel>{
+                    xPercentage: anchor.xPercentage,
+                    yPercentage: anchor.yPercentage
+                })
             }),
             connectPolylines: this.connectPolylines.map(cpl => <ConnectPolylineModel>{
                 guid: cpl.getGuid(),
@@ -75,8 +79,8 @@ export class Drawing implements IUniqueIdentified {
                 destinationShapeGuid: cpl.getDestinationAnchor().shape.getGuid(),
                 departureAnchorIndex: cpl.getDepartureAnchor().shape.getAnchors().indexOf(cpl.getDepartureAnchor()),
                 destinationAnchorIndex: cpl.getDestinationAnchor().shape.getAnchors().indexOf(cpl.getDestinationAnchor()),
-                path: cpl.getPaths().points,
-                color: cpl.getColor()
+                color: cpl.getColor(),
+                path: cpl.getPaths().points
             })
         };
 
