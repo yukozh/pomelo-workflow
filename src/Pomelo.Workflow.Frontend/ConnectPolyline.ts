@@ -164,9 +164,6 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         let queue: bfsState[] = [initState];
         while (queue.length) {
             let state = queue.splice(0, 1)[0];
-            //console.log('------------');
-            //console.log(state.path.points);
-            //console.log('------------');
             this.path = state.path;
             if (state.depth > 10) {
                 return false;
@@ -396,7 +393,6 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         let orientations = this.prioritizeOrientations(path);
         let lastPoint = path.points[path.points.length - 1];
         let border = this.getElementsBorder([path].concat(this.elements));
-        //console.log(border);
         for (let i = 0; i < orientations.length; ++i) {
             let orientation = orientations[i];
             let halfLine = this.generateHalfLine(lastPoint, orientation, border);
@@ -419,12 +415,6 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
             return Math.sqrt((origin.x - a.x) * (origin.x - a.x) + (origin.y - a.y) * (origin.y - a.y)) - Math.sqrt((origin.x - b.x) * (origin.x - b.x) + (origin.y - b.y) * (origin.y - b.y));
         });
 
-        //console.log('======');
-        //console.log(points);
-        //console.log('======');
-        //console.log('~~~~~');
-        //console.log(points);
-        //console.log('~~~~~');
         return points;
     }
 
@@ -433,12 +423,9 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
 
         // 0. Null Check
         if (!point) {
-            //console.debug('Invalid: Null Check');
             return false;
         }
 
-        //console.debug('Checking point: ');
-        //console.debug(point);
 
         // 1. Orientation Check: The point can only move up, down, left or right
         if (path.points.length) {
@@ -495,8 +482,6 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         let lastPoint = path.points[path.points.length - 1];
         let segment = new Segment(lastPoint, point);
         if (this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Infinite).length) {
-            //console.debug(segment);
-            //console.debug(this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Infinite).map(x => x.points));
             //console.debug('Invalid: Segment Cross Check - 1');
             return false;
         }
@@ -508,8 +493,6 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
                 || lastPoint.equalsTo(this.destinationPoint)
                 || lastPoint.equalsTo(this.departurePoint);
             if (isDestinationOrDeparture && count > 1 || !isDestinationOrDeparture) {
-                //console.debug(segment);
-                //console.debug(this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Single).map(x => x.points));
                 //console.debug('Invalid: Segment Cross Check - 2');
                 return false;
             }
