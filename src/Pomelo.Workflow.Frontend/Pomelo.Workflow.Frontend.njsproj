@@ -44,9 +44,6 @@
     <TypeScriptCompile Include="Drawing.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="IUniqueIdentified.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
     <TypeScriptCompile Include="Models\AnchorModel.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

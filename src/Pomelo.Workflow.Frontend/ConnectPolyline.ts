@@ -1,4 +1,4 @@
-import { IUniqueIdentified } from "./IUniqueIdentified";
+import { Drawing } from "./Drawing";
 import { Point } from "./Point";
 import { PolylineBase, Polyline } from "./Polyline";
 import { Segment, SegmentCrossState } from "./Segment";
@@ -42,40 +42,84 @@ class bfsState {
     }
 }
 
-export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
-    public guid: string;
-    public departure: Anchor;
-    public destination: Anchor;
-    public path: PolylineBase = new Polyline();
-    public padding = 5;
-    public departurePoint: Point;
-    public destinationPoint: Point;
-    public elements: PolylineBase[];
-    public elementSegments: Segment[];
-    public color: string = '#555';
+export class ConnectPolyline extends PolylineBase {
+    private guid: string;
+    private departure: Anchor;
+    private destination: Anchor;
+    private path: PolylineBase = new Polyline();
+    private padding = 5;
+    private departurePoint: Point;
+    private destinationPoint: Point;
+    private elementSegments: Segment[];
+    private color: string = '#555';
+    private drawing: Drawing;
+    private pathGeneratedSuccessfully: boolean = false;
 
-    public constructor() {
+    public constructor(drawing: Drawing | null = null) {
         super();
+        this.drawing = drawing;
     }
 
-    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, elements: PolylineBase[], useBFS: boolean = false): boolean {
+    public getGuid(): string {
+        return this.guid;
+    }
+
+    public setColor(color: string): void {
+        this.color = color;
+    }
+
+    public getColor(): string {
+        return this.color;
+    }
+
+    public getPaths(): PolylineBase {
+        return this.path;
+    }
+
+    public getDepartureAnchor(): Anchor {
+        return this.departure;
+    }
+
+    public getDestinationAnchor(): Anchor {
+        return this.destination;
+    }
+
+    private getDrawingElements(): PolylineBase[] {
+        return this.drawing.getShapes();
+    }
+
+    private refreshAnchorPositions(): void {
+        this.departurePoint = this.departure.toPoint();
+        this.destinationPoint = this.destination.toPoint();
+    }
+
+    public getPathGenerationResult(): boolean {
+        return this.pathGeneratedSuccessfully;
+    }
+
+    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, useBFS: boolean = false): boolean {
+        this.pathGeneratedSuccessfully = false;
         this.departure = departure;
         this.destination = destination;
-        this.departurePoint = departure.toPoint();
-        this.destinationPoint = destination.toPoint();
-        this.elements = elements;
+        this.refreshAnchorPositions();
+        this.generateElementSegments(this.drawing.getShapes()); // TODO: Support other lines
+        this.path.points.splice(0, this.path.points.length);
+        let ret = useBFS
+            ? this.buildPathBFS()
+            : this.buildPathDFS(this.departurePoint);
+        this.pathGeneratedSuccessfully = ret;
+        return ret;
+    }
 
+    private generateElementSegments(shapes: Shape[]): void {
         let segments: Segment[] = [];
-        for (let i = 0; i < elements.length; ++i) {
-            let _segments = ConnectPolyline.polylineToSegments(elements[i]);
+        for (let i = 0; i < shapes.length; ++i) {
+            let _segments = ConnectPolyline.polylineToSegments(shapes[i]);
             for (let j = 0; j < _segments.length; ++j) {
                 segments.push(_segments[j]);
             }
         }
         this.elementSegments = segments;
-
-        let ret = useBFS ? this.buildPathBFS() : this.buildPathDFS(this.departurePoint);
-        return ret;
     }
 
     private static polylineToSegments(polyline: Polyline): Segment[] {
@@ -267,8 +311,8 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
 
     private getElementsX(): number[] {
         let ret: number[] = [];
-        for (let i = 0; i < this.elements.length; ++i) {
-            let element = this.elements[i];
+        for (let i = 0; i < this.getDrawingElements().length; ++i) {
+            let element = this.getDrawingElements()[i];
             for (let j = 0; j < element.points.length; ++j) {
                 let result = element.points[j].x;
                 if (ret.indexOf(result) < 0) {
@@ -282,8 +326,8 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
 
     private getElementsY(): number[] {
         let ret: number[] = [];
-        for (let i = 0; i < this.elements.length; ++i) {
-            let element = this.elements[i];
+        for (let i = 0; i < this.getDrawingElements().length; ++i) {
+            let element = this.getDrawingElements()[i];
             for (let j = 0; j < element.points.length; ++j) {
                 let result = element.points[j].y;
                 if (ret.indexOf(result) < 0) {
@@ -390,7 +434,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         let points: Point[] = [];
         let orientations = this.prioritizeOrientations(path);
         let lastPoint = path.points[path.points.length - 1];
-        let border = this.getElementsBorder([path].concat(this.elements));
+        let border = this.getElementsBorder([path].concat(this.getDrawingElements()));
         for (let i = 0; i < orientations.length; ++i) {
             let orientation = orientations[i];
             let halfLine = this.generateHalfLine(lastPoint, orientation, border);
@@ -441,7 +485,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         }
 
         // 3. Border Check
-        let unionElements: PolylineBase[] = [path].concat(this.elements);
+        let unionElements: PolylineBase[] = [path].concat(this.getDrawingElements());
         let border = this.getElementsBorder(unionElements);
         let borderCheckResult = border[0].x - this.padding <= point.x
             && point.x <= border[1].x + this.padding
@@ -470,7 +514,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
             }
 
             // b) The current point should not locate inside of any shapes
-            if (this.elements.filter(x => x.isPointInPolygon(point)).length && !isDestinationOrDeparture) {
+            if (this.getDrawingElements().filter(x => x.isPointInPolygon(point)).length && !isDestinationOrDeparture) {
                 //console.debug('Invalid: Point Cross Check: The current point should not locate inside of any shapes');
                 return false;
             }
@@ -571,7 +615,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
 
     public generateSvg(): string {
         let points = this.path.points.map(x => x.x + ',' + x.y);
-        let elements = this.elements.map(el => `<polyline points="${el.points.map(x => x.x + ',' + x.y).join(' ')} ${el.points[0].x},${el.points[0].y}"
+        let elements = this.getDrawingElements().map(el => `<polyline points="${el.points.map(x => x.x + ',' + x.y).join(' ')} ${el.points[0].x},${el.points[0].y}"
 style="fill:none;stroke:blue;stroke-width:2"/>`);
         let ret = `<svg width="100%" height="100%" version="1.1"
 xmlns="http://www.w3.org/2000/svg">

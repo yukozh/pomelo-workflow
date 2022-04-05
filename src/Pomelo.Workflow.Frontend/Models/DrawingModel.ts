@@ -4,5 +4,6 @@ import { ShapeModel } from "./ShapeModel";
 export interface DrawingModel {
     guid: string;
     shapes: ShapeModel[],
-    connectPolylines: ConnectPolylineModel[]
+    connectPolylines: ConnectPolylineModel[],
+    version: string
 }

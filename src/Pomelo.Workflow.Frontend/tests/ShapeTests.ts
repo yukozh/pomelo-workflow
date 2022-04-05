@@ -1,5 +1,5 @@
 import assert = require('assert');
-import { Anchor, Shape } from '../Shape';
+import { Shape } from '../Shape';
 
 describe("Shape Tests", () => {
     it("Calculate Anchor Point", () => {
@@ -8,11 +8,11 @@ describe("Shape Tests", () => {
         shape.createAnchor(0.5, 0);
         shape.createAnchor(0.5, 1);
 
-        let anchorPoint1 = shape.anchors[0].toPoint();
+        let anchorPoint1 = shape.getAnchors()[0].toPoint();
         assert.equal(anchorPoint1.x, 105);
         assert.equal(anchorPoint1.y, 100);
 
-        let anchorPoint2 = shape.anchors[1].toPoint();
+        let anchorPoint2 = shape.getAnchors()[1].toPoint();
         assert.equal(anchorPoint2.x, 105);
         assert.equal(anchorPoint2.y, 110);
     });
