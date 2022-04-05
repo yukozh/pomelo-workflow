@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D5F93320-E9F
 EndProject
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "Pomelo.Workflow.Frontend", "src\Pomelo.Workflow.Frontend\Pomelo.Workflow.Frontend.njsproj", "{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{3F0BB3F9-4A66-4A9E-9AEA-971F604EDF7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomelo.Workflow.Frontend.Compiler", "Tools\Pomelo.Workflow.Frontend.Compiler\Pomelo.Workflow.Frontend.Compiler.csproj", "{0D7D128B-0FD3-49F1-A2B6-6E1FA5F59C51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,12 +21,17 @@ Global
 		{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D7D128B-0FD3-49F1-A2B6-6E1FA5F59C51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D7D128B-0FD3-49F1-A2B6-6E1FA5F59C51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D7D128B-0FD3-49F1-A2B6-6E1FA5F59C51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D7D128B-0FD3-49F1-A2B6-6E1FA5F59C51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1} = {D5F93320-E9F9-48BA-8FFB-BBC54D58B51C}
+		{0D7D128B-0FD3-49F1-A2B6-6E1FA5F59C51} = {3F0BB3F9-4A66-4A9E-9AEA-971F604EDF7E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7038CFAC-8C07-488C-ABDA-FDEB0A3DEE37}

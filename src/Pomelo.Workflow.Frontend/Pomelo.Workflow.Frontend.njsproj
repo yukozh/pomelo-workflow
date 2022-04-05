@@ -35,6 +35,7 @@
     <None Include="app.ts" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="tsconfig-release.json" />
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>

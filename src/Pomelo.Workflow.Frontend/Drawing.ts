@@ -14,7 +14,7 @@ export class DrawingConfiguration {
     public connectPolylineStroke: number = 1;
 }
 
-export class Drawing implements IUniqueIdentified {
+export class Drawing {
     private guid: string;
     private shapes: Shape[];
     private connectPolylines: ConnectPolyline[];

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "lib": [ "ES5" ],
+    "sourceMap": false,
+    "outFile": "./pomelo.workflow.core.js"
+  },
+  "exclude": [
+    "node_modules",
+    "Tests"
+  ]
+}
