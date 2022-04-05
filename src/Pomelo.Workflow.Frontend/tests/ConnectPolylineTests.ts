@@ -7,6 +7,9 @@ describe("ConnectPolyline Tests", () => {
         let cp1 = new ConnectPolyline();
         let shape1 = new Shape(20, 20, 10, 10, [new Anchor(0, 0)]);
         let shape2 = new Shape(60, 100, 10, 10, [new Anchor(0, 0)]);
+        console.log(`Depatrue: (${shape1.anchors[0].toPoint().x},${shape1.anchors[0].toPoint().y})`);
+        console.log(`Destination: (${shape2.anchors[0].toPoint().x},${shape2.anchors[0].toPoint().y})`);
+
         assert.ok(cp1.initFromDepartureAndDestination(shape1.anchors[0], shape2.anchors[0], []), "This should success");
     });
 

@@ -28,9 +28,18 @@ class PointStateTuple {
     }
 }
 
-class GetCrossPointResult {
-    isValid: boolean;
-    points: PointStateTuple[];
+class bfsState {
+    path: Polyline;
+    depth: number;
+
+    public constructor(path: Polyline, newPoint: Point, depth: number = 0) {
+        this.path = new Polyline();
+        for (let i = 0; i < path.points.length; ++i) {
+            this.path.points.push(path.points[i]);
+        }
+        this.path.points.push(newPoint);
+        this.depth = depth;
+    }
 }
 
 export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
@@ -38,7 +47,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
     public departure: Anchor;
     public destination: Anchor;
     public path: PolylineBase = new Polyline();
-    public padding = 10;
+    public padding = 5;
     public departurePoint: Point;
     public destinationPoint: Point;
     public elements: PolylineBase[];
@@ -64,9 +73,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         }
         this.elementSegments = segments;
 
-        //console.log('Element Segments:');
-        //console.log(segments.map(x => `(${x.points[0].x},${x.points[0].y}) (${x.points[1].x},${x.points[1].y})`));
-        let ret = this.buildPath(departure.toPoint(), null, 0);
+        let ret = this.buildPathBFS();
         if (ret) {
             this.optmizePath();
         }
@@ -95,7 +102,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         return ret;
     }
 
-    private calculateBorder(elements: PolylineBase[]): Point[] {
+    private getElementsBorder(elements: PolylineBase[]): Point[] {
         var point1: Point = new Point(this.departurePoint.x, this.departurePoint.y);
         var point2: Point = new Point(this.departurePoint.x, this.departurePoint.y);
 
@@ -109,8 +116,8 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
                 let _point = elements[i].points[j];
                 point1.x = Math.min(point1.x, _point.x);
                 point1.y = Math.min(point1.y, _point.y);
-                point2.x = Math.max(point2.x, _point.x + this.padding);
-                point2.y = Math.max(point2.y, _point.y + this.padding);
+                point2.x = Math.max(point2.x, _point.x);
+                point2.y = Math.max(point2.y, _point.y);
             }
         }
 
@@ -130,52 +137,73 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         }
     }
 
-    private buildPath(point: Point, previousOrientation: Orientation | null = null, depth = 0): boolean {
-        if (this.path.points.filter(x => x.equalsTo(point)).length) {
-            return false;
-        }
+    private buildPathDFS(): boolean {
 
-        if (this.path.points.length) {
-            let lastPoint = this.path.points[this.path.points.length - 1];
-            if (lastPoint.x != point.x && lastPoint.y != point.y) {
+    }
+
+    private buildPathBFS(): boolean {
+        let initState = new bfsState(new Polyline(), this.departurePoint);
+        let queue: bfsState[] = [initState];
+        while (queue.length) {
+            let state = queue.splice(0, 1)[0];
+            //console.log('------------');
+            //console.log(state.path.points);
+            //console.log('------------');
+            this.path = state.path;
+            if (state.depth > 10) {
                 return false;
             }
-        }
-
-        if (this.path.points.length
-            && this.elements.some(x => x.isPointInPolygon(point))
-            && !point.equalsTo(this.destinationPoint)) {
-            return false;
-        }
-
-        if (this.path.points.length
-            && this.elementSegments.some(x => x.isPointInSegment(point))
-            && !point.equalsTo(this.destinationPoint)) {
-            return false;
-        }
-
-        console.debug(`Current point: (${point.x},${point.y})`);
-        this.path.points.push(point);
-
-        if (point.equalsTo(this.destinationPoint)) {
-            return true;
-        }
-
-        if (depth >= 100 || this.path.points.length >= 100) {
-            return false;
-        }
-
-        if (this.path.points.length >= 2) {
-            let currentSegment = new Segment(this.path.points[this.path.points.length - 2], this.path.points[this.path.points.length - 1]);
-            if (this.elementSegments.some(x => x.getCrossStateWithSegment(currentSegment) == SegmentCrossState.Infinite)) {
-                this.pop();
-                return false;
+            if (state.path.points[state.path.points.length - 1].equalsTo(this.destinationPoint)) {
+                return true;
             }
+
+            let result = this.generateAvailableNextPoints(state.path);
+            let destination = result.filter(x => x.equalsTo(this.destinationPoint));
+            if (destination.length) {
+                let resultState = new bfsState(state.path, destination[0], state.depth + 1);
+                this.path = resultState.path;
+                return true;
+            }
+
+            queue = queue.concat(this.generateAvailableNextPoints(state.path).map(x => new bfsState(state.path, x, state.depth + 1)));
+        }
+    }
+
+    private getLastOrientation(path: PolylineBase): Orientation | null {
+        if (path.points.length < 2) {
+            return null;
         }
 
-        // Greedy to decrease distance between departure and destination
+        return this.getOrientationFromTwoPoints(path.points[path.points.length - 2], path.points[path.points.length - 1]);
+    }
+
+    private getOrientationFromTwoPoints(departure: Point, destination: Point): Orientation | null {
+        let segment = new Segment(departure, destination);
+
+        if (segment.points[0].y == segment.points[1].y) {
+            if (segment.points[1].x > segment.points[0].x) {
+                return Orientation.Right;
+            } else if (segment.points[1].x < segment.points[0].x) {
+                return Orientation.Left;
+            } else {
+                return null;
+            }
+        } else if (segment.points[0].x == segment.points[1].x) {
+            if (segment.points[1].y > segment.points[0].y) {
+                return Orientation.Bottom;
+            } else if (segment.points[1].y < segment.points[0].y) {
+                return Orientation.Top;
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private prioritizeOrientations(path: PolylineBase): Orientation[] {
         let orientations: Orientation[] = [];
-
+        let point = path.points[path.points.length - 1];
         let absX = Math.abs(this.destinationPoint.x - point.x);
         let absY = Math.abs(this.destinationPoint.y - point.y);
 
@@ -206,93 +234,104 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         }
 
         // Fill other cases
-        let dic = [Orientation.Left, Orientation.Right, Orientation.Top, Orientation.Bottom];
-        for (let i = 0; i < 4; ++i) {
-            let o = dic[i];
+        let allOrientations = [Orientation.Left, Orientation.Right, Orientation.Top, Orientation.Bottom];
+        for (let i = 0; i < allOrientations.length; ++i) {
+            let o = allOrientations[i];
             if (orientations.indexOf(o) < 0) {
                 orientations.push(o);
             }
         }
 
-        console.log(orientations);
-
-        // Don't go back
-        if (previousOrientation != null) {
-            let reversedOrientation = this.getReversedOrientation(previousOrientation);
-            if (orientations.indexOf(reversedOrientation)) {
-                orientations.splice(orientations.indexOf(reversedOrientation), 1);
-            }
+        let lastOrientation = this.getLastOrientation(path);
+        if (lastOrientation) {
+            let reversedOrientation = this.getReversedOrientation(lastOrientation);
+            orientations.splice(orientations.indexOf(reversedOrientation), 1);
         }
 
-        //console.log(orientations);
 
-        // Get whole shape border, determine if the point is overflow
-        let border = this.calculateBorder(this.elementSegments);
-
-        if (point.x < 0) {
-            this.pop();
-            return false;
-        }
-
-        if (point.y < 0) {
-            this.pop();
-            return false;
-        }
-
-        if (point.x > border[1].x + 1 * this.padding) {
-            this.pop();
-            return false;
-        }
-
-        if (point.y > border[1].y + 1 * this.padding) {
-            this.pop();
-            return false;
-        }
-
-        // DFS for 4 orientations
-        for (let i = 0; i < orientations.length; ++i) {
-            let o: Orientation = orientations[i];
-            let seg = this.generateSegment(point, o, border);
-            let result = this.getCrossedPoints(seg, o);
-            //console.log('Orientation: ' + o);
-            if (!result.isValid) {
-                //console.log('Invalid ' + o);
-                continue;
-            }
-            //console.log('Valid ' + o + ' ' + result.points.length);
-            let points = result.points;
-            //console.log(points.map(x => x.point));
-            if (points.length > 0 && !point.equalsTo(points[0].point)) { // If crossed point found
-                if (!this.buildPath(points[0].point, o, depth + 1)) { // Loop with the nearest point
-                    continue;
-                } else {
-                    return true;
-                }
-            } else { // Extend the current segment
-                //console.log('Extend');
-                let extended = this.extendSegment(seg, o);
-                if (extended.equalsTo(point)) {
-                    continue;
-                }
-                if (!this.buildPath(extended, o, depth + 1)) { // Loop with the nearest point
-                    continue;
-                } else {
-                    return true;
-                }
-            }
-        }
-
-        //console.log('Failed');
-        return false;
+        return orientations;
     }
 
-    private pop(): void {
-        if (this.path.points.length) {
-            this.path.points.splice(this.path.points.length - 1, 1);
+    private getElementsX(): number[] {
+        let ret: number[] = [];
+        for (let i = 0; i < this.elements.length; ++i) {
+            let element = this.elements[i];
+            for (let j = 0; j < element.points.length; ++j) {
+                let result = element.points[j].x;
+                if (ret.indexOf(result) < 0) {
+                    ret.push(result);
+                }
+            }
         }
+
+        return ret;
     }
 
-    private getCrossedPoints(segment: Segment, orientation: Orientation): GetCrossPointResult {
+    private getElementsY(): number[] {
+        let ret: number[] = [];
+        for (let i = 0; i < this.elements.length; ++i) {
+            let element = this.elements[i];
+            for (let j = 0; j < element.points.length; ++j) {
+                let result = element.points[j].y;
+                if (ret.indexOf(result) < 0) {
+                    ret.push(result);
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    private getCrossedPointsWithSegment2(segment: Segment, path: PolylineBase): Point[] {
+        let ret: Point[] = [];
+        let orientation = this.getOrientationFromTwoPoints(segment.points[0], segment.points[1]);
+        switch (orientation) {
+            case Orientation.Bottom: {
+                let elementYs = this.getElementsY().filter(x => x > segment.points[0].y);;
+                for (let i = 0; i < elementYs.length; ++i) {
+                    ret.push(new Point(segment.points[0].x, elementYs[i]));
+                }
+                if (this.destinationPoint.y > segment.points[0].y) {
+                    ret.push(new Point(segment.points[0].x, this.destinationPoint.y));
+                }
+                break;
+            }
+            case Orientation.Top: {
+                let elementYs = this.getElementsY().filter(x => x < segment.points[0].y);
+                for (let i = 0; i < elementYs.length; ++i) {
+                    ret.push(new Point(segment.points[0].x, elementYs[i]));
+                }
+                if (this.destinationPoint.y < segment.points[0].y) {
+                    ret.push(new Point(segment.points[0].x, this.destinationPoint.y));
+                }
+                break;
+            }
+            case Orientation.Right: {
+                let elementXs = this.getElementsX().filter(x => x > segment.points[0].x);
+                for (let i = 0; i < elementXs.length; ++i) {
+                    ret.push(new Point(elementXs[i], segment.points[0].y));
+                }
+                if (this.destinationPoint.x > segment.points[0].x) {
+                    ret.push(new Point(this.destinationPoint.x, segment.points[0].y));
+                }
+                break;
+            }
+            case Orientation.Left: {
+                let elementXs = this.getElementsX().filter(x => x < segment.points[0].x);
+                for (let i = 0; i < elementXs.length; ++i) {
+                    ret.push(new Point(elementXs[i], segment.points[0].y));
+                }
+                if (this.destinationPoint.x < segment.points[0].x) {
+                    ret.push(new Point(this.destinationPoint.x, segment.points[0].y));
+                }
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+    private getCrossedPointsWithSegment(segment: Segment, path: PolylineBase): PointStateTuple[] {
         let ret: PointStateTuple[] = [];
 
         for (let i = 0; i < this.elementSegments.length; ++i) {
@@ -305,6 +344,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
             }
         }
 
+        let orientation = this.getOrientationFromTwoPoints(segment.points[0], segment.points[1]);
         switch (orientation) {
             case Orientation.Bottom:
                 if (this.destinationPoint.y > segment.points[0].y) {
@@ -328,52 +368,194 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
                 break;
         }
 
-        let origin = segment.points[0];
         ret = ret.filter(x => x && x.point);
 
-        ret.sort((a, b) => {
-            return Math.sqrt((origin.x - a.point.x) * (origin.x - a.point.x) + (origin.y - a.point.y) * (origin.y - a.point.y)) - Math.sqrt((origin.x - b.point.x) * (origin.x - b.point.x) + (origin.y - b.point.y) * (origin.y - b.point.y));
+        return ret;
+    }
+
+    private generateAvailableNextPoints(path: PolylineBase): Point[] {
+        let points: Point[] = [];
+        let orientations = this.prioritizeOrientations(path);
+        let lastPoint = path.points[path.points.length - 1];
+        let border = this.getElementsBorder([path].concat(this.elements));
+        //console.log(border);
+        for (let i = 0; i < orientations.length; ++i) {
+            let orientation = orientations[i];
+            let halfLine = this.generateHalfLine(lastPoint, orientation, border);
+            let crossedPoints = this.getCrossedPointsWithSegment2(halfLine, path);
+            crossedPoints = crossedPoints
+                .concat(crossedPoints.map(x => this.contractSegment(new Segment(lastPoint, x))))
+                .concat(crossedPoints.map(x => this.extendSegment(new Segment(lastPoint, x))));
+            let shortestPoint = this.cutSegment(halfLine, this.padding);
+            if (shortestPoint) {
+                crossedPoints = crossedPoints.concat([shortestPoint]);
+            }
+
+            points = points.concat(crossedPoints);
+        }
+
+        points = points.filter(x => x);
+        points = points.filter(x => this.isValidPoint(x, path));
+        let origin = this.destinationPoint;
+        points.sort((a, b) => {
+            return Math.sqrt((origin.x - a.x) * (origin.x - a.x) + (origin.y - a.y) * (origin.y - a.y)) - Math.sqrt((origin.x - b.x) * (origin.x - b.x) + (origin.y - b.y) * (origin.y - b.y));
         });
 
-        //console.log('Segment:');
-        //console.log(segment.points);
-        //console.log(ret);
-
-        if (ret.length) {
-            if (!this.departurePoint.equalsTo(segment.points[0]) && !this.destinationPoint.equalsTo(segment.points[0]) && ret[0].point.equalsTo(segment.points[0])) {
-                //console.log('First point invalid');
-                return <GetCrossPointResult>{ isValid: false, points: [] };
-            }
-
-            if (ret[0].state == PointState.CrossSegment) {
-                //console.log('Cross seg invalid');
-                return <GetCrossPointResult>{ isValid: false, points: [] };
-            }
-        }
-
-        if (ret.length >= 2) {
-            if (ret[0].parent != null && ret.filter(x => x.parent == ret[0].parent).length >= 2 && !ret[0].point.equalsTo(this.destinationPoint)) {
-                //console.log('Cross shape invalid');
-                return <GetCrossPointResult>{ isValid: false, points: [] };
-            }
-        }
-
-        return <GetCrossPointResult>{ isValid: true, points: ret };
+        //console.log('======');
+        //console.log(points);
+        //console.log('======');
+        //console.log('~~~~~');
+        //console.log(points);
+        //console.log('~~~~~');
+        return points;
     }
 
-    private extendSegment(segment: Segment, orientation: Orientation): Point {
+    private isValidPoint(point: Point, path: PolylineBase): boolean {
+        let count = 0;
+
+        // 0. Null Check
+        if (!point) {
+            //console.debug('Invalid: Null Check');
+            return false;
+        }
+
+        //console.debug('Checking point: ');
+        //console.debug(point);
+
+        // 1. Orientation Check: The point can only move up, down, left or right
+        if (path.points.length) {
+            let lastPoint = path.points[path.points.length - 1];
+            if (point.x != lastPoint.x && point.y != lastPoint.y) {
+                //console.debug('Invalid: Orientation Check: The point can only move up, down, left or right');
+                return false;
+            }
+        }
+
+        // 2. Visit Check: The current point should not exist in path
+        if (path.points.filter(x => x.equalsTo(point)).length) {
+            //console.debug('Invalid: Visit Check: The current point should not exist in path');
+            return false;
+        }
+
+        // 3. Border Check
+        let unionElements: PolylineBase[] = [path].concat(this.elements);
+        let border = this.getElementsBorder(unionElements);
+        let borderCheckResult = border[0].x - this.padding <= point.x
+            && point.x <= border[1].x + this.padding
+            && border[0].y - this.padding <= point.y
+            && point.y <= border[1].y + this.padding;
+        if (!borderCheckResult) {
+            //console.debug('Invalid: Border Check');
+            return false;
+        }
+
+        // 4. Point Cross Check
+        {
+            let isDestinationOrDeparture = point.equalsTo(this.destinationPoint) || point.equalsTo(this.departurePoint);
+
+            // a) The current point should not in the existed path segment
+            for (let i = 0; i < path.points.length - 1; ++i) {
+                let seg = new Segment(path.points[i], path.points[i + 1]);
+                if (seg.isPointInSegment(point)) {
+                    ++count;
+                }
+            }
+
+            if (!(isDestinationOrDeparture && count <= 1 || count == 0)) {
+                //console.debug('Invalid: Point Cross Check: The current point should not in the existed path segment');
+                return false;
+            }
+
+            // b) The current point should not locate inside of any shapes
+            if (this.elements.filter(x => x.isPointInPolygon(point)).length && !isDestinationOrDeparture) {
+                //console.debug('Invalid: Point Cross Check: The current point should not locate inside of any shapes');
+                return false;
+            }
+        }
+
+        // 5. Segment Cross Check: The generated segment should not have cross points with others
+        let lastPoint = path.points[path.points.length - 1];
+        let segment = new Segment(lastPoint, point);
+        if (this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Infinite).length) {
+            //console.debug(segment);
+            //console.debug(this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Infinite).map(x => x.points));
+            //console.debug('Invalid: Segment Cross Check - 1');
+            return false;
+        }
+
+        count = this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Single).length;
+        if (count > 0) {
+            let isDestinationOrDeparture = point.equalsTo(this.destinationPoint)
+                || point.equalsTo(this.departurePoint)
+                || lastPoint.equalsTo(this.destinationPoint)
+                || lastPoint.equalsTo(this.departurePoint);
+            if (isDestinationOrDeparture && count > 1 || !isDestinationOrDeparture) {
+                //console.debug(segment);
+                //console.debug(this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Single).map(x => x.points));
+                //console.debug('Invalid: Segment Cross Check - 2');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private extendSegment(segment: Segment): Point {
+        if (segment.points.some(x => !x)) {
+            return null;
+        }
+        let orientation = this.getOrientationFromTwoPoints(segment.points[0], segment.points[1]);
         if (orientation == Orientation.Top) {
-            return new Point(segment.points[0].x, Math.max(segment.points[0].y - this.padding, 0));
+            return new Point(segment.points[1].x, Math.max(segment.points[1].y - this.padding, 0));
         } else if (orientation == Orientation.Bottom) {
-            return new Point(segment.points[0].x, segment.points[0].y + this.padding);
+            return new Point(segment.points[1].x, segment.points[1].y + this.padding);
         } else if (orientation == Orientation.Left) {
-            return new Point(Math.max(segment.points[0].x - this.padding, 0), segment.points[0].y);
+            return new Point(Math.max(segment.points[1].x - this.padding, 0), segment.points[1].y);
         } else { // Right
-            return new Point(segment.points[0].x + this.padding, segment.points[0].y);
+            return new Point(segment.points[1].x + this.padding, segment.points[1].y);
         }
     }
 
-    private generateSegment(point: Point, orientation: Orientation, border: Point[]): Segment {
+    private cutSegment(segment: Segment, length: number): Point {
+        if (segment.points.some(x => !x)) {
+            return null;
+        }
+        let orientation = this.getOrientationFromTwoPoints(segment.points[0], segment.points[1]);
+        if (orientation == Orientation.Top) {
+            return new Point(segment.points[0].x, Math.max(segment.points[0].y - length, 0));
+        } else if (orientation == Orientation.Bottom) {
+            return new Point(segment.points[0].x, segment.points[0].y + length);
+        } else if (orientation == Orientation.Left) {
+            return new Point(Math.max(segment.points[0].x - length, 0), segment.points[0].y);
+        } else { // Right
+            return new Point(segment.points[0].x + length, segment.points[0].y);
+        }
+    }
+
+    private contractSegment(segment: Segment): Point | null {
+        if (segment.points.some(x => !x)) {
+            return null;
+        }
+        let ret: Point = null;
+        let orientation = this.getOrientationFromTwoPoints(segment.points[0], segment.points[1]);
+        if (orientation == Orientation.Top) {
+            ret = new Point(segment.points[1].x, Math.max(segment.points[1].y + this.padding, 0));
+        } else if (orientation == Orientation.Bottom) {
+            ret = new Point(segment.points[1].x, segment.points[1].y - this.padding);
+        } else if (orientation == Orientation.Left) {
+            ret = new Point(Math.max(segment.points[1].x + this.padding, 0), segment.points[1].y);
+        } else { // Right
+            ret = new Point(segment.points[1].x - this.padding, segment.points[1].y);
+        }
+
+        if (this.getOrientationFromTwoPoints(segment.points[0], ret) != this.getOrientationFromTwoPoints(segment.points[0], segment.points[1])) {
+            return null;
+        } 
+
+        return ret;
+    }
+
+    private generateHalfLine(point: Point, orientation: Orientation, border: Point[]): Segment {
         let destination: Point;
         if (orientation == Orientation.Bottom) {
             destination = new Point(point.x, border[1].y + this.padding);
