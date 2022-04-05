@@ -1,7 +1,7 @@
 import { PointModel } from "./PointModel";
 
-export interface ConnectPolylineModel {
-    guid: string,
+export class ConnectPolylineModel {
+    guid: string;
     departureShapeGuid: string;
     departureAnchorIndex: number;
     destinationShapeGuid: string;

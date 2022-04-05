@@ -1,11 +1,11 @@
 import { AnchorModel } from "./AnchorModel";
 
-export interface ShapeModel {
+export class ShapeModel {
     guid: string;
     top: number;
     left: number;
     width: number;
     height: number;
     anchors: AnchorModel[];
-    name: string
+    name: string;
 }

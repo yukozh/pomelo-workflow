@@ -34,6 +34,9 @@
   <ItemGroup>
     <None Include="app.ts" />
     <Content Include="package.json" />
+    <Content Include="pomelo.json">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="README.md" />
     <Content Include="tsconfig-release.json" />
     <Content Include="tsconfig.json" />

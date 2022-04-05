@@ -1,9 +1,9 @@
 import { ConnectPolylineModel } from "./ConnectPolylineModel";
 import { ShapeModel } from "./ShapeModel";
 
-export interface DrawingModel {
+export class DrawingModel {
     guid: string;
-    shapes: ShapeModel[],
-    connectPolylines: ConnectPolylineModel[],
-    version: string
+    shapes: ShapeModel[];
+    connectPolylines: ConnectPolylineModel[];
+    version: string;
 }

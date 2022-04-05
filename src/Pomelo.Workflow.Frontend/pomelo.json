@@ -1,0 +1,12 @@
+{
+  "exclude": [
+    "node_modules",
+    "Tests"
+  ],
+  "tsconfig": "tsconfig-release.json",
+  "prioritized": [
+    "Polyline.ts"
+  ],
+  "entry": "app.ts",
+  "output": "pomelo.workflow.core.ts"
+}
