@@ -118,8 +118,28 @@ export class Drawing implements IUniqueIdentified {
         let departure = this.findShapeByGuid(departureGuid);
         let destination = this.findShapeByGuid(destinationGuid);
         cpl.initFromDepartureAndDestination(departure.getAnchors()[departureAnchorIndex], destination.getAnchors()[destinationAnchorIndex]);
-        // TODO: impl
-
+        this.connectPolylines.push(cpl);
         return cpl;
+    }
+
+    public generateSvg(): string {
+        // Render shapes
+        let shapes = [];
+        if (this.config.elementBorder) {
+            shapes = this.getShapes().map(el => `<polyline points="${el.points.map(x => x.x + ',' + x.y).join(' ')} ${el.points[0].x},${el.points[0].y}"
+style="fill:none;stroke:${this.config.elementBorderColor};stroke-width:${this.config.elementBorderStroke}"/>`);
+        }
+
+        // Render connect polylines
+        let lines = this.getConnectPolylines().map(l => `<polyline points="${l.getPaths().points.map(x => x.x + ',' + x.y).join(' ')}"
+style="fill:none;stroke:${l.getColor()};stroke-width:${this.config.connectPolylineStroke}"/>`);
+
+        let ret = `<svg width="100%" height="100%" version="1.1"
+xmlns="http://www.w3.org/2000/svg">
+${shapes.join('\r\n')}
+${lines.join('\r\n')}
+
+</svg>`;
+        return ret;
     }
 }
