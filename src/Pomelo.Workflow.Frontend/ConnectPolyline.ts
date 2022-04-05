@@ -52,6 +52,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
     public destinationPoint: Point;
     public elements: PolylineBase[];
     public elementSegments: Segment[];
+    public color: string = '#555';
 
     public constructor() {
         super();
@@ -74,9 +75,6 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         this.elementSegments = segments;
 
         let ret = useBFS ? this.buildPathBFS() : this.buildPathDFS(this.departurePoint);
-        if (ret) {
-            this.optmizePath();
-        }
         return ret;
     }
 
@@ -579,7 +577,7 @@ style="fill:none;stroke:blue;stroke-width:2"/>`);
 xmlns="http://www.w3.org/2000/svg">
 ${elements.join('\r\n')}
 <polyline points="${points.join(' ')}"
-style="fill:none;stroke:red;stroke-width:2"/>
+style="fill:none;stroke:${this.color};stroke-width:2"/>
 
 </svg>`;
         return ret;

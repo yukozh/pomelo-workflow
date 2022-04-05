@@ -24,8 +24,9 @@ export class Shape extends PolylineBase implements IUniqueIdentified {
     public height: number;
     public anchors: Anchor[];
 
-    public constructor(x: number, y: number, width: number, height: number, anchors: Anchor[]) {
+    public constructor(x: number, y: number, width: number, height: number, guid: string) {
         super();
+        this.guid = guid;
         if (width == 0 || height == 0) {
             throw 'The width and height cannot be zero';
         }
@@ -37,9 +38,12 @@ export class Shape extends PolylineBase implements IUniqueIdentified {
         this.points.push(new Point(x + width, y));
         this.points.push(new Point(x + width, y + height));
         this.points.push(new Point(x, y + height));
-        this.anchors = anchors || [];
-        for (let i = 0; i < this.anchors.length; ++i) {
-            this.anchors[i].shape = this;
-        }
+        this.anchors = [];
+    }
+
+    public createAnchor(xPercentage: number, yPercentage: number): Anchor {
+        let anchor = new Anchor(xPercentage, yPercentage, this);
+        this.anchors.push(anchor);
+        return anchor;
     }
 }

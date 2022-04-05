@@ -3,10 +3,10 @@ import { Anchor, Shape } from '../Shape';
 
 describe("Shape Tests", () => {
     it("Calculate Anchor Point", () => {
-        let shape = new Shape(100, 100, 10, 10, [
-            new Anchor(0.5, 0),
-            new Anchor(0.5, 1),
-        ]);
+        let shape = new Shape(100, 100, 10, 10, null);
+
+        shape.createAnchor(0.5, 0);
+        shape.createAnchor(0.5, 1);
 
         let anchorPoint1 = shape.anchors[0].toPoint();
         assert.equal(anchorPoint1.x, 105);
