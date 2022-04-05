@@ -29,9 +29,12 @@ describe("Drawing Tests", () => {
         console.log(`Depatrue: (${shape1.getAnchors()[0].toPoint().x},${shape1.getAnchors()[0].toPoint().y})`);
         console.log(`Destination: (${shape2.getAnchors()[0].toPoint().x},${shape2.getAnchors()[0].toPoint().y})`);
         let ret = cp.getPathGenerationResult();
-        console.log(drawing.generateSvg());
+        let svg = drawing.generateSvg();
+        console.log(svg);
 
         // Assert
+        assert.ok(ret);
+        assert.notEqual(svg, null);
         assert.equal(anchor1.toPoint().x, 20);
         assert.equal(anchor1.toPoint().y, 20 + 10);
         assert.equal(anchor2.toPoint().x, 80 + 20);
