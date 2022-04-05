@@ -57,7 +57,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         super();
     }
 
-    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, elements: PolylineBase[]): boolean {
+    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, elements: PolylineBase[], useBFS: boolean = false): boolean {
         this.departure = departure;
         this.destination = destination;
         this.departurePoint = departure.toPoint();
@@ -73,7 +73,7 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         }
         this.elementSegments = segments;
 
-        let ret = this.buildPathBFS();
+        let ret = useBFS ? this.buildPathBFS() : this.buildPathDFS(this.departurePoint);
         if (ret) {
             this.optmizePath();
         }
@@ -137,8 +137,26 @@ export class ConnectPolyline extends PolylineBase implements IUniqueIdentified {
         }
     }
 
-    private buildPathDFS(): boolean {
+    private pop(): void {
+        this.path.points.splice(this.path.points.length - 1, 1);
+    }
 
+    private buildPathDFS(point: Point, depth: number = 0): boolean {
+        this.path.points.push(point);
+        if (point.equalsTo(this.destinationPoint)) {
+            return true;
+        }
+
+        let availablePoints = this.generateAvailableNextPoints(this.path);
+        for (let i = 0; i < availablePoints.length; ++i) {
+            if (this.buildPathDFS(availablePoints[i], depth + 1)) {
+                return true;
+            } else {
+                this.pop();
+            }
+        }
+
+        return false;
     }
 
     private buildPathBFS(): boolean {
