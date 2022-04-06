@@ -158,7 +158,7 @@ describe("ConnectPolyline Tests", () => {
         shape4.createAnchor(.5, 1);
 
         // Act
-        let cp1 = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0, 'blue');
+        let cp1 = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0, 'orange');
         let cp2 = drawing.createConnectPolyline(shape3.getGuid(), 0, shape4.getGuid(), 0, 'red');
         let cp3 = drawing.createConnectPolyline(shape2.getGuid(), 1, shape4.getGuid(), 1, 'green');
         console.log(drawing.generateSvg());

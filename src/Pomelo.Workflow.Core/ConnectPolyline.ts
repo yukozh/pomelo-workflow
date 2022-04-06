@@ -96,6 +96,8 @@ export class ConnectPolyline extends PolylineBase {
         if (ret) {
             this.path.points = [departure.toPoint()].concat(this.path.points).concat([destination.toPoint()]);
         }
+
+        this.points = this.path.points;
         this.pathGeneratedSuccessfully = ret;
         return ret;
     }
@@ -128,7 +130,7 @@ export class ConnectPolyline extends PolylineBase {
             }
         }
         this.polylineSegments = segments;
-        this.elementSegments = this.polylineSegments.concat(this.originalShapeSegments);
+        this.elementSegments = this.polylineSegments.concat(this.expandedShapeSegments);
     }
 
     private static polylineToSegments(polyline: Polyline): Segment[] {
