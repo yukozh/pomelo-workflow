@@ -77,14 +77,14 @@ export class ConnectPolyline extends PolylineBase {
         return this.pathGeneratedSuccessfully;
     }
 
-    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, useBFS: boolean = false): boolean {
+    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, fastMode: boolean = false): boolean {
         this.pathGeneratedSuccessfully = false;
         this.departure = departure;
         this.destination = destination;
         this.refreshAnchorPositions();
         this.generateElementSegments(this.drawing.getShapes(), this.drawing.getConnectPolylines());
         this.path.points.splice(0, this.path.points.length);
-        let ret = useBFS
+        let ret = fastMode
             ? this.buildPathBFS()
             : this.buildPathDFS(this.departurePoint);
         if (ret) {

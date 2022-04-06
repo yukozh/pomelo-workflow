@@ -54,7 +54,7 @@ describe("ConnectPolyline Tests", () => {
         assert.equal(anchor2.toPoint().x, 80 + 20);
         assert.equal(anchor2.toPoint().y, 100 + 10);
 
-        drawing.createShape(40, 80, 20, 20);
+        drawing.createShape(90, 60, 20, 20);
 
         // Act
         let cp = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0);
