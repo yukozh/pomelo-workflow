@@ -615,18 +615,4 @@ export class ConnectPolyline extends PolylineBase {
 
         return new Segment(point, destination);
     }
-
-    public generateSvg(): string {
-        let points = this.path.points.map(x => x.x + ',' + x.y);
-        let elements = this.getDrawingElements().map(el => `<polyline points="${el.points.map(x => x.x + ',' + x.y).join(' ')} ${el.points[0].x},${el.points[0].y}"
-style="fill:none;stroke:blue;stroke-width:2"/>`);
-        let ret = `<svg width="100%" height="100%" version="1.1"
-xmlns="http://www.w3.org/2000/svg">
-${elements.join('\r\n')}
-<polyline points="${points.join(' ')}"
-style="fill:none;stroke:${this.color};stroke-width:2"/>
-
-</svg>`;
-        return ret;
-    }
 }
