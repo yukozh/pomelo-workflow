@@ -159,15 +159,10 @@ export class ConnectPolyline extends PolylineBase {
 
 
     private pop(): void {
-        console.log('pop');
         this.path.points.splice(this.path.points.length - 1, 1);
     }
 
     private buildPathDFS(point: Point, depth: number = 0): boolean {
-        console.log('======');
-        console.log('Current:');
-        console.log(point);
-        console.log('======');
         this.path.points.push(point);
         if (point.equalsTo(this.destinationPoint)) {
             return true;
@@ -411,7 +406,6 @@ export class ConnectPolyline extends PolylineBase {
             }
 
             points = points.concat(crossedPoints).concat(fixedPoints);
-            console.log(crossedPoints);
         }
 
         points = points.filter(x => x);
@@ -421,7 +415,6 @@ export class ConnectPolyline extends PolylineBase {
             return Math.sqrt((origin.x - a.x) * (origin.x - a.x) + (origin.y - a.y) * (origin.y - a.y)) - Math.sqrt((origin.x - b.x) * (origin.x - b.x) + (origin.y - b.y) * (origin.y - b.y));
         });
 
-        console.log(points);
         return points;
     }
 
