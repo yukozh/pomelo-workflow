@@ -169,4 +169,64 @@ describe("ConnectPolyline Tests", () => {
         assert.ok(cp2.getPathGenerationResult(), "Generate path should success");
         assert.ok(cp3.getPathGenerationResult(), "Generate path should success");
     });
+
+    it("Four Shapes Test #2", () => {
+        // Arrange
+        let drawing = new Drawing(config);
+
+        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let anchor1 = shape1.createAnchor(0, .5);
+        assert.equal(anchor1.toPoint().x, 20);
+        assert.equal(anchor1.toPoint().y, 20 + 10);
+
+        let shape2 = drawing.createShape(200, 30, 20, 20);
+        shape2.createAnchor(1, .5);
+        shape2.createAnchor(.5, 1);
+
+        let shape3 = drawing.createShape(100, 20, 20, 20);
+        shape3.createAnchor(0, .5);
+
+        let shape4 = drawing.createShape(260, 15, 20, 20);
+        shape4.createAnchor(1, .5);
+        shape4.createAnchor(.5, 1);
+
+        // Act
+        let cp1 = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0, 'orange');
+        let cp2 = drawing.createConnectPolyline(shape3.getGuid(), 0, shape4.getGuid(), 0, 'red');
+        let cp3 = drawing.createConnectPolyline(shape2.getGuid(), 1, shape4.getGuid(), 1, 'green');
+        console.log(drawing.generateSvg());
+
+
+        // Assert
+        assert.ok(cp1.getPathGenerationResult(), "Generate path should success");
+        assert.ok(cp2.getPathGenerationResult(), "Generate path should success");
+        assert.ok(cp3.getPathGenerationResult(), "Generate path should success");
+    });
+
+    it("Four Shapes Test #3", () => {
+        // Arrange
+        let drawing = new Drawing(config);
+
+        let shape1 = drawing.createShape(80, 20, 20, 20);
+        shape1.createAnchor(.5, 1);
+
+        let shape2 = drawing.createShape(80, 120, 20, 20);
+        shape2.createAnchor(.5, 0);
+
+        let shape3 = drawing.createShape(20, 60, 20, 20);
+        shape3.createAnchor(1, .5);
+
+        let shape4 = drawing.createShape(140, 60, 20, 20);
+        shape4.createAnchor(0, .5);
+
+        // Act
+        let cp1 = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0, 'green');
+        let cp2 = drawing.createConnectPolyline(shape3.getGuid(), 0, shape4.getGuid(), 0, 'red');
+        console.log(drawing.generateSvg());
+
+
+        // Assert
+        assert.ok(cp1.getPathGenerationResult(), "Generate path should success");
+        assert.ok(cp2.getPathGenerationResult(), "Generate path should success");
+    });
 });
