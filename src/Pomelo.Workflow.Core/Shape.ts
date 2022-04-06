@@ -16,6 +16,14 @@ export class Anchor {
     public toPoint(): Point {
         return new Point(this.shape.points[0].x + this.xPercentage * this.shape.getWidth(), this.shape.points[0].y + this.yPercentage * this.shape.getHeight());
     }
+
+    public toPointWithPadding(padding: number): Point {
+        let fakeWidth = this.shape.getWidth() + padding * 2;
+        let fakeHeight = this.shape.getHeight() + padding * 2;
+        let fakeX = this.shape.points[0].x - padding;
+        let fakeY = this.shape.points[0].y - padding;
+        return new Point(fakeX + this.xPercentage * fakeWidth, fakeY + this.yPercentage * fakeHeight);
+    }
 }
 
 export class Shape extends PolylineBase {
@@ -63,5 +71,13 @@ export class Shape extends PolylineBase {
         let anchor = new Anchor(xPercentage, yPercentage, this);
         this.anchors.push(anchor);
         return anchor;
+    }
+
+    public cloneAndExpand(padding: number): Shape {
+        let fakeWidth = this.getWidth() + padding * 2;
+        let fakeHeight = this.getHeight() + padding * 2;
+        let fakeX = this.points[0].x - padding;
+        let fakeY = this.points[0].y - padding;
+        return new Shape(fakeX, fakeY, fakeWidth, fakeHeight);
     }
 }

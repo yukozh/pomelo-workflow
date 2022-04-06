@@ -52,10 +52,13 @@ describe("Segment Tests", () => {
     it("Cover Test", () => {
         let segment1 = new Segment(new Point(20, 20), new Point(20, 30));
         let segment2 = new Segment(new Point(20, 20), new Point(20, 130));
+        let segment3 = new Segment(new Point(10, 50), new Point(190, 50));
+        let segment4 = new Segment(new Point(90, 50), new Point(190, 50));
 
         assert.ok(segment2.isPointInSegment(segment1.points[0]));
         assert.ok(segment2.isPointInSegment(segment1.points[1]));
         assert.equal(segment1.getCrossStateWithSegment(segment2), SegmentCrossState.Infinite);
+        assert.equal(segment3.getCrossStateWithSegment(segment4), SegmentCrossState.Infinite);
     });
 
     it("Point In Segment Test", () => {

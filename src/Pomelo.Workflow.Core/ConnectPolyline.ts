@@ -34,6 +34,9 @@ export class ConnectPolyline extends PolylineBase {
     private departurePoint: Point;
     private destinationPoint: Point;
     private elementSegments: Segment[];
+    private expandedShapeSegments: Segment[];
+    private originalShapeSegments: Segment[];
+    private polylineSegments: Segment[];
     private color: string = '#555';
     private drawing: Drawing;
     private pathGeneratedSuccessfully: boolean = false;
@@ -72,8 +75,8 @@ export class ConnectPolyline extends PolylineBase {
     }
 
     private refreshAnchorPositions(): void {
-        this.departurePoint = this.departure.toPoint();
-        this.destinationPoint = this.destination.toPoint();
+        this.departurePoint = this.departure.toPointWithPadding(this.padding);
+        this.destinationPoint = this.destination.toPointWithPadding(this.padding);
     }
 
     public getPathGenerationResult(): boolean {
@@ -90,26 +93,42 @@ export class ConnectPolyline extends PolylineBase {
         let ret = useBFS
             ? this.buildPathBFS()
             : this.buildPathDFS(this.departurePoint);
+        if (ret) {
+            this.path.points = [departure.toPoint()].concat(this.path.points).concat([destination.toPoint()]);
+        }
         this.pathGeneratedSuccessfully = ret;
         return ret;
     }
 
     private generateElementSegments(shapes: Shape[], connectPolylines: ConnectPolyline[]): void {
         let segments: Segment[] = [];
+        let expanded = shapes.map(x => x.cloneAndExpand(this.padding));
+        for (let i = 0; i < expanded.length; ++i) {
+            let _segments = ConnectPolyline.polylineToSegments(expanded[i]);
+            for (let j = 0; j < _segments.length; ++j) {
+                segments.push(_segments[j]);
+            }
+        }
+        this.expandedShapeSegments = segments;
+
+        segments = [];
         for (let i = 0; i < shapes.length; ++i) {
             let _segments = ConnectPolyline.polylineToSegments(shapes[i]);
             for (let j = 0; j < _segments.length; ++j) {
                 segments.push(_segments[j]);
             }
         }
+        this.originalShapeSegments = segments;
 
+        segments = [];
         for (let i = 0; i < connectPolylines.length; ++i) {
             let _segments = ConnectPolyline.polylineToSegments(connectPolylines[i]);
             for (let j = 0; j < _segments.length; ++j) {
                 segments.push(_segments[j]);
             }
         }
-        this.elementSegments = segments;
+        this.polylineSegments = segments;
+        this.elementSegments = this.polylineSegments.concat(this.originalShapeSegments);
     }
 
     private static polylineToSegments(polyline: Polyline): Segment[] {
@@ -360,8 +379,8 @@ export class ConnectPolyline extends PolylineBase {
             let halfLine = this.generateHalfLine(lastPoint, orientation, border);
             let crossedPoints = this.getCrossedPointsWithSegment(halfLine, path);
             crossedPoints = crossedPoints
-                .concat(crossedPoints.map(x => this.contractSegment(new Segment(lastPoint, x))))
-                .concat(crossedPoints.map(x => this.extendSegment(new Segment(lastPoint, x))))
+                //.concat(crossedPoints.map(x => this.contractSegment(new Segment(lastPoint, x))))
+                //.concat(crossedPoints.map(x => this.extendSegment(new Segment(lastPoint, x))))
                 .filter(x => x);
 
             // Don't cross segment
@@ -383,35 +402,35 @@ export class ConnectPolyline extends PolylineBase {
             let fixedPoints = [];
             let fixedPoint = this.cutSegment(halfLine, this.padding);
             fixedPoints.push(fixedPoint);
-            if (true) {
-                let border = this.getElementsBorder(this.elementSegments);
-                while (true) {
-                    fixedPoint = this.extendSegment(new Segment(lastPoint, fixedPoint));
+            //if (true) {
+            //    let border = this.getElementsBorder(this.elementSegments);
+            //    while (true) {
+            //        fixedPoint = this.extendSegment(new Segment(lastPoint, fixedPoint));
 
-                    if (fixedPoint.x < border[0].x - this.padding || fixedPoint.y < border[0].y - this.padding
-                        || fixedPoint.x > border[1].x + this.padding || fixedPoint.y > border[1].y + this.padding) {
-                        break;
-                    }
+            //        if (fixedPoint.x < border[0].x - this.padding || fixedPoint.y < border[0].y - this.padding
+            //            || fixedPoint.x > border[1].x + this.padding || fixedPoint.y > border[1].y + this.padding) {
+            //            break;
+            //        }
 
-                    if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path)) {
-                        break;
-                    }
+            //        if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path)) {
+            //            break;
+            //        }
 
-                    if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
-                        if (unavailableRange.every(range => fixedPoint.y < range[0] || fixedPoint.y > range[1])) {
-                            if (this.isValidPoint(fixedPoint, path)) {
-                                fixedPoints.push(fixedPoint);
-                            }
-                        }
-                    } else {
-                        if (unavailableRange.every(range => fixedPoint.x < range[0] || fixedPoint.x > range[1])) {
-                            if (this.isValidPoint(fixedPoint, path)) {
-                                fixedPoints.push(fixedPoint);
-                            }
-                        }
-                    }
-                }
-            }
+            //        if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
+            //            if (unavailableRange.every(range => fixedPoint.y < range[0] || fixedPoint.y > range[1])) {
+            //                if (this.isValidPoint(fixedPoint, path)) {
+            //                    fixedPoints.push(fixedPoint);
+            //                }
+            //            }
+            //        } else {
+            //            if (unavailableRange.every(range => fixedPoint.x < range[0] || fixedPoint.x > range[1])) {
+            //                if (this.isValidPoint(fixedPoint, path)) {
+            //                    fixedPoints.push(fixedPoint);
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
 
             points = points.concat(crossedPoints).concat(fixedPoints);
         }
@@ -433,7 +452,6 @@ export class ConnectPolyline extends PolylineBase {
         if (!point) {
             return false;
         }
-
 
         // 1. Orientation Check: The point can only move up, down, left or right
         if (path.points.length) {
@@ -479,7 +497,7 @@ export class ConnectPolyline extends PolylineBase {
             }
 
             // b) The current point should not locate inside of any shapes
-            if (this.getDrawingElements().filter(x => x.isPointInPolygon(point)).length && !isDestinationOrDeparture) {
+            if (this.getDrawingElements().filter(x => x.isPointInPolygon(point)).length && !isDestinationOrDeparture) { // Use actual shape(not expanded)
                 //console.debug('Invalid: Point Cross Check: The current point should not locate inside of any shapes');
                 return false;
             }
@@ -487,7 +505,7 @@ export class ConnectPolyline extends PolylineBase {
             // c) Current segment should not cross with others
             let lastPoint = path.points[path.points.length - 1];
             let segment = new Segment(lastPoint, point);
-            if (this.elementSegments.some(x => segment.getCrossStateWithSegment(x) == SegmentCrossState.Infinite)
+            if (this.polylineSegments.some(x => segment.getCrossStateWithSegment(x) == SegmentCrossState.Infinite)
                 && !segment.points[0].equalsTo(this.departurePoint)
                 && !segment.points[1].equalsTo(this.departurePoint)
                 && !segment.points[0].equalsTo(this.destinationPoint)
@@ -501,12 +519,12 @@ export class ConnectPolyline extends PolylineBase {
         // 5. Segment Cross Check: The generated segment should not have cross points with others
         let lastPoint = path.points[path.points.length - 1];
         let segment = new Segment(lastPoint, point);
-        if (this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Infinite).length) {
+        if (this.polylineSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Infinite).length) {
             //console.debug('Invalid: Segment Cross Check - 1');
             return false;
         }
 
-        count = this.elementSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Single).length;
+        count = this.originalShapeSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Single).length;
         if (count > 0) {
             let isDestinationOrDeparture = point.equalsTo(this.destinationPoint)
                 || point.equalsTo(this.departurePoint)
