@@ -376,46 +376,41 @@ export class ConnectPolyline extends PolylineBase {
                     || unavailableRange.every(range => point.x < range[0] || point.x > range[1]));
             }
 
-            let shortestPoint = this.cutSegment(halfLine, this.padding);
-            crossedPoints.push(shortestPoint);
-            if (crossedPoints.length <= 1) {
+            let fixedPoints = [];
+            let fixedPoint = this.cutSegment(halfLine, this.padding);
+            fixedPoints.push(fixedPoint);
+            if (true) {
                 let elements: PolylineBase[] = this.drawing.getShapes().map(x => <PolylineBase>x).concat(this.drawing.getConnectPolylines());
                 let border = this.getElementsBorder(elements);
                 while (true) {
-                    shortestPoint = this.extendSegment(new Segment(lastPoint, shortestPoint));
+                    fixedPoint = this.extendSegment(new Segment(lastPoint, fixedPoint));
 
-                    if (shortestPoint.x < border[0].x - this.padding || shortestPoint.y < border[0].y - this.padding
-                        || shortestPoint.x > border[1].x + this.padding || shortestPoint.y > border[1].y + this.padding) {
-                        shortestPoint = null;
+                    if (fixedPoint.x < border[0].x - this.padding || fixedPoint.y < border[0].y - this.padding
+                        || fixedPoint.x > border[1].x + this.padding || fixedPoint.y > border[1].y + this.padding) {
                         break;
                     }
 
-                    if (shortestPoint.equalsTo(this.destinationPoint) && this.isValidPoint(shortestPoint, path)) {
+                    if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path)) {
                         break;
                     }
 
                     if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
-                        if (unavailableRange.every(range => shortestPoint.y < range[0] || shortestPoint.y > range[1])) {
-                            if (this.isValidPoint(shortestPoint, path)) {
-                                break;
+                        if (unavailableRange.every(range => fixedPoint.y < range[0] || fixedPoint.y > range[1])) {
+                            if (this.isValidPoint(fixedPoint, path)) {
+                                fixedPoints.push(fixedPoint);
                             }
                         }
                     } else {
-                        if (unavailableRange.every(range => shortestPoint.x < range[0] || shortestPoint.x > range[1])) {
-                            if (this.isValidPoint(shortestPoint, path)) {
-                                break;
+                        if (unavailableRange.every(range => fixedPoint.x < range[0] || fixedPoint.x > range[1])) {
+                            if (this.isValidPoint(fixedPoint, path)) {
+                                fixedPoints.push(fixedPoint);
                             }
-                            break;
                         }
                     }
                 }
-
-                if (shortestPoint) {
-                    crossedPoints.concat([shortestPoint]);
-                }
             }
 
-            points = points.concat(crossedPoints);
+            points = points.concat(crossedPoints).concat(fixedPoints);
             console.log(crossedPoints);
         }
 
