@@ -68,7 +68,7 @@ export class ConnectPolyline extends PolylineBase {
     }
 
     private getDrawingElements(): PolylineBase[] {
-        return this.drawing.getShapes();
+        return this.drawing.getShapes().map(x => <PolylineBase>x).concat(this.drawing.getConnectPolylines().map(x => <PolylineBase>x));
     }
 
     private refreshAnchorPositions(): void {
@@ -85,7 +85,7 @@ export class ConnectPolyline extends PolylineBase {
         this.departure = departure;
         this.destination = destination;
         this.refreshAnchorPositions();
-        this.generateElementSegments(this.drawing.getShapes()); // TODO: Support other lines
+        this.generateElementSegments(this.drawing.getShapes(), this.drawing.getConnectPolylines());
         this.path.points.splice(0, this.path.points.length);
         let ret = useBFS
             ? this.buildPathBFS()
@@ -94,10 +94,17 @@ export class ConnectPolyline extends PolylineBase {
         return ret;
     }
 
-    private generateElementSegments(shapes: Shape[]): void {
+    private generateElementSegments(shapes: Shape[], connectPolylines: ConnectPolyline[]): void {
         let segments: Segment[] = [];
         for (let i = 0; i < shapes.length; ++i) {
             let _segments = ConnectPolyline.polylineToSegments(shapes[i]);
+            for (let j = 0; j < _segments.length; ++j) {
+                segments.push(_segments[j]);
+            }
+        }
+
+        for (let i = 0; i < connectPolylines.length; ++i) {
+            let _segments = ConnectPolyline.polylineToSegments(connectPolylines[i]);
             for (let j = 0; j < _segments.length; ++j) {
                 segments.push(_segments[j]);
             }
@@ -299,7 +306,7 @@ export class ConnectPolyline extends PolylineBase {
         let orientation = Orientation.getOrientationFromTwoPoints(segment.points[0], segment.points[1]);
         switch (orientation) {
             case AbsoluteOrientation.Bottom: {
-                let elementYs = this.getElementsY().filter(x => x > segment.points[0].y);;
+                let elementYs = this.getElementsY().filter(x => x > segment.points[0].y);
                 for (let i = 0; i < elementYs.length; ++i) {
                     ret.push(new Point(segment.points[0].x, elementYs[i]));
                 }
@@ -347,7 +354,7 @@ export class ConnectPolyline extends PolylineBase {
         let points: Point[] = [];
         let orientations = this.prioritizeOrientations(path);
         let lastPoint = path.points[path.points.length - 1];
-        let border = this.getElementsBorder([path].concat(this.getDrawingElements()));
+        let border = this.getElementsBorder(this.elementSegments);
         for (let i = 0; i < orientations.length; ++i) {
             let orientation = orientations[i];
             let halfLine = this.generateHalfLine(lastPoint, orientation, border);
@@ -360,14 +367,16 @@ export class ConnectPolyline extends PolylineBase {
             // Don't cross segment
             let unavailableRange: number[][] = [];
             if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
-                unavailableRange = this.elementSegments.map(x => x.getDeltaY()).filter(x => x);
+                unavailableRange = this.elementSegments.map(x => x.getDeltaY());
                 crossedPoints = crossedPoints.filter(point => point.equalsTo(this.destinationPoint)
-                    || point.equalsTo(this.departurePoint)
+                    || point.x == this.destinationPoint.x
+                    || point.y == this.destinationPoint.y
                     || unavailableRange.every(range => point.y < range[0] || point.y > range[1]));
             } else {
-                unavailableRange = this.elementSegments.map(x => x.getDeltaX()).filter(x => x);
+                unavailableRange = this.elementSegments.map(x => x.getDeltaX());
                 crossedPoints = crossedPoints.filter(point => point.equalsTo(this.destinationPoint)
-                    || point.equalsTo(this.departurePoint)
+                    || point.x == this.destinationPoint.x
+                    || point.y == this.destinationPoint.y
                     || unavailableRange.every(range => point.x < range[0] || point.x > range[1]));
             }
 
@@ -375,8 +384,7 @@ export class ConnectPolyline extends PolylineBase {
             let fixedPoint = this.cutSegment(halfLine, this.padding);
             fixedPoints.push(fixedPoint);
             if (true) {
-                let elements: PolylineBase[] = this.drawing.getShapes().map(x => <PolylineBase>x).concat(this.drawing.getConnectPolylines());
-                let border = this.getElementsBorder(elements);
+                let border = this.getElementsBorder(this.elementSegments);
                 while (true) {
                     fixedPoint = this.extendSegment(new Segment(lastPoint, fixedPoint));
 
@@ -443,8 +451,7 @@ export class ConnectPolyline extends PolylineBase {
         }
 
         // 3. Border Check
-        let unionElements: PolylineBase[] = [path].concat(this.getDrawingElements());
-        let border = this.getElementsBorder(unionElements);
+        let border = this.getElementsBorder(this.elementSegments);
         let borderCheckResult = border[0].x - this.padding <= point.x
             && point.x <= border[1].x + this.padding
             && border[0].y - this.padding <= point.y
@@ -476,6 +483,19 @@ export class ConnectPolyline extends PolylineBase {
                 //console.debug('Invalid: Point Cross Check: The current point should not locate inside of any shapes');
                 return false;
             }
+
+            // c) Current segment should not cross with others
+            let lastPoint = path.points[path.points.length - 1];
+            let segment = new Segment(lastPoint, point);
+            if (this.elementSegments.some(x => segment.getCrossStateWithSegment(x) == SegmentCrossState.Infinite)
+                && !segment.points[0].equalsTo(this.departurePoint)
+                && !segment.points[1].equalsTo(this.departurePoint)
+                && !segment.points[0].equalsTo(this.destinationPoint)
+                && !segment.points[1].equalsTo(this.destinationPoint)) {
+                //console.debug('Invalid: Point Cross Check: Current segment should not cross with others');
+                return false;
+            }
+
         }
 
         // 5. Segment Cross Check: The generated segment should not have cross points with others

@@ -117,8 +117,9 @@ export class Drawing {
         return shape;
     }
 
-    public createConnectPolyline(departureGuid: string, departureAnchorIndex: number, destinationGuid: string, destinationAnchorIndex: number): ConnectPolyline {
+    public createConnectPolyline(departureGuid: string, departureAnchorIndex: number, destinationGuid: string, destinationAnchorIndex: number, color: string = '#555'): ConnectPolyline {
         let cpl = new ConnectPolyline(this);
+        cpl.setColor(color);
         let departure = this.findShapeByGuid(departureGuid);
         let destination = this.findShapeByGuid(destinationGuid);
         cpl.initFromDepartureAndDestination(departure.getAnchors()[departureAnchorIndex], destination.getAnchors()[destinationAnchorIndex]);

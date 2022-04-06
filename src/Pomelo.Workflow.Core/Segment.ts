@@ -142,10 +142,6 @@ export class Segment extends PolylineBase {
     }
 
     public getDeltaX(): number[] {
-        if (this.points[0].x - this.points[1].x == 0) {
-            return null;
-        }
-
         return [
             Math.min(this.points[0].x, this.points[1].x),
             Math.max(this.points[0].x, this.points[1].x)
@@ -153,10 +149,6 @@ export class Segment extends PolylineBase {
     }
 
     public getDeltaY(): number[] {
-        if (this.points[0].y - this.points[1].y == 0) {
-            return null;
-        }
-
         return [
             Math.min(this.points[0].y, this.points[1].y),
             Math.max(this.points[0].y, this.points[1].y)
