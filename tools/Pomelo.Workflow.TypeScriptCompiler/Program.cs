@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Pomelo.Workflow.Frontend.Compiler
+namespace Pomelo.Workflow.TypeScriptCompiler
 {
     internal class Program
     {

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <Name>Pomelo.Workflow.Frontend</Name>
+    <Name>Pomelo.Workflow.Core</Name>
     <RootNamespace>Pomelo.Workflow.Frontend</RootNamespace>
     <JavaScriptTestFramework>mocha</JavaScriptTestFramework>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
@@ -13,7 +13,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>c6b45f6a-1c57-4fda-bd28-0f399c182ca1</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
+    <ProjectHome>
+    </ProjectHome>
     <StartupFile>app.ts</StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
     <SearchPath>
@@ -48,6 +49,9 @@
     <TypeScriptCompile Include="Drawing.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="ExtremePoint.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="Models\AnchorModel.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -61,6 +65,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="Models\ShapeModel.ts" />
+    <TypeScriptCompile Include="Orientation.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="Point.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

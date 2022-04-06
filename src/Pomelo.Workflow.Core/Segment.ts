@@ -140,4 +140,26 @@ export class Segment extends PolylineBase {
         z = (x2 - x3) * (y4 - y3) - (x4 - x3) * (y2 - y3);
         return (u * v <= 0.00000001 && w * z <= 0.00000001);
     }
+
+    public getDeltaX(): number[] {
+        if (this.points[0].x - this.points[1].x == 0) {
+            return null;
+        }
+
+        return [
+            Math.min(this.points[0].x, this.points[1].x),
+            Math.max(this.points[0].x, this.points[1].x)
+        ];
+    }
+
+    public getDeltaY(): number[] {
+        if (this.points[0].y - this.points[1].y == 0) {
+            return null;
+        }
+
+        return [
+            Math.min(this.points[0].y, this.points[1].y),
+            Math.max(this.points[0].y, this.points[1].y)
+        ];
+    }
 }

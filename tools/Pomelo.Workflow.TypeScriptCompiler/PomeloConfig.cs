@@ -1,4 +1,4 @@
-﻿namespace Pomelo.Workflow.Frontend.Compiler
+﻿namespace Pomelo.Workflow.TypeScriptCompiler
 {
     internal class PomeloConfig
     {
