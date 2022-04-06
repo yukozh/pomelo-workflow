@@ -1,15 +1,9 @@
 import { Drawing } from "./Drawing";
-import { ExtremePoint } from "./ExtremePoint";
-import { AbsoluteOrientation, Orientation, RelativeOrientation } from "./Orientation";
+import { AbsoluteOrientation, Orientation } from "./Orientation";
 import { Point } from "./Point";
 import { PolylineBase, Polyline } from "./Polyline";
 import { Segment, SegmentCrossState } from "./Segment";
 import { Anchor, Shape } from "./Shape";
-
-enum PointState {
-    CrossPoint,
-    CrossSegment
-}
 
 class bfsState {
     path: Polyline;
@@ -455,6 +449,8 @@ export class ConnectPolyline extends PolylineBase {
         points = points.filter(x => x);
         points = points.filter(x => this.isValidPoint(x, path));
         let origin = this.destinationPoint;
+
+        // Greedy: Always try to get closer to the destination
         points.sort((a, b) => {
             return Math.sqrt((origin.x - a.x) * (origin.x - a.x) + (origin.y - a.y) * (origin.y - a.y)) - Math.sqrt((origin.x - b.x) * (origin.x - b.x) + (origin.y - b.y) * (origin.y - b.y));
         });
@@ -474,14 +470,12 @@ export class ConnectPolyline extends PolylineBase {
         if (path.points.length) {
             let lastPoint = path.points[path.points.length - 1];
             if (point.x != lastPoint.x && point.y != lastPoint.y) {
-                //console.debug('Invalid: Orientation Check: The point can only move up, down, left or right');
                 return false;
             }
         }
 
         // 2. Visit Check: The current point should not exist in path
         if (path.points.filter(x => x.equalsTo(point)).length) {
-            //console.debug('Invalid: Visit Check: The current point should not exist in path');
             return false;
         }
 
@@ -492,7 +486,6 @@ export class ConnectPolyline extends PolylineBase {
             && border[0].y - this.padding <= point.y
             && point.y <= border[1].y + this.padding;
         if (!borderCheckResult) {
-            //console.debug('Invalid: Border Check');
             return false;
         }
 
@@ -515,7 +508,6 @@ export class ConnectPolyline extends PolylineBase {
 
             // b) The current point should not locate inside of any shapes
             if (this.getDrawingElements().filter(x => x.isPointInPolygon(point)).length && !isDestinationOrDeparture) { // Use actual shape(not expanded)
-                //console.debug('Invalid: Point Cross Check: The current point should not locate inside of any shapes');
                 return false;
             }
 
@@ -527,7 +519,6 @@ export class ConnectPolyline extends PolylineBase {
                 && !segment.points[1].equalsTo(this.departurePoint)
                 && !segment.points[0].equalsTo(this.destinationPoint)
                 && !segment.points[1].equalsTo(this.destinationPoint)) {
-                //console.debug('Invalid: Point Cross Check: Current segment should not cross with others');
                 return false;
             }
 
@@ -537,7 +528,6 @@ export class ConnectPolyline extends PolylineBase {
         let lastPoint = path.points[path.points.length - 1];
         let segment = new Segment(lastPoint, point);
         if (this.polylineSegments.filter(x => x.getCrossStateWithSegment(segment) == SegmentCrossState.Infinite).length) {
-            //console.debug('Invalid: Segment Cross Check - 1');
             return false;
         }
 
@@ -547,8 +537,8 @@ export class ConnectPolyline extends PolylineBase {
                 || point.equalsTo(this.departurePoint)
                 || lastPoint.equalsTo(this.destinationPoint)
                 || lastPoint.equalsTo(this.departurePoint);
+
             if (isDestinationOrDeparture && count > 1 || !isDestinationOrDeparture) {
-                //console.debug('Invalid: Segment Cross Check - 2');
                 return false;
             }
         }
