@@ -371,6 +371,22 @@ export class ConnectPolyline extends PolylineBase {
         return ret;
     }
 
+    private getCurrentPointToDestinationCrossedSegments(point: Point): Segment[] {
+        let seg = new Segment(point, this.destinationPoint);
+        let ret: Segment[] = [];
+        let segments = this.originalShapeSegments.filter(x => x.isCrossedBySegment(seg));
+        for (let i = 0; i < segments.length; ++i) {
+            ret.push(segments[i]);
+        }
+
+        segments = this.originalShapeSegments.filter(x => x.isCrossedBySegment(seg));
+        for (let i = 0; i < segments.length; ++i) {
+            ret.push(segments[i]);
+        }
+
+        return ret;
+    }
+
     private generateAvailableNextPoints(path: PolylineBase): Point[] {
         let points: Point[] = [];
         let orientations = this.prioritizeOrientations(path);
@@ -381,58 +397,57 @@ export class ConnectPolyline extends PolylineBase {
             let halfLine = this.generateHalfLine(lastPoint, orientation, border);
             let crossedPoints = this.getCrossedPointsWithSegment(halfLine, path);
             crossedPoints = crossedPoints
-                //.concat(crossedPoints.map(x => this.contractSegment(new Segment(lastPoint, x))))
-                //.concat(crossedPoints.map(x => this.extendSegment(new Segment(lastPoint, x))))
                 .filter(x => x);
 
             // Don't cross segment
             let unavailableRange: number[][] = [];
             if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
-                unavailableRange = this.elementSegments.map(x => x.getDeltaY());
+                unavailableRange = this.originalShapeSegments.concat(this.polylineSegments).map(x => x.getDeltaY());
                 crossedPoints = crossedPoints.filter(point => point.equalsTo(this.destinationPoint)
-                    || point.x == this.destinationPoint.x
-                    || point.y == this.destinationPoint.y
+                    || point.x == this.destinationPoint.x && this.getCurrentPointToDestinationCrossedSegments(point).length <= 1
+                    || point.y == this.destinationPoint.y && this.getCurrentPointToDestinationCrossedSegments(point).length <= 1
                     || unavailableRange.every(range => point.y < range[0] || point.y > range[1]));
             } else {
-                unavailableRange = this.elementSegments.map(x => x.getDeltaX());
+                unavailableRange = this.originalShapeSegments.concat(this.polylineSegments).map(x => x.getDeltaX());
                 crossedPoints = crossedPoints.filter(point => point.equalsTo(this.destinationPoint)
-                    || point.x == this.destinationPoint.x
-                    || point.y == this.destinationPoint.y
+                    || point.x == this.destinationPoint.x && this.getCurrentPointToDestinationCrossedSegments(point).length <= 1
+                    || point.y == this.destinationPoint.y && this.getCurrentPointToDestinationCrossedSegments(point).length <= 1
                     || unavailableRange.every(range => point.x < range[0] || point.x > range[1]));
             }
 
             let fixedPoints = [];
             let fixedPoint = this.cutSegment(halfLine, this.padding);
-            fixedPoints.push(fixedPoint);
-            //if (true) {
-            //    let border = this.getElementsBorder(this.elementSegments);
-            //    while (true) {
-            //        fixedPoint = this.extendSegment(new Segment(lastPoint, fixedPoint));
+            if (true) {
+                let border = this.getElementsBorder(this.elementSegments);
+                while (true) {
+                    if (fixedPoint.x < border[0].x - this.padding || fixedPoint.y < border[0].y - this.padding
+                        || fixedPoint.x > border[1].x + this.padding || fixedPoint.y > border[1].y + this.padding) {
+                        break;
+                    }
 
-            //        if (fixedPoint.x < border[0].x - this.padding || fixedPoint.y < border[0].y - this.padding
-            //            || fixedPoint.x > border[1].x + this.padding || fixedPoint.y > border[1].y + this.padding) {
-            //            break;
-            //        }
+                    if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path)) {
+                        break;
+                    }
 
-            //        if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path)) {
-            //            break;
-            //        }
+                    if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
+                        if (unavailableRange.every(range => fixedPoint.y < range[0] || fixedPoint.y > range[1])) {
+                            if (this.isValidPoint(fixedPoint, path)) {
+                                fixedPoints.push(fixedPoint);
+                                break;
+                            }
+                        }
+                    } else {
+                        if (unavailableRange.every(range => fixedPoint.x < range[0] || fixedPoint.x > range[1])) {
+                            if (this.isValidPoint(fixedPoint, path)) {
+                                fixedPoints.push(fixedPoint);
+                                break;
+                            }
+                        }
+                    }
 
-            //        if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
-            //            if (unavailableRange.every(range => fixedPoint.y < range[0] || fixedPoint.y > range[1])) {
-            //                if (this.isValidPoint(fixedPoint, path)) {
-            //                    fixedPoints.push(fixedPoint);
-            //                }
-            //            }
-            //        } else {
-            //            if (unavailableRange.every(range => fixedPoint.x < range[0] || fixedPoint.x > range[1])) {
-            //                if (this.isValidPoint(fixedPoint, path)) {
-            //                    fixedPoints.push(fixedPoint);
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
+                    fixedPoint = this.extendSegment(new Segment(lastPoint, fixedPoint));
+                }
+            }
 
             points = points.concat(crossedPoints).concat(fixedPoints);
         }
