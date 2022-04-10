@@ -223,7 +223,7 @@ export class ConnectPolyline extends PolylineBase {
                 return true;
             }
 
-            queue = queue.concat(this.generateAvailableNextPoints(state.path).map(x => new bfsState(state.path, x, state.depth + 1)));
+            queue = queue.concat(result.map(x => new bfsState(state.path, x, state.depth + 1)));
         }
     }
 
