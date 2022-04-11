@@ -1,5 +1,4 @@
 import { ConnectPolyline } from "./ConnectPolyline";
-import { IUniqueIdentified } from "./IUniqueIdentified";
 import { AnchorModel } from "./Models/AnchorModel";
 import { ConnectPolylineModel } from "./Models/ConnectPolylineModel";
 import { DrawingModel } from "./Models/DrawingModel";
@@ -131,15 +130,15 @@ export class Drawing {
         // Render shapes
         let shapes = [];
         if (this.config.elementBorder) {
-            shapes = this.getShapes().map(el => `<polyline points="${el.points.map(x => x.x + ',' + x.y).join(' ')} ${el.points[0].x},${el.points[0].y}"
+            shapes = this.getShapes().map(el => `<polyline data-shape="${el.getGuid()}" points="${el.points.map(x => x.x + ',' + x.y).join(' ')} ${el.points[0].x},${el.points[0].y}"
 style="fill:none;stroke:${this.config.elementBorderColor};stroke-width:${this.config.elementBorderStroke}"/>`);
         }
 
         // Render connect polylines
-        let lines = this.getConnectPolylines().map(l => `<polyline points="${l.getPaths().points.map(x => x.x + ',' + x.y).join(' ')}"
+        let lines = this.getConnectPolylines().map(l => `<polyline data-polyline="${l.getGuid()}" points="${l.getPaths().points.map(x => x.x + ',' + x.y).join(' ')}"
 style="fill:none;stroke:${l.getColor()};stroke-width:${this.config.connectPolylineStroke}"/>`);
 
-        let ret = `<svg width="100%" height="100%" version="1.1"
+        let ret = `<svg width="100%" height="100%" data-drawing="${this.getGuid()}" version="1.1"
 xmlns="http://www.w3.org/2000/svg">
 ${shapes.join('\r\n')}
 ${lines.join('\r\n')}

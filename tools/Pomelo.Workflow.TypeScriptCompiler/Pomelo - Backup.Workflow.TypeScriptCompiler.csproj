@@ -15,8 +15,4 @@
     </None>
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="powershell.exe -f $(OutDir)\PostBuild.ps1" />
-  </Target>
-
 </Project>

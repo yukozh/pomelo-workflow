@@ -5,6 +5,7 @@
   ],
   "tsconfig": "tsconfig-release.json",
   "prioritized": [
+    "Point.ts",
     "Polyline.ts"
   ],
   "entry": "app.ts",

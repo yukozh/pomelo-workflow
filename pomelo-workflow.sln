@@ -14,7 +14,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{3F0BB3F9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pomelo.Workflow.TypeScriptCompiler", "tools\Pomelo.Workflow.TypeScriptCompiler\Pomelo.Workflow.TypeScriptCompiler.csproj", "{069A389A-13C8-4E45-B7AF-65B410DD3972}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomelo.Workflow.Pue", "src\Pomelo.Workflow.Pue\Pomelo.Workflow.Pue.csproj", "{C92C2DC3-0B2B-475A-9B5D-0CA53B966494}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pomelo.Workflow.Pue", "src\Pomelo.Workflow.Pue\Pomelo.Workflow.Pue.csproj", "{C92C2DC3-0B2B-475A-9B5D-0CA53B966494}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1} = {C6B45F6A-1C57-4FDA-BD28-0F399C182CA1}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
