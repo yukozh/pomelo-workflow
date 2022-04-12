@@ -9,9 +9,9 @@ import { Anchor, Rectangle, Shape } from "./Shape";
 
 export class DrawingConfiguration {
     public padding: number = 5;
-    public shapeBorder: boolean = false;
+    public renderShape: boolean = false;
     public shapeStrokeColor: string = 'blue';
-    public shapeBorderStrokeWidth: number = 1;
+    public shapeStrokeWidth: number = 1;
     public connectPolylineStrokeWidth: number = 1;
 }
 
@@ -35,9 +35,9 @@ export class Drawing {
         // Config
         this.config = new DrawingConfiguration();
         this.config.padding = config.padding || this.config.padding;
-        this.config.shapeBorder = config.shapeBorder || this.config.shapeBorder;
+        this.config.renderShape = config.renderShape || this.config.renderShape;
         this.config.shapeStrokeColor = config.shapeStrokeColor || this.config.shapeStrokeColor;
-        this.config.shapeBorderStrokeWidth = config.shapeBorderStrokeWidth || this.config.shapeBorderStrokeWidth;
+        this.config.shapeStrokeWidth = config.shapeStrokeWidth || this.config.shapeStrokeWidth;
         this.config.connectPolylineStrokeWidth = config.connectPolylineStrokeWidth || this.config.connectPolylineStrokeWidth;
 
         this.guid = guid || this.generateGuid();
@@ -209,7 +209,7 @@ export class Drawing {
 
         // Render shapes
         let shapes = [];
-        if (this.config.shapeBorder) {
+        if (this.config.renderShape) {
             shapes = this.getShapes().map(el => el.generateSvg());
         }
 
@@ -426,7 +426,7 @@ export class DrawingHtmlHelper {
         }
 
         let points = shape.points.concat([shape.points[0]]);
-        this.setShape(shape.getGuid(), points, { stroke: this.drawing.getConfig().shapeStrokeColor, 'stroke-width': this.drawing.getConfig().shapeBorderStrokeWidth });
+        this.setShape(shape.getGuid(), points, { stroke: this.drawing.getConfig().shapeStrokeColor, 'stroke-width': this.drawing.getConfig().shapeStrokeWidth });
     }
 
     public updateConnectPolyline(connectPolyline: ConnectPolyline): void {

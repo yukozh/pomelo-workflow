@@ -12,7 +12,8 @@
     },
     created() {
         var config = new PomeloWF.DrawingConfiguration();
-        config.shapeStroke = false;
+        config.renderShape = false;
+        config.shapeStrokeWidth = 2;
         this.drawing = new PomeloWF.Drawing(config);
     },
     mounted() {

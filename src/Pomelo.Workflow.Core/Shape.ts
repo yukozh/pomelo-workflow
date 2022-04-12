@@ -142,12 +142,12 @@ export class Shape extends PolylineBase {
     }
 
     public generateSvg(): string {
-        if (!this.points.length || this.drawing && !this.drawing.getConfig().shapeBorder) {
+        if (!this.points.length || this.drawing && !this.drawing.getConfig().renderShape) {
             return '';
         }
 
         return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')} ${this.points[0].x},${this.points[0].y}"
-style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeBorderStrokeWidth}"/>`;
+style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeStrokeWidth}"/>`;
     }
 }
 

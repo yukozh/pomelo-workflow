@@ -693,9 +693,9 @@ var PomeloWF = (function (exports) {
     var DrawingConfiguration = /** @class */ (function () {
         function DrawingConfiguration() {
             this.padding = 5;
-            this.shapeBorder = false;
+            this.renderShape = false;
             this.shapeStrokeColor = 'blue';
-            this.shapeBorderStrokeWidth = 1;
+            this.shapeStrokeWidth = 1;
             this.connectPolylineStrokeWidth = 1;
         }
         return DrawingConfiguration;
@@ -714,9 +714,9 @@ var PomeloWF = (function (exports) {
             // Config
             this.config = new DrawingConfiguration();
             this.config.padding = config.padding || this.config.padding;
-            this.config.shapeBorder = config.shapeBorder || this.config.shapeBorder;
+            this.config.renderShape = config.renderShape || this.config.renderShape;
             this.config.shapeStrokeColor = config.shapeStrokeColor || this.config.shapeStrokeColor;
-            this.config.shapeBorderStrokeWidth = config.shapeBorderStrokeWidth || this.config.shapeBorderStrokeWidth;
+            this.config.shapeStrokeWidth = config.shapeStrokeWidth || this.config.shapeStrokeWidth;
             this.config.connectPolylineStrokeWidth = config.connectPolylineStrokeWidth || this.config.connectPolylineStrokeWidth;
             this.guid = guid || this.generateGuid();
         }
@@ -861,7 +861,7 @@ var PomeloWF = (function (exports) {
             var border = this.getBorder();
             // Render shapes
             var shapes = [];
-            if (this.config.shapeBorder) {
+            if (this.config.renderShape) {
                 shapes = this.getShapes().map(function (el) { return el.generateSvg(); });
             }
             // Render connect polylines
@@ -1047,7 +1047,7 @@ var PomeloWF = (function (exports) {
                 return;
             }
             var points = shape.points.concat([shape.points[0]]);
-            this.setShape(shape.getGuid(), points, { stroke: this.drawing.getConfig().shapeStrokeColor, 'stroke-width': this.drawing.getConfig().shapeBorderStrokeWidth });
+            this.setShape(shape.getGuid(), points, { stroke: this.drawing.getConfig().shapeStrokeColor, 'stroke-width': this.drawing.getConfig().shapeStrokeWidth });
         };
         DrawingHtmlHelper.prototype.updateConnectPolyline = function (connectPolyline) {
             var connectPolylineDOM = this.getShapeDOM(connectPolyline.getGuid());
@@ -1463,10 +1463,10 @@ var PomeloWF = (function (exports) {
             }
         };
         Shape.prototype.generateSvg = function () {
-            if (!this.points.length || this.drawing && !this.drawing.getConfig().shapeBorder) {
+            if (!this.points.length || this.drawing && !this.drawing.getConfig().renderShape) {
                 return '';
             }
-            return "<polyline data-shape=\"".concat(this.getGuid(), "\" points=\"").concat(this.points.map(function (x) { return x.x + ',' + x.y; }).join(' '), " ").concat(this.points[0].x, ",").concat(this.points[0].y, "\"\n    style=\"fill:none;stroke:").concat(this.drawing.getConfig().shapeStrokeColor, ";stroke-width:").concat(this.drawing.getConfig().shapeBorderStrokeWidth, "\"/>");
+            return "<polyline data-shape=\"".concat(this.getGuid(), "\" points=\"").concat(this.points.map(function (x) { return x.x + ',' + x.y; }).join(' '), " ").concat(this.points[0].x, ",").concat(this.points[0].y, "\"\n    style=\"fill:none;stroke:").concat(this.drawing.getConfig().shapeStrokeColor, ";stroke-width:").concat(this.drawing.getConfig().shapeStrokeWidth, "\"/>");
         };
         return Shape;
     }(PolylineBase));
