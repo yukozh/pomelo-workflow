@@ -112,7 +112,8 @@ var PomeloWF = (function (exports) {
     }());
     var ConnectPolyline = /** @class */ (function (_super) {
         __extends(ConnectPolyline, _super);
-        function ConnectPolyline(drawing) {
+        function ConnectPolyline(guid, drawing) {
+            if (guid === void 0) { guid = null; }
             if (drawing === void 0) { drawing = null; }
             var _this = _super.call(this) || this;
             _this.path = new Polyline();
@@ -120,6 +121,7 @@ var PomeloWF = (function (exports) {
             _this.color = '#555';
             _this.pathGeneratedSuccessfully = false;
             _this.drawing = drawing;
+            _this.guid = guid || drawing.generateGuid();
             return _this;
         }
         ConnectPolyline.prototype.getGuid = function () {
@@ -171,7 +173,7 @@ var PomeloWF = (function (exports) {
         ConnectPolyline.prototype.generateElementSegments = function (shapes, connectPolylines) {
             var _this = this;
             var segments = [];
-            var expanded = shapes.map(function (x) { return x.cloneAndExpand(_this.padding); });
+            var expanded = shapes.map(function (x) { return x.toRectalge().cloneAndExpand(_this.padding); });
             for (var i = 0; i < expanded.length; ++i) {
                 var _segments = ConnectPolyline.polylineToSegments(expanded[i]);
                 for (var j = 0; j < _segments.length; ++j) {
@@ -215,7 +217,28 @@ var PomeloWF = (function (exports) {
             return ret;
         };
         ConnectPolyline.prototype.getElementsBorder = function (elements) {
-            return this.drawing.getBorder(elements.concat(new Segment(this.departurePoint, this.destinationPoint)));
+            var point1 = new Point(this.departurePoint.x, this.departurePoint.y);
+            var point2 = new Point(this.departurePoint.x, this.departurePoint.y);
+            point1.x = Math.min(point1.x, this.destinationPoint.x);
+            point1.y = Math.min(point1.y, this.destinationPoint.y);
+            point2.x = Math.max(point2.x, this.destinationPoint.x);
+            point2.y = Math.max(point2.y, this.destinationPoint.y);
+            for (var i = 0; i < elements.length; ++i) {
+                for (var j = 0; j < elements[i].points.length; ++j) {
+                    var _point = elements[i].points[j];
+                    point1.x = Math.min(point1.x, _point.x);
+                    point1.y = Math.min(point1.y, _point.y);
+                    point2.x = Math.max(point2.x, _point.x);
+                    point2.y = Math.max(point2.y, _point.y);
+                }
+            }
+            if (point1.x < 0) {
+                point1.x = 0;
+            }
+            if (point1.y < 0) {
+                point1.y = 0;
+            }
+            return [point1, point2];
         };
         ConnectPolyline.prototype.pop = function () {
             this.path.points.splice(this.path.points.length - 1, 1);
@@ -628,18 +651,26 @@ var PomeloWF = (function (exports) {
             }
             return new Segment(point, destination);
         };
+        ConnectPolyline.prototype.generateSvg = function () {
+            return "<polyline data-polyline=\"".concat(this.getGuid(), "\" points=\"").concat(this.getPaths().points.map(function (x) { return x.x + ',' + x.y; }).join(' '), "\"\n    style=\"fill:none;stroke:").concat(this.getColor(), ";stroke-width:").concat(this.drawing.getConfig().connectPolylineStroke, "\"/>");
+        };
         return ConnectPolyline;
     }(PolylineBase));
     var DrawingConfiguration = /** @class */ (function () {
         function DrawingConfiguration() {
             this.padding = 5;
-            this.elementBorder = false;
-            this.elementBorderColor = 'blue';
-            this.elementBorderStroke = 1;
+            this.shapeBorder = false;
+            this.shapeBorderColor = 'blue';
+            this.shapeBorderStrokeWidth = 1;
             this.connectPolylineStroke = 1;
         }
         return DrawingConfiguration;
     }());
+    var ElementType;
+    (function (ElementType) {
+        ElementType[ElementType["Shape"] = 0] = "Shape";
+        ElementType[ElementType["Polyline"] = 1] = "Polyline";
+    })(ElementType || (ElementType = {}));
     var Drawing = /** @class */ (function () {
         function Drawing(config, guid) {
             if (guid === void 0) { guid = null; }
@@ -649,9 +680,9 @@ var PomeloWF = (function (exports) {
             // Config
             this.config = new DrawingConfiguration();
             this.config.padding = config.padding || this.config.padding;
-            this.config.elementBorder = config.elementBorder || this.config.elementBorder;
-            this.config.elementBorderColor = config.elementBorderColor || this.config.elementBorderColor;
-            this.config.elementBorderStroke = config.elementBorderStroke || this.config.elementBorderStroke;
+            this.config.shapeBorder = config.shapeBorder || this.config.shapeBorder;
+            this.config.shapeBorderColor = config.shapeBorderColor || this.config.shapeBorderColor;
+            this.config.shapeBorderStrokeWidth = config.shapeBorderStrokeWidth || this.config.shapeBorderStrokeWidth;
             this.config.connectPolylineStroke = config.connectPolylineStroke || this.config.connectPolylineStroke;
             this.guid = guid || this.generateGuid();
         }
@@ -678,10 +709,7 @@ var PomeloWF = (function (exports) {
                 guid: this.guid,
                 shapes: this.shapes.map(function (shape) { return ({
                     guid: shape.getGuid(),
-                    left: shape.points[0].x,
-                    top: shape.points[0].y,
-                    width: shape.getWidth(),
-                    height: shape.getHeight(),
+                    points: shape.points,
                     anchors: shape.getAnchors().map(function (anchor) { return ({
                         xPercentage: anchor.xPercentage,
                         yPercentage: anchor.yPercentage
@@ -704,11 +732,11 @@ var PomeloWF = (function (exports) {
             this.guid = model.guid || this.guid;
             for (var i = 0; i < model.shapes.length; ++i) {
                 var shape = model.shapes[i];
-                this.createShape(shape.left, shape.top, shape.width, shape.height, shape.guid);
+                this.createShape(shape.points, shape.guid);
             }
             for (var i = 0; i < model.connectPolylines.length; ++i) {
                 var cpl = model.connectPolylines[i];
-                this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex);
+                this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex, cpl.guid);
             }
         };
         Drawing.prototype.findShapeByGuid = function (guid) {
@@ -718,15 +746,22 @@ var PomeloWF = (function (exports) {
             }
             return result[0];
         };
-        Drawing.prototype.createShape = function (left, top, width, height, guid) {
+        Drawing.prototype.createRect = function (left, top, width, height, guid) {
             if (guid === void 0) { guid = null; }
-            var shape = new Shape(left, top, width, height, guid || this.generateGuid());
+            var shape = new Rectangle(left, top, width, height, guid || this.generateGuid(), this);
             this.shapes.push(shape);
             return shape;
         };
-        Drawing.prototype.createConnectPolyline = function (departureGuid, departureAnchorIndex, destinationGuid, destinationAnchorIndex, color) {
+        Drawing.prototype.createShape = function (points, guid) {
+            if (guid === void 0) { guid = null; }
+            var shape = new Shape(points, guid || this.generateGuid(), this);
+            this.shapes.push(shape);
+            return shape;
+        };
+        Drawing.prototype.createConnectPolyline = function (departureGuid, departureAnchorIndex, destinationGuid, destinationAnchorIndex, color, guid) {
             if (color === void 0) { color = '#555'; }
-            var cpl = new ConnectPolyline(this);
+            if (guid === void 0) { guid = null; }
+            var cpl = new ConnectPolyline(guid, this);
             cpl.setColor(color);
             var departure = this.findShapeByGuid(departureGuid);
             var destination = this.findShapeByGuid(destinationGuid);
@@ -749,8 +784,8 @@ var PomeloWF = (function (exports) {
                 for (var j = 0; j < elements[i].points.length; ++j) {
                     if (isFisrtPoint) {
                         isFisrtPoint = false;
-                        point1 = elements[i].points[j];
-                        point2 = elements[i].points[j];
+                        point1 = new Point(elements[i].points[j].x, elements[i].points[j].y);
+                        point2 = new Point(elements[i].points[j].x, elements[i].points[j].y);
                     }
                     var _point = elements[i].points[j];
                     point1.x = Math.min(point1.x, _point.x);
@@ -768,22 +803,164 @@ var PomeloWF = (function (exports) {
             return [point1, point2];
         };
         Drawing.prototype.generateSvg = function () {
-            var _this = this;
             // Get border
             var border = this.getBorder();
             // Render shapes
             var shapes = [];
-            if (this.config.elementBorder) {
-                shapes = this.getShapes().map(function (el) { return "<polyline data-shape=\"".concat(el.getGuid(), "\" points=\"").concat(el.points.map(function (x) { return x.x + ',' + x.y; }).join(' '), " ").concat(el.points[0].x, ",").concat(el.points[0].y, "\"\n    style=\"fill:none;stroke:").concat(_this.config.elementBorderColor, ";stroke-width:").concat(_this.config.elementBorderStroke, "\"/>"); });
+            if (this.config.shapeBorder) {
+                shapes = this.getShapes().map(function (el) { return el.generateSvg(); });
             }
             // Render connect polylines
-            var lines = this.getConnectPolylines().map(function (l) { return "<polyline data-polyline=\"".concat(l.getGuid(), "\" points=\"").concat(l.getPaths().points.map(function (x) { return x.x + ',' + x.y; }).join(' '), "\"\n    style=\"fill:none;stroke:").concat(l.getColor(), ";stroke-width:").concat(_this.config.connectPolylineStroke, "\"/>"); });
+            var lines = this.getConnectPolylines().map(function (l) { return l.generateSvg(); });
             var width = border ? border[1].x : 0;
             var height = border ? border[1].y : 0;
-            var ret = "<svg width=\"".concat(width, "px\" height=\"100%\" data-drawing=\"").concat(height, "px\" version=\"1.1\"\n    xmlns=\"http://www.w3.org/2000/svg\">\n    ").concat(shapes.join('\r\n'), "\n    ").concat(lines.join('\r\n'), "\n    \n    </svg>");
+            var ret = "<svg width=\"".concat(width + this.config.padding, "px\" height=\"").concat(height + this.config.padding, "px\" data-drawing=\"").concat(this.getGuid(), "\" version=\"1.1\"\n    xmlns=\"http://www.w3.org/2000/svg\">\n    ").concat(shapes.join('\r\n'), "\n    ").concat(lines.join('\r\n'), "\n    \n    </svg>");
             return ret;
         };
+        Drawing.prototype.mount = function (selector) {
+            if (this.htmlHelper) {
+                throw "[Pomelo Workflow] This drawing is already mounted.";
+            }
+            this.htmlHelper = new DrawingHtmlHelper(this, selector);
+        };
+        Drawing.prototype.shapeConflictTest = function (shape) {
+            var _this = this;
+            var _shape;
+            if (shape instanceof Shape) {
+                _shape = shape;
+            }
+            else {
+                var shapes_1 = this.shapes.filter(function (x) { return x.getGuid() == shape; });
+                if (!shapes_1.length) {
+                    return null;
+                }
+                shape = shapes_1[0];
+            }
+            var expandedShape = shape.toRectalge().cloneAndExpand(this.config.padding);
+            var shapes = this.shapes.filter(function (x) { return x.getGuid() != _shape.getGuid(); }).map(function (x) { return x.toRectalge().cloneAndExpand(_this.config.padding); });
+            var _loop_3 = function (i) {
+                var point = shape.points[i];
+                if (shapes.some(function (x) { return x.isPointInPolygon(point); })) {
+                    return { value: false };
+                }
+            };
+            for (var i = 0; i < expandedShape.points.length; ++i) {
+                var state_2 = _loop_3(i);
+                if (typeof state_2 === "object")
+                    return state_2.value;
+            }
+            return true;
+        };
+        Drawing.prototype.rectConflictTest = function (leftTop, rightBottom) {
+            var rect = new Rectangle(leftTop.x, leftTop.y, rightBottom.x - leftTop.x, rightBottom.y - leftTop.y, null, null);
+            return this.shapeConflictTest(rect);
+        };
         return Drawing;
+    }());
+    var DrawingHtmlHelper = /** @class */ (function () {
+        function DrawingHtmlHelper(drawing, selector) {
+            this.mountedElement = null;
+            this.maskLayerHtmlId = null;
+            this.svgLayerHtmlId = null;
+            this.drawing = drawing;
+            var doms = this.getDocument().querySelectorAll(selector);
+            if (!doms.length) {
+                throw "[Pomelo Workflow] ".concat(selector, " was not found");
+            }
+            this.mountedElement = doms[0];
+            this.maskLayerHtmlId = 'pomelo-wf-mask-' + drawing.getGuid();
+            this.svgLayerHtmlId = 'pomelo-wf-svg-' + drawing.getGuid();
+            this.mountedElement.innerHTML = "<div id=\"".concat(this.maskLayerHtmlId, "\"></div><div id=\"").concat(this.svgLayerHtmlId, "\"></div>");
+        }
+        DrawingHtmlHelper.prototype.getWindow = function () {
+            return eval('window');
+        };
+        DrawingHtmlHelper.prototype.getDocument = function () {
+            return this.getWindow().document;
+        };
+        DrawingHtmlHelper.prototype.generateAttributeCollection = function (style) {
+            var ret = {};
+            if (!style) {
+                return ret;
+            }
+            var splited = style.split(';').map(function (x) { return x.trim(); });
+            for (var i = 0; i < splited.length; ++i) {
+                var stylePair = splited[0].split(':').map(function (x) { return x.trim(); });
+                if (stylePair.length != 2) {
+                    continue;
+                }
+                ret[stylePair[0]] = stylePair[1];
+            }
+            return ret;
+        };
+        DrawingHtmlHelper.prototype.generateAttributeString = function (style) {
+            if (!style) {
+                return '';
+            }
+            return Object.getOwnPropertyNames(style).map(function (x) { return "".concat(x, ": ").concat(style[x]); }).join('; ');
+        };
+        DrawingHtmlHelper.prototype.setShape = function (guid, points, stylePatch) {
+            if (points === void 0) { points = null; }
+            if (stylePatch === void 0) { stylePatch = null; }
+            this.setSvgElement(ElementType.Shape, guid, points, stylePatch);
+        };
+        DrawingHtmlHelper.prototype.setConnectPolyline = function (guid, points, stylePatch) {
+            if (points === void 0) { points = null; }
+            if (stylePatch === void 0) { stylePatch = null; }
+            this.setSvgElement(ElementType.Polyline, guid, points, stylePatch);
+        };
+        DrawingHtmlHelper.prototype.getShapeDOM = function (guid) {
+            return this.getDocument().querySelector("[data-shape=\"".concat(guid, "\"]"));
+        };
+        DrawingHtmlHelper.prototype.getConnectPolylineDOM = function (guid) {
+            return this.getDocument().querySelector("[data-polyline=\"".concat(guid, "\"]"));
+        };
+        DrawingHtmlHelper.prototype.setSvgElement = function (elementType, guid, points, stylePatch) {
+            if (points === void 0) { points = null; }
+            if (stylePatch === void 0) { stylePatch = null; }
+            var dom = elementType == ElementType.Shape
+                ? this.getShapeDOM(guid)
+                : this.getConnectPolylineDOM(guid);
+            if (dom == null) {
+                throw "[Pomelo Workflow] ".concat(guid, " was not found");
+            }
+            if (points != null) {
+                dom.setAttribute('points', points.map(function (x) { return "".concat(x.x, ",").concat(x.y); }).join(' '));
+            }
+            if (stylePatch != null) {
+                var styles = this.generateAttributeCollection(dom.getAttribute('style'));
+                var keys = Object.getOwnPropertyNames(stylePatch);
+                for (var i = 0; i < keys.length; ++i) {
+                    styles[keys[i]] = stylePatch[keys[i]];
+                }
+                dom.setAttribute('style', this.generateAttributeString(styles));
+            }
+        };
+        DrawingHtmlHelper.prototype.refresh = function () {
+            var shapes = this.drawing.getShapes();
+            for (var i = 0; i < shapes.length; ++i) {
+                var shape = shapes[i];
+                var dom = this.getShapeDOM(shape.getGuid());
+                if (dom) {
+                    this.setShape(shape.getGuid(), shape.points, {
+                        stroke: this.drawing.getConfig().shapeBorderColor,
+                        'stroke-width': this.drawing.getConfig().shapeBorderStrokeWidth
+                    });
+                }
+            }
+            var polylines = this.drawing.getConnectPolylines();
+            for (var i = 0; i < polylines.length; ++i) {
+                var polyline = polylines[i];
+                var dom = this.getConnectPolylineDOM(polyline.getGuid());
+                if (dom) {
+                    this.setShape(polyline.getGuid(), polyline.points, {
+                        stroke: polyline.getColor(),
+                        'stroke-width': this.drawing.getConfig().connectPolylineStroke
+                    });
+                }
+            }
+        };
+        return DrawingHtmlHelper;
     }());
     var ExtremePoint = /** @class */ (function (_super) {
         __extends(ExtremePoint, _super);
@@ -1023,11 +1200,11 @@ var PomeloWF = (function (exports) {
             this.shape = shape;
         }
         Anchor.prototype.toPoint = function () {
-            return new Point(this.shape.points[0].x + this.xPercentage * this.shape.getWidth(), this.shape.points[0].y + this.yPercentage * this.shape.getHeight());
+            return new Point(this.shape.points[0].x + this.xPercentage * this.shape.toRectalge().getWidth(), this.shape.points[0].y + this.yPercentage * this.shape.toRectalge().getHeight());
         };
         Anchor.prototype.toPointWithPadding = function (padding) {
-            var fakeWidth = this.shape.getWidth() + padding * 2;
-            var fakeHeight = this.shape.getHeight() + padding * 2;
+            var fakeWidth = this.shape.toRectalge().getWidth() + padding * 2;
+            var fakeHeight = this.shape.toRectalge().getHeight() + padding * 2;
             var fakeX = this.shape.points[0].x - padding;
             var fakeY = this.shape.points[0].y - padding;
             return new Point(fakeX + this.xPercentage * fakeWidth, fakeY + this.yPercentage * fakeHeight);
@@ -1036,32 +1213,38 @@ var PomeloWF = (function (exports) {
     }());
     var Shape = /** @class */ (function (_super) {
         __extends(Shape, _super);
-        function Shape(x, y, width, height, guid, drawing) {
+        function Shape(points, guid, drawing) {
             if (guid === void 0) { guid = null; }
             if (drawing === void 0) { drawing = null; }
             var _this = _super.call(this) || this;
             _this.guid = guid;
             _this.drawing = drawing;
-            if (width == 0 || height == 0) {
-                throw 'The width and height cannot be zero';
+            if (points.length >= 3) {
+                throw 'The point count must larger than 3.';
             }
-            _this.width = width;
-            _this.height = height;
-            _this.points.push(new Point(x, y));
-            _this.points.push(new Point(x + width, y));
-            _this.points.push(new Point(x + width, y + height));
-            _this.points.push(new Point(x, y + height));
+            for (var i = 0; i < points.length; ++i) {
+                _this.points.push(points[i]);
+            }
             _this.anchors = [];
             return _this;
         }
+        Shape.prototype.toRectalge = function (guid) {
+            if (guid === void 0) { guid = null; }
+            var minX = this.points[0].x;
+            var minY = this.points[0].y;
+            var maxX = minX;
+            var maxY = minY;
+            for (var i = 1; i < this.points.length; ++i) {
+                var point = this.points[i];
+                minX = Math.min(minX, point.x);
+                maxX = Math.max(maxX, point.x);
+                minY = Math.min(minY, point.y);
+                maxY = Math.max(maxY, point.y);
+            }
+            return new Rectangle(minX, minY, maxX - minX, maxY - minY, guid, this.drawing);
+        };
         Shape.prototype.getGuid = function () {
             return this.guid;
-        };
-        Shape.prototype.getWidth = function () {
-            return this.width;
-        };
-        Shape.prototype.getHeight = function () {
-            return this.height;
         };
         Shape.prototype.getAnchors = function () {
             return this.anchors;
@@ -1071,15 +1254,48 @@ var PomeloWF = (function (exports) {
             this.anchors.push(anchor);
             return anchor;
         };
-        Shape.prototype.cloneAndExpand = function (padding) {
+        Shape.prototype.generateSvg = function () {
+            return "<polyline data-shape=\"".concat(this.getGuid(), "\" points=\"").concat(this.points.map(function (x) { return x.x + ',' + x.y; }).join(' '), "\"\n    style=\"fill:none;stroke:").concat(this.drawing.getConfig().shapeBorderColor, ";stroke-width:").concat(this.drawing.getConfig().shapeBorderStrokeWidth, "\"/>");
+        };
+        return Shape;
+    }(PolylineBase));
+    var Rectangle = /** @class */ (function (_super) {
+        __extends(Rectangle, _super);
+        function Rectangle(x, y, width, height, guid, drawing) {
+            if (guid === void 0) { guid = null; }
+            if (drawing === void 0) { drawing = null; }
+            var _this = this;
+            var points = [];
+            points.push(new Point(x, y));
+            points.push(new Point(x + width, y));
+            points.push(new Point(x + width, y + height));
+            points.push(new Point(x, y + height));
+            _this = _super.call(this, points) || this;
+            _this.anchors = [];
+            _this.guid = guid;
+            _this.drawing = drawing;
+            if (width == 0 || height == 0) {
+                throw 'The width and height cannot be zero';
+            }
+            _this.width = width;
+            _this.height = height;
+            return _this;
+        }
+        Rectangle.prototype.getWidth = function () {
+            return this.width;
+        };
+        Rectangle.prototype.getHeight = function () {
+            return this.height;
+        };
+        Rectangle.prototype.cloneAndExpand = function (padding) {
             var fakeWidth = this.getWidth() + padding * 2;
             var fakeHeight = this.getHeight() + padding * 2;
             var fakeX = this.points[0].x - padding;
             var fakeY = this.points[0].y - padding;
-            return new Shape(fakeX, fakeY, fakeWidth, fakeHeight);
+            return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.drawing);
         };
-        return Shape;
-    }(PolylineBase));
+        return Rectangle;
+    }(Shape));
     var AnchorModel = /** @class */ (function () {
         function AnchorModel() {
         }

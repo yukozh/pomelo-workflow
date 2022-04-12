@@ -9,12 +9,12 @@ describe("ConnectPolyline Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(drawing.getShapes().length, 1);
         assert.equal(shape1.getAnchors().length, 1);
 
-        let shape2 = drawing.createShape(80, 100, 20, 20);
+        let shape2 = drawing.createRect(80, 100, 20, 20);
         let anchor2 = shape2.createAnchor(1, .5);
         assert.equal(drawing.getShapes().length, 2);
         assert.equal(shape2.getAnchors().length, 1);
@@ -44,17 +44,17 @@ describe("ConnectPolyline Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(anchor1.toPoint().x, 20);
         assert.equal(anchor1.toPoint().y, 20 + 10);
 
-        let shape2 = drawing.createShape(80, 100, 20, 20);
+        let shape2 = drawing.createRect(80, 100, 20, 20);
         let anchor2 = shape2.createAnchor(1, .5);
         assert.equal(anchor2.toPoint().x, 80 + 20);
         assert.equal(anchor2.toPoint().y, 100 + 10);
 
-        drawing.createShape(90, 60, 20, 20);
+        drawing.createRect(90, 60, 20, 20);
 
         // Act
         let cp = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0);
@@ -69,17 +69,17 @@ describe("ConnectPolyline Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(anchor1.toPoint().x, 20);
         assert.equal(anchor1.toPoint().y, 20 + 10);
 
-        let shape2 = drawing.createShape(80, 100, 20, 20);
+        let shape2 = drawing.createRect(80, 100, 20, 20);
         let anchor2 = shape2.createAnchor(1, .5);
         assert.equal(anchor2.toPoint().x, 80 + 20);
         assert.equal(anchor2.toPoint().y, 100 + 10);
 
-        drawing.createShape(20, 40, 20, 20);
+        drawing.createRect(20, 40, 20, 20);
 
         // Act
         let cp = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0);
@@ -94,15 +94,15 @@ describe("ConnectPolyline Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(anchor1.toPoint().x, 20);
         assert.equal(anchor1.toPoint().y, 20 + 10);
 
-        let shape2 = drawing.createShape(100, 20, 20, 20);
+        let shape2 = drawing.createRect(100, 20, 20, 20);
         shape2.createAnchor(1, .5);
 
-        drawing.createShape(50, 20, 20, 20);
+        drawing.createRect(50, 20, 20, 20);
 
         // Act
         let cp = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0);
@@ -117,15 +117,15 @@ describe("ConnectPolyline Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(anchor1.toPoint().x, 20);
         assert.equal(anchor1.toPoint().y, 20 + 10);
 
-        let shape2 = drawing.createShape(100, 30, 20, 20);
+        let shape2 = drawing.createRect(100, 30, 20, 20);
         shape2.createAnchor(1, .5);
 
-        drawing.createShape(50, 20, 20, 20);
+        drawing.createRect(50, 20, 20, 20);
 
         // Act
         let cp = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0);
@@ -141,19 +141,19 @@ describe("ConnectPolyline Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(anchor1.toPoint().x, 20);
         assert.equal(anchor1.toPoint().y, 20 + 10);
 
-        let shape2 = drawing.createShape(200, 30, 20, 20);
+        let shape2 = drawing.createRect(200, 30, 20, 20);
         shape2.createAnchor(1, .5);
         shape2.createAnchor(.5, 1);
 
-        let shape3 = drawing.createShape(100, 20, 20, 20);
+        let shape3 = drawing.createRect(100, 20, 20, 20);
         shape3.createAnchor(0, .5);
 
-        let shape4 = drawing.createShape(260, 35, 20, 20);
+        let shape4 = drawing.createRect(260, 35, 20, 20);
         shape4.createAnchor(1, .5);
         shape4.createAnchor(.5, 1);
 
@@ -174,19 +174,19 @@ describe("ConnectPolyline Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(anchor1.toPoint().x, 20);
         assert.equal(anchor1.toPoint().y, 20 + 10);
 
-        let shape2 = drawing.createShape(200, 30, 20, 20);
+        let shape2 = drawing.createRect(200, 30, 20, 20);
         shape2.createAnchor(1, .5);
         shape2.createAnchor(.5, 1);
 
-        let shape3 = drawing.createShape(100, 20, 20, 20);
+        let shape3 = drawing.createRect(100, 20, 20, 20);
         shape3.createAnchor(0, .5);
 
-        let shape4 = drawing.createShape(260, 15, 20, 20);
+        let shape4 = drawing.createRect(260, 15, 20, 20);
         shape4.createAnchor(1, .5);
         shape4.createAnchor(.5, 1);
 
@@ -207,16 +207,16 @@ describe("ConnectPolyline Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(80, 20, 20, 20);
+        let shape1 = drawing.createRect(80, 20, 20, 20);
         shape1.createAnchor(.5, 1);
 
-        let shape2 = drawing.createShape(80, 120, 20, 20);
+        let shape2 = drawing.createRect(80, 120, 20, 20);
         shape2.createAnchor(.5, 0);
 
-        let shape3 = drawing.createShape(20, 60, 20, 20);
+        let shape3 = drawing.createRect(20, 60, 20, 20);
         shape3.createAnchor(1, .5);
 
-        let shape4 = drawing.createShape(140, 60, 20, 20);
+        let shape4 = drawing.createRect(140, 60, 20, 20);
         shape4.createAnchor(0, .5);
 
         // Act

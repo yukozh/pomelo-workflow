@@ -5,7 +5,7 @@ import { DrawingModel } from "./Models/DrawingModel";
 import { ShapeModel } from "./Models/ShapeModel";
 import { Point } from "./Point";
 import { PolylineBase } from "./Polyline";
-import { Shape } from "./Shape";
+import { Rectangle, Shape } from "./Shape";
 
 export class DrawingConfiguration {
     public padding: number = 5;
@@ -71,10 +71,7 @@ export class Drawing {
             guid: this.guid,
             shapes: this.shapes.map(shape => <ShapeModel>{
                 guid: shape.getGuid(),
-                left: shape.points[0].x,
-                top: shape.points[0].y,
-                width: shape.getWidth(),
-                height: shape.getHeight(),
+                points: shape.points,
                 anchors: shape.getAnchors().map(anchor => <AnchorModel>{
                     xPercentage: anchor.xPercentage,
                     yPercentage: anchor.yPercentage
@@ -100,7 +97,7 @@ export class Drawing {
 
         for (let i = 0; i < model.shapes.length; ++i) {
             let shape = model.shapes[i];
-            this.createShape(shape.left, shape.top, shape.width, shape.height, shape.guid);
+            this.createShape(shape.points, shape.guid);
         }
 
         for (let i = 0; i < model.connectPolylines.length; ++i) {
@@ -118,8 +115,14 @@ export class Drawing {
         return result[0];
     }
 
-    public createShape(left: number, top: number, width: number, height: number, guid: string | null = null): Shape {
-        let shape = new Shape(left, top, width, height, guid || this.generateGuid(), this);
+    public createRect(left: number, top: number, width: number, height: number, guid: string | null = null): Rectangle {
+        let shape = new Rectangle(left, top, width, height, guid || this.generateGuid(), this);
+        this.shapes.push(shape);
+        return shape;
+    }
+
+    public createShape(points: Point[], guid: string | null = null): Shape {
+        let shape = new Shape(points, guid || this.generateGuid(), this);
         this.shapes.push(shape);
         return shape;
     }
@@ -204,6 +207,35 @@ ${lines.join('\r\n')}
         }
 
         this.htmlHelper = new DrawingHtmlHelper(this, selector);
+    }
+
+    public shapeConflictTest(shape: string | Shape): boolean | null {
+        let _shape: Shape;
+        if (shape instanceof Shape) {
+            _shape = shape;
+        } else {
+            let shapes = this.shapes.filter(x => x.getGuid() == shape);
+            if (!shapes.length) {
+                return null;
+            }
+            shape = shapes[0];
+        }
+
+        let expandedShape = shape.toRectalge().cloneAndExpand(this.config.padding);
+
+        let shapes = this.shapes.filter(x => x.getGuid() != _shape.getGuid()).map(x => x.toRectalge().cloneAndExpand(this.config.padding));
+        for (let i = 0; i < expandedShape.points.length; ++i) {
+            let point = shape.points[i];
+            if (shapes.some(x => x.isPointInPolygon(point))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public rectConflictTest(leftTop: Point, rightBottom: Point): boolean {
+        let rect = new Rectangle(leftTop.x, leftTop.y, rightBottom.x - leftTop.x, rightBottom.y - leftTop.y, null, null);
+        return this.shapeConflictTest(rect);
     }
 }
 

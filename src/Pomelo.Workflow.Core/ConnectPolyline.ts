@@ -99,7 +99,7 @@ export class ConnectPolyline extends PolylineBase {
 
     private generateElementSegments(shapes: Shape[], connectPolylines: ConnectPolyline[]): void {
         let segments: Segment[] = [];
-        let expanded = shapes.map(x => x.cloneAndExpand(this.padding));
+        let expanded = shapes.map(x => x.toRectalge().cloneAndExpand(this.padding));
         for (let i = 0; i < expanded.length; ++i) {
             let _segments = ConnectPolyline.polylineToSegments(expanded[i]);
             for (let j = 0; j < _segments.length; ++j) {

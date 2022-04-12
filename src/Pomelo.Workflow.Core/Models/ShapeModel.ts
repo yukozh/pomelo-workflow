@@ -1,11 +1,9 @@
+import { Point } from "../Point";
 import { AnchorModel } from "./AnchorModel";
 
 export class ShapeModel {
     guid: string;
-    top: number;
-    left: number;
-    width: number;
-    height: number;
+    points: Point[];
     anchors: AnchorModel[];
     name: string;
 }

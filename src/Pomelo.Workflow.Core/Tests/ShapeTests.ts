@@ -1,9 +1,9 @@
 import assert = require('assert');
-import { Shape } from '../Shape';
+import { Rectangle } from '../Shape';
 
 describe("Shape Tests", () => {
     it("Calculate Anchor Point", () => {
-        let shape = new Shape(100, 100, 10, 10, null);
+        let shape = new Rectangle(100, 100, 10, 10, null);
 
         shape.createAnchor(0.5, 0);
         shape.createAnchor(0.5, 1);

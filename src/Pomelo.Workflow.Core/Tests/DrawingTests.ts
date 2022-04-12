@@ -9,12 +9,12 @@ describe("Drawing Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(drawing.getShapes().length, 1);
         assert.equal(shape1.getAnchors().length, 1);
 
-        let shape2 = drawing.createShape(80, 100, 20, 20);
+        let shape2 = drawing.createRect(80, 100, 20, 20);
         let anchor2 = shape2.createAnchor(1, .5);
         assert.equal(drawing.getShapes().length, 2);
         assert.equal(shape2.getAnchors().length, 1);
@@ -47,12 +47,12 @@ describe("Drawing Tests", () => {
         // Arrange
         let drawing = new Drawing(config);
 
-        let shape1 = drawing.createShape(20, 20, 20, 20);
+        let shape1 = drawing.createRect(20, 20, 20, 20);
         shape1.createAnchor(0, .5);
         assert.equal(drawing.getShapes().length, 1);
         assert.equal(shape1.getAnchors().length, 1);
 
-        let shape2 = drawing.createShape(80, 100, 20, 20);
+        let shape2 = drawing.createRect(80, 100, 20, 20);
         shape2.createAnchor(1, .5);
         assert.equal(drawing.getShapes().length, 2);
         assert.equal(shape2.getAnchors().length, 1);

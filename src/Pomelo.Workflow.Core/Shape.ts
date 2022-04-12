@@ -14,12 +14,12 @@ export class Anchor {
     }
 
     public toPoint(): Point {
-        return new Point(this.shape.points[0].x + this.xPercentage * this.shape.getWidth(), this.shape.points[0].y + this.yPercentage * this.shape.getHeight());
+        return new Point(this.shape.points[0].x + this.xPercentage * this.shape.toRectalge().getWidth(), this.shape.points[0].y + this.yPercentage * this.shape.toRectalge().getHeight());
     }
 
     public toPointWithPadding(padding: number): Point {
-        let fakeWidth = this.shape.getWidth() + padding * 2;
-        let fakeHeight = this.shape.getHeight() + padding * 2;
+        let fakeWidth = this.shape.toRectalge().getWidth() + padding * 2;
+        let fakeHeight = this.shape.toRectalge().getHeight() + padding * 2;
         let fakeX = this.shape.points[0].x - padding;
         let fakeY = this.shape.points[0].y - padding;
         return new Point(fakeX + this.xPercentage * fakeWidth, fakeY + this.yPercentage * fakeHeight);
@@ -27,40 +27,44 @@ export class Anchor {
 }
 
 export class Shape extends PolylineBase {
-    private guid: string;
-    private width: number;
-    private height: number;
-    private anchors: Anchor[];
-    private drawing: Drawing;
+    protected guid: string;
+    protected anchors: Anchor[];
+    protected drawing: Drawing;
 
-    public constructor(x: number, y: number, width: number, height: number, guid: string | null = null, drawing: Drawing | null = null) {
+    public constructor(points: Point[], guid: string | null = null, drawing: Drawing | null = null) {
         super();
         this.guid = guid;
         this.drawing = drawing;
-        if (width == 0 || height == 0) {
-            throw 'The width and height cannot be zero';
+        if (points.length < 3) {
+            throw 'The point count must larger than 3.';
         }
 
-        this.width = width;
-        this.height = height;
+        for (let i = 0; i < points.length; ++i) {
+            this.points.push(points[i]);
+        }
 
-        this.points.push(new Point(x, y));
-        this.points.push(new Point(x + width, y));
-        this.points.push(new Point(x + width, y + height));
-        this.points.push(new Point(x, y + height));
         this.anchors = [];
+    }
+
+    public toRectalge(guid: string | null = null): Rectangle {
+        let minX = this.points[0].x;
+        let minY = this.points[0].y;
+        let maxX = minX;
+        let maxY = minY;
+
+        for (let i = 1; i < this.points.length; ++i) {
+            let point = this.points[i];
+            minX = Math.min(minX, point.x);
+            maxX = Math.max(maxX, point.x);
+            minY = Math.min(minY, point.y);
+            maxY = Math.max(maxY, point.y);
+        }
+
+        return new Rectangle(minX, minY, maxX - minX, maxY - minY, guid, this.drawing);
     }
 
     public getGuid(): string {
         return this.guid;
-    }
-
-    public getWidth(): number {
-        return this.width;
-    }
-
-    public getHeight(): number {
-        return this.height;
     }
 
     public getAnchors(): Anchor[] {
@@ -73,16 +77,48 @@ export class Shape extends PolylineBase {
         return anchor;
     }
 
-    public cloneAndExpand(padding: number): Shape {
+    public generateSvg(): string {
+        return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')}"
+style="fill:none;stroke:${this.drawing.getConfig().shapeBorderColor};stroke-width:${this.drawing.getConfig().shapeBorderStrokeWidth}"/>`;
+    }
+}
+
+export class Rectangle extends Shape
+{
+    private width: number;
+    private height: number;
+
+    public constructor(x: number, y: number, width: number, height: number, guid: string | null = null, drawing: Drawing | null = null) {
+        let points: Point[] = [];
+        points.push(new Point(x, y));
+        points.push(new Point(x + width, y));
+        points.push(new Point(x + width, y + height));
+        points.push(new Point(x, y + height));
+        super(points);
+        this.anchors = [];
+        this.guid = guid;
+        this.drawing = drawing;
+        if (width == 0 || height == 0) {
+            throw 'The width and height cannot be zero';
+        }
+        this.width = width;
+        this.height = height;
+
+    }
+
+    public getWidth(): number {
+        return this.width;
+    }
+
+    public getHeight(): number {
+        return this.height;
+    }
+
+    public cloneAndExpand(padding: number): Rectangle {
         let fakeWidth = this.getWidth() + padding * 2;
         let fakeHeight = this.getHeight() + padding * 2;
         let fakeX = this.points[0].x - padding;
         let fakeY = this.points[0].y - padding;
-        return new Shape(fakeX, fakeY, fakeWidth, fakeHeight);
-    }
-
-    public generateSvg(): string {
-        return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')}"
-style="fill:none;stroke:${this.drawing.getConfig().shapeBorderColor};stroke-width:${this.drawing.getConfig().shapeBorderStrokeWidth}"/>`;
+        return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.drawing);
     }
 }
