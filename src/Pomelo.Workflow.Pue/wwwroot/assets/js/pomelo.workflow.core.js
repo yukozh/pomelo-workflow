@@ -1463,7 +1463,7 @@ var PomeloWF = (function (exports) {
             }
         };
         Shape.prototype.generateSvg = function () {
-            if (!this.points.length) {
+            if (!this.points.length || this.drawing && !this.drawing.getConfig().shapeBorder) {
                 return '';
             }
             return "<polyline data-shape=\"".concat(this.getGuid(), "\" points=\"").concat(this.points.map(function (x) { return x.x + ',' + x.y; }).join(' '), " ").concat(this.points[0].x, ",").concat(this.points[0].y, "\"\n    style=\"fill:none;stroke:").concat(this.drawing.getConfig().shapeStrokeColor, ";stroke-width:").concat(this.drawing.getConfig().shapeBorderStrokeWidth, "\"/>");

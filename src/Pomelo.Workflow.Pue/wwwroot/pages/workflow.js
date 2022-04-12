@@ -11,7 +11,9 @@
         }
     },
     created() {
-        this.drawing = new PomeloWF.Drawing(new PomeloWF.DrawingConfiguration());
+        var config = new PomeloWF.DrawingConfiguration();
+        config.shapeStroke = false;
+        this.drawing = new PomeloWF.Drawing(config);
     },
     mounted() {
         this.drawing.mount('#drawing');

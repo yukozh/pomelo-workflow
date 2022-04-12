@@ -142,9 +142,10 @@ export class Shape extends PolylineBase {
     }
 
     public generateSvg(): string {
-        if (!this.points.length) {
+        if (!this.points.length || this.drawing && !this.drawing.getConfig().shapeBorder) {
             return '';
         }
+
         return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')} ${this.points[0].x},${this.points[0].y}"
 style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeBorderStrokeWidth}"/>`;
     }
