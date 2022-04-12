@@ -157,6 +157,10 @@ var PomeloWF = (function (exports) {
             this.pathGeneratedSuccessfully = false;
             this.departure = departure;
             this.destination = destination;
+            return this.update();
+        };
+        ConnectPolyline.prototype.update = function (fastMode) {
+            if (fastMode === void 0) { fastMode = false; }
             this.refreshAnchorPositions();
             this.generateElementSegments(this.drawing.getShapes(), this.drawing.getConnectPolylines());
             this.path.points.splice(0, this.path.points.length);
@@ -164,10 +168,21 @@ var PomeloWF = (function (exports) {
                 ? this.buildPathBFS()
                 : this.buildPathDFS(this.departurePoint);
             if (ret) {
-                this.path.points = [departure.toPoint()].concat(this.path.points).concat([destination.toPoint()]);
+                this.path.points = [this.departure.toPoint()].concat(this.path.points).concat([this.destination.toPoint()]);
             }
             this.points = this.path.points;
             this.pathGeneratedSuccessfully = ret;
+            // Update SVG
+            var html = this.drawing.getHtmlHelper();
+            if (html) {
+                var dom = html.getConnectPolylineDOM(this.getGuid());
+                if (dom) {
+                    html.updateConnectPolyline(this);
+                }
+                else {
+                    html.appendConnectPolyline(this);
+                }
+            }
             return ret;
         };
         ConnectPolyline.prototype.generateElementSegments = function (shapes, connectPolylines) {
@@ -651,8 +666,27 @@ var PomeloWF = (function (exports) {
             }
             return new Segment(point, destination);
         };
+        ConnectPolyline.prototype.remove = function () {
+            if (!this.drawing) {
+                return;
+            }
+            var html = this.drawing.getHtmlHelper();
+            if (!html) {
+                return;
+            }
+            var elements = this.drawing.getConnectPolylines();
+            var index = elements.indexOf(this);
+            if (index < 0) {
+                return;
+            }
+            elements.splice(index, 1);
+            html.removeConnectPolyline(this.guid);
+        };
         ConnectPolyline.prototype.generateSvg = function () {
-            return "<polyline data-polyline=\"".concat(this.getGuid(), "\" points=\"").concat(this.getPaths().points.map(function (x) { return x.x + ',' + x.y; }).join(' '), "\"\n    style=\"fill:none;stroke:").concat(this.getColor(), ";stroke-width:").concat(this.drawing.getConfig().connectPolylineStroke, "\"/>");
+            if (!this.points.length) {
+                return '';
+            }
+            return "<polyline data-polyline=\"".concat(this.getGuid(), "\" points=\"").concat(this.getPaths().points.map(function (x) { return x.x + ',' + x.y; }).join(' '), "\"\n    style=\"fill:none;stroke:").concat(this.getColor(), ";stroke-width:").concat(this.drawing.getConfig().connectPolylineStrokeWidth, "\"/>");
         };
         return ConnectPolyline;
     }(PolylineBase));
@@ -660,9 +694,9 @@ var PomeloWF = (function (exports) {
         function DrawingConfiguration() {
             this.padding = 5;
             this.shapeBorder = false;
-            this.shapeBorderColor = 'blue';
+            this.shapeStrokeColor = 'blue';
             this.shapeBorderStrokeWidth = 1;
-            this.connectPolylineStroke = 1;
+            this.connectPolylineStrokeWidth = 1;
         }
         return DrawingConfiguration;
     }());
@@ -681,9 +715,9 @@ var PomeloWF = (function (exports) {
             this.config = new DrawingConfiguration();
             this.config.padding = config.padding || this.config.padding;
             this.config.shapeBorder = config.shapeBorder || this.config.shapeBorder;
-            this.config.shapeBorderColor = config.shapeBorderColor || this.config.shapeBorderColor;
+            this.config.shapeStrokeColor = config.shapeStrokeColor || this.config.shapeStrokeColor;
             this.config.shapeBorderStrokeWidth = config.shapeBorderStrokeWidth || this.config.shapeBorderStrokeWidth;
-            this.config.connectPolylineStroke = config.connectPolylineStroke || this.config.connectPolylineStroke;
+            this.config.connectPolylineStrokeWidth = config.connectPolylineStrokeWidth || this.config.connectPolylineStrokeWidth;
             this.guid = guid || this.generateGuid();
         }
         Drawing.prototype.getGuid = function () {
@@ -703,6 +737,9 @@ var PomeloWF = (function (exports) {
                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
+        };
+        Drawing.prototype.getHtmlHelper = function () {
+            return this.htmlHelper;
         };
         Drawing.prototype.serializeToJson = function () {
             var ret = {
@@ -727,16 +764,33 @@ var PomeloWF = (function (exports) {
             };
             return JSON.stringify(ret);
         };
+        Drawing.prototype.clean = function () {
+            this.shapes.splice(0, this.shapes.length);
+            this.connectPolylines.splice(0, this.connectPolylines.length);
+            var html = this.getHtmlHelper();
+            if (!html) {
+                return;
+            }
+            html.clean();
+        };
         Drawing.prototype.deserializeFromJson = function (json) {
             var model = JSON.parse(json);
+            this.clean();
+            var html = this.getHtmlHelper();
+            if (html && model.guid) {
+                html.getDrawingSvg().setAttribute('data-drawing', model.guid);
+            }
             this.guid = model.guid || this.guid;
             for (var i = 0; i < model.shapes.length; ++i) {
                 var shape = model.shapes[i];
-                this.createShape(shape.points, shape.guid);
+                var shapeInstance = this.createShape(shape.points.map(function (x) { return new Point(x.x, x.y); }), shape.guid || this.generateGuid());
+                for (var j = 0; j < shape.anchors.length; ++j) {
+                    shapeInstance.createAnchor(shape.anchors[j].xPercentage, shape.anchors[j].yPercentage);
+                }
             }
             for (var i = 0; i < model.connectPolylines.length; ++i) {
                 var cpl = model.connectPolylines[i];
-                this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex, cpl.guid);
+                this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex, cpl.color, cpl.guid || this.generateGuid());
             }
         };
         Drawing.prototype.findShapeByGuid = function (guid) {
@@ -765,8 +819,8 @@ var PomeloWF = (function (exports) {
             cpl.setColor(color);
             var departure = this.findShapeByGuid(departureGuid);
             var destination = this.findShapeByGuid(destinationGuid);
-            cpl.initFromDepartureAndDestination(departure.getAnchors()[departureAnchorIndex], destination.getAnchors()[destinationAnchorIndex]);
             this.connectPolylines.push(cpl);
+            cpl.initFromDepartureAndDestination(departure.getAnchors()[departureAnchorIndex], destination.getAnchors()[destinationAnchorIndex]);
             return cpl;
         };
         Drawing.prototype.getBorder = function (elements) {
@@ -823,7 +877,7 @@ var PomeloWF = (function (exports) {
             }
             this.htmlHelper = new DrawingHtmlHelper(this, selector);
         };
-        Drawing.prototype.shapeConflictTest = function (shape) {
+        Drawing.prototype.isShapeNotConflicted = function (shape) {
             var _this = this;
             var _shape;
             if (shape instanceof Shape) {
@@ -851,9 +905,9 @@ var PomeloWF = (function (exports) {
             }
             return true;
         };
-        Drawing.prototype.rectConflictTest = function (leftTop, rightBottom) {
+        Drawing.prototype.isRectangleNotConflicted = function (leftTop, rightBottom) {
             var rect = new Rectangle(leftTop.x, leftTop.y, rightBottom.x - leftTop.x, rightBottom.y - leftTop.y, null, null);
-            return this.shapeConflictTest(rect);
+            return this.isShapeNotConflicted(rect);
         };
         return Drawing;
     }());
@@ -870,7 +924,7 @@ var PomeloWF = (function (exports) {
             this.mountedElement = doms[0];
             this.maskLayerHtmlId = 'pomelo-wf-mask-' + drawing.getGuid();
             this.svgLayerHtmlId = 'pomelo-wf-svg-' + drawing.getGuid();
-            this.mountedElement.innerHTML = "<div id=\"".concat(this.maskLayerHtmlId, "\"></div><div id=\"").concat(this.svgLayerHtmlId, "\"></div>");
+            this.mountedElement.innerHTML = "<div id=\"".concat(this.maskLayerHtmlId, "\"></div><div id=\"").concat(this.svgLayerHtmlId, "\">").concat(this.drawing.generateSvg(), "</div>");
         }
         DrawingHtmlHelper.prototype.getWindow = function () {
             return eval('window');
@@ -909,11 +963,22 @@ var PomeloWF = (function (exports) {
             if (stylePatch === void 0) { stylePatch = null; }
             this.setSvgElement(ElementType.Polyline, guid, points, stylePatch);
         };
+        DrawingHtmlHelper.prototype.getDrawingSvg = function () {
+            return this.mountedElement.querySelector("[data-drawing=\"".concat(this.drawing.getGuid(), "\"]"));
+        };
         DrawingHtmlHelper.prototype.getShapeDOM = function (guid) {
-            return this.getDocument().querySelector("[data-shape=\"".concat(guid, "\"]"));
+            return this.mountedElement.querySelector("[data-shape=\"".concat(guid, "\"]"));
         };
         DrawingHtmlHelper.prototype.getConnectPolylineDOM = function (guid) {
-            return this.getDocument().querySelector("[data-polyline=\"".concat(guid, "\"]"));
+            return this.mountedElement.querySelector("[data-polyline=\"".concat(guid, "\"]"));
+        };
+        DrawingHtmlHelper.prototype.getShapeDOMs = function () {
+            var ret = this.mountedElement.querySelectorAll('[data-shape]');
+            return this.convertNodeListToArray(ret);
+        };
+        DrawingHtmlHelper.prototype.getConnectPolylineDOMs = function () {
+            var ret = this.mountedElement.querySelectorAll('[data-polyline]');
+            return this.convertNodeListToArray(ret);
         };
         DrawingHtmlHelper.prototype.setSvgElement = function (elementType, guid, points, stylePatch) {
             if (points === void 0) { points = null; }
@@ -922,7 +987,8 @@ var PomeloWF = (function (exports) {
                 ? this.getShapeDOM(guid)
                 : this.getConnectPolylineDOM(guid);
             if (dom == null) {
-                throw "[Pomelo Workflow] ".concat(guid, " was not found");
+                //console.warn(`[Pomelo Workflow] ${guid} was not found`);
+                return;
             }
             if (points != null) {
                 dom.setAttribute('points', points.map(function (x) { return "".concat(x.x, ",").concat(x.y); }).join(' '));
@@ -935,30 +1001,117 @@ var PomeloWF = (function (exports) {
                 }
                 dom.setAttribute('style', this.generateAttributeString(styles));
             }
+            this.updateSvgBorder();
+        };
+        DrawingHtmlHelper.prototype.clean = function () {
+            this.getDrawingSvg().innerHTML = '';
         };
         DrawingHtmlHelper.prototype.refresh = function () {
+            var _this = this;
+            // Clean up
+            this.clean();
+            // Update
             var shapes = this.drawing.getShapes();
             for (var i = 0; i < shapes.length; ++i) {
                 var shape = shapes[i];
-                var dom = this.getShapeDOM(shape.getGuid());
-                if (dom) {
-                    this.setShape(shape.getGuid(), shape.points, {
-                        stroke: this.drawing.getConfig().shapeBorderColor,
-                        'stroke-width': this.drawing.getConfig().shapeBorderStrokeWidth
-                    });
-                }
+                this.updateShape(shape);
             }
             var polylines = this.drawing.getConnectPolylines();
             for (var i = 0; i < polylines.length; ++i) {
                 var polyline = polylines[i];
-                var dom = this.getConnectPolylineDOM(polyline.getGuid());
-                if (dom) {
-                    this.setShape(polyline.getGuid(), polyline.points, {
-                        stroke: polyline.getColor(),
-                        'stroke-width': this.drawing.getConfig().connectPolylineStroke
-                    });
+                this.updateConnectPolyline(polyline);
+            }
+            // Remove
+            var shapeGuidsToRemove = this.getShapeDOMs().map(function (x) { return x.getAttribute('data-shape'); }).filter(function (x) { return x == 'null' || shapes.every(function (y) { return y.getGuid() != x; }); });
+            for (var i = 0; i < shapeGuidsToRemove.length; ++i) {
+                this.removeShape(shapeGuidsToRemove[i]);
+            }
+            var connectPolylineGuidsToRemove = this.getConnectPolylineDOMs().map(function (x) { return x.getAttribute('data-polyline'); }).filter(function (x) { return x == 'null' || polylines.every(function (y) { return y.getGuid() != x; }); });
+            for (var i = 0; i < connectPolylineGuidsToRemove.length; ++i) {
+                this.removeConnectPolyline(connectPolylineGuidsToRemove[i]);
+            }
+            // Append
+            var shapesToAppend = shapes.filter(function (x) { return _this.getShapeDOMs().map(function (x) { return x.getAttribute('data-shape'); }).every(function (y) { return x.getGuid() != y; }); });
+            for (var i = 0; i < shapesToAppend.length; ++i) {
+                this.appendShape(shapesToAppend[i]);
+            }
+            var connectPolylinesToAppend = polylines.filter(function (x) { return _this.getConnectPolylineDOMs().map(function (x) { return x.getAttribute('data-polyline'); }).every(function (y) { return x.getGuid() != y; }); });
+            for (var i = 0; i < connectPolylinesToAppend.length; ++i) {
+                this.appendConnectPolyline(connectPolylinesToAppend[i]);
+            }
+            this.updateSvgBorder();
+        };
+        DrawingHtmlHelper.prototype.updateShape = function (shape) {
+            var shapeDOM = this.getShapeDOM(shape.getGuid());
+            if (!shapeDOM) {
+                return;
+            }
+            var points = shape.points.concat([shape.points[0]]);
+            this.setShape(shape.getGuid(), points, { stroke: this.drawing.getConfig().shapeStrokeColor, 'stroke-width': this.drawing.getConfig().shapeBorderStrokeWidth });
+        };
+        DrawingHtmlHelper.prototype.updateConnectPolyline = function (connectPolyline) {
+            var connectPolylineDOM = this.getShapeDOM(connectPolyline.getGuid());
+            if (!connectPolylineDOM) {
+                return;
+            }
+            this.setShape(connectPolyline.getGuid(), connectPolyline.points, { stroke: connectPolyline.getColor(), 'stroke-width': this.drawing.getConfig().connectPolylineStrokeWidth });
+        };
+        DrawingHtmlHelper.prototype.appendShape = function (shape) {
+            var shapeDOM = this.getShapeDOM(shape.getGuid());
+            if (shapeDOM) {
+                return;
+            }
+            var svg = shape.generateSvg();
+            var element = this.getDocument().createElement('div');
+            this.getDrawingSvg().appendChild(element);
+            element.outerHTML = svg;
+            this.updateSvgBorder();
+        };
+        DrawingHtmlHelper.prototype.appendConnectPolyline = function (connectPolyline) {
+            var connectPolylineDOM = this.getConnectPolylineDOM(connectPolyline.getGuid());
+            if (connectPolylineDOM) {
+                return;
+            }
+            var svg = connectPolyline.generateSvg();
+            var element = this.getDocument().createElement('div');
+            this.getDrawingSvg().appendChild(element);
+            element.outerHTML = svg;
+            this.updateSvgBorder();
+        };
+        DrawingHtmlHelper.prototype.removeShape = function (guid) {
+            var dom = this.getShapeDOM(guid);
+            if (dom) {
+                dom.outerHTML = '';
+            }
+            this.updateSvgBorder();
+        };
+        DrawingHtmlHelper.prototype.removeConnectPolyline = function (guid) {
+            var dom = this.getConnectPolylineDOM(guid);
+            if (dom) {
+                dom.outerHTML = '';
+            }
+            this.updateSvgBorder();
+        };
+        DrawingHtmlHelper.prototype.updateSvgBorder = function () {
+            var border = this.drawing.getBorder();
+            if (!border) {
+                return;
+            }
+            this.getDrawingSvg().setAttribute('width', (border[1].x + this.drawing.getConfig().padding) + 'px');
+            this.getDrawingSvg().setAttribute('height', (border[1].y + this.drawing.getConfig().padding) + 'px');
+        };
+        DrawingHtmlHelper.prototype.convertNodeListToArray = function (nodes) {
+            var array = null;
+            try {
+                array = Array.prototype.slice.call(nodes, 0);
+            }
+            catch (ex) {
+                array = new Array();
+                for (var i = 0, len = nodes.length; i < len; i++) {
+                    array.push(nodes[i]);
                 }
             }
+            return array;
         };
         return DrawingHtmlHelper;
     }());
@@ -1219,13 +1372,19 @@ var PomeloWF = (function (exports) {
             var _this = _super.call(this) || this;
             _this.guid = guid;
             _this.drawing = drawing;
-            if (points.length >= 3) {
+            if (points.length < 3) {
                 throw 'The point count must larger than 3.';
             }
             for (var i = 0; i < points.length; ++i) {
                 _this.points.push(points[i]);
             }
             _this.anchors = [];
+            if (_this.drawing) {
+                var html = _this.drawing.getHtmlHelper();
+                if (html) {
+                    html.appendShape(_this);
+                }
+            }
             return _this;
         }
         Shape.prototype.toRectalge = function (guid) {
@@ -1254,8 +1413,60 @@ var PomeloWF = (function (exports) {
             this.anchors.push(anchor);
             return anchor;
         };
+        Shape.prototype.remove = function () {
+            if (!this.drawing) {
+                return;
+            }
+            var html = this.drawing.getHtmlHelper();
+            if (!html) {
+                return;
+            }
+            var elements = this.drawing.getShapes();
+            var index = elements.indexOf(this);
+            if (index < 0) {
+                return;
+            }
+            elements.splice(index, 1);
+            html.removeShape(this.guid);
+        };
+        Shape.prototype.move = function (newTopLeft) {
+            var _this = this;
+            var rect = this.toRectalge();
+            var current = rect.points[0];
+            var deltaX = newTopLeft.x - current.x;
+            var deltaY = newTopLeft.y - current.y;
+            if (this.drawing) {
+                // Conflict test
+                for (var i = 0; i < rect.points.length; ++i) {
+                    rect.points[i].x += deltaX;
+                    rect.points[i].y += deltaY;
+                }
+                if (!this.drawing.isShapeNotConflicted(rect)) {
+                    return;
+                }
+                var points = [];
+                for (var i = 0; i < this.points.length; ++i) {
+                    var point = new Point(this.points[i].x + deltaX, this.points[i].y + deltaY);
+                    points.push(point);
+                }
+                this.points = points;
+                var html = this.drawing.getHtmlHelper();
+                if (!html) {
+                    return;
+                }
+                html.updateShape(this);
+                var connectPolylines = this.drawing.getConnectPolylines().filter(function (x) { return x.getDepartureAnchor().shape == _this || x.getDestinationAnchor().shape == _this; });
+                for (var i = 0; i < connectPolylines.length; ++i) {
+                    var cpl = connectPolylines[i];
+                    cpl.update();
+                }
+            }
+        };
         Shape.prototype.generateSvg = function () {
-            return "<polyline data-shape=\"".concat(this.getGuid(), "\" points=\"").concat(this.points.map(function (x) { return x.x + ',' + x.y; }).join(' '), "\"\n    style=\"fill:none;stroke:").concat(this.drawing.getConfig().shapeBorderColor, ";stroke-width:").concat(this.drawing.getConfig().shapeBorderStrokeWidth, "\"/>");
+            if (!this.points.length) {
+                return '';
+            }
+            return "<polyline data-shape=\"".concat(this.getGuid(), "\" points=\"").concat(this.points.map(function (x) { return x.x + ',' + x.y; }).join(' '), " ").concat(this.points[0].x, ",").concat(this.points[0].y, "\"\n    style=\"fill:none;stroke:").concat(this.drawing.getConfig().shapeStrokeColor, ";stroke-width:").concat(this.drawing.getConfig().shapeBorderStrokeWidth, "\"/>");
         };
         return Shape;
     }(PolylineBase));
@@ -1270,7 +1481,7 @@ var PomeloWF = (function (exports) {
             points.push(new Point(x + width, y));
             points.push(new Point(x + width, y + height));
             points.push(new Point(x, y + height));
-            _this = _super.call(this, points) || this;
+            _this = _super.call(this, points, guid, drawing) || this;
             _this.anchors = [];
             _this.guid = guid;
             _this.drawing = drawing;

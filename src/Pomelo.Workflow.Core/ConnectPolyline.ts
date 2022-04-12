@@ -82,6 +82,10 @@ export class ConnectPolyline extends PolylineBase {
         this.pathGeneratedSuccessfully = false;
         this.departure = departure;
         this.destination = destination;
+        return this.update();
+    }
+
+    public update(fastMode: boolean = false): boolean {
         this.refreshAnchorPositions();
         this.generateElementSegments(this.drawing.getShapes(), this.drawing.getConnectPolylines());
         this.path.points.splice(0, this.path.points.length);
@@ -89,11 +93,22 @@ export class ConnectPolyline extends PolylineBase {
             ? this.buildPathBFS()
             : this.buildPathDFS(this.departurePoint);
         if (ret) {
-            this.path.points = [departure.toPoint()].concat(this.path.points).concat([destination.toPoint()]);
+            this.path.points = [this.departure.toPoint()].concat(this.path.points).concat([this.destination.toPoint()]);
         }
 
         this.points = this.path.points;
         this.pathGeneratedSuccessfully = ret;
+
+        // Update SVG
+        let html = this.drawing.getHtmlHelper();
+        if (html) {
+            let dom = html.getConnectPolylineDOM(this.getGuid());
+            if (dom) {
+                html.updateConnectPolyline(this);
+            } else {
+                html.appendConnectPolyline(this);
+            }
+        }
         return ret;
     }
 
@@ -617,8 +632,31 @@ export class ConnectPolyline extends PolylineBase {
         return new Segment(point, destination);
     }
 
+    public remove(): void {
+        if (!this.drawing) {
+            return;
+        }
+
+        let html = this.drawing.getHtmlHelper();
+        if (!html) {
+            return;
+        }
+
+        let elements = this.drawing.getConnectPolylines();
+        let index = elements.indexOf(this);
+        if (index < 0) {
+            return;
+        }
+
+        elements.splice(index, 1);
+        html.removeConnectPolyline(this.guid);
+    }
+
     public generateSvg(): string {
+        if (!this.points.length) {
+            return '';
+        }
         return `<polyline data-polyline="${this.getGuid()}" points="${this.getPaths().points.map(x => x.x + ',' + x.y).join(' ')}"
-style="fill:none;stroke:${this.getColor()};stroke-width:${this.drawing.getConfig().connectPolylineStroke}"/>`;
+style="fill:none;stroke:${this.getColor()};stroke-width:${this.drawing.getConfig().connectPolylineStrokeWidth}"/>`;
     }
 }

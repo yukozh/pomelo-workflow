@@ -48,17 +48,24 @@ describe("Drawing Tests", () => {
         let drawing = new Drawing(config);
 
         let shape1 = drawing.createRect(20, 20, 20, 20);
-        shape1.createAnchor(0, .5);
-        assert.equal(drawing.getShapes().length, 1);
-        assert.equal(shape1.getAnchors().length, 1);
+        let anchor1 = shape1.createAnchor(0, .5);
+        assert.equal(anchor1.toPoint().x, 20);
+        assert.equal(anchor1.toPoint().y, 20 + 10);
 
-        let shape2 = drawing.createRect(80, 100, 20, 20);
+        let shape2 = drawing.createRect(200, 30, 20, 20);
         shape2.createAnchor(1, .5);
-        assert.equal(drawing.getShapes().length, 2);
-        assert.equal(shape2.getAnchors().length, 1);
+        shape2.createAnchor(.5, 1);
 
-        drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0);
-        assert.equal(drawing.getConnectPolylines().length, 1);
+        let shape3 = drawing.createRect(100, 20, 20, 20);
+        shape3.createAnchor(0, .5);
+
+        let shape4 = drawing.createRect(260, 15, 20, 20);
+        shape4.createAnchor(1, .5);
+        shape4.createAnchor(.5, 1);
+
+        drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0, 'orange');
+        drawing.createConnectPolyline(shape3.getGuid(), 0, shape4.getGuid(), 0, 'red');
+        drawing.createConnectPolyline(shape2.getGuid(), 1, shape4.getGuid(), 1, 'green');
 
         // Act
         let json = drawing.serializeToJson();

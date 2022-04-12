@@ -44,6 +44,13 @@ export class Shape extends PolylineBase {
         }
 
         this.anchors = [];
+
+        if (this.drawing) {
+            let html = this.drawing.getHtmlHelper();
+            if (html) {
+                html.appendShape(this);
+            }
+        }
     }
 
     public toRectalge(guid: string | null = null): Rectangle {
@@ -77,9 +84,69 @@ export class Shape extends PolylineBase {
         return anchor;
     }
 
+    public remove(): void {
+        if (!this.drawing) {
+            return;
+        }
+
+        let html = this.drawing.getHtmlHelper();
+        if (!html) {
+            return;
+        }
+
+        let elements = this.drawing.getShapes();
+        let index = elements.indexOf(this);
+        if (index < 0) {
+            return;
+        }
+
+        elements.splice(index, 1);
+        html.removeShape(this.guid);
+    }
+
+    public move(newTopLeft: Point): void {
+        let rect = this.toRectalge();
+        let current = rect.points[0];
+        let deltaX = newTopLeft.x - current.x;
+        let deltaY = newTopLeft.y - current.y;
+
+        if (this.drawing) {
+            // Conflict test
+            for (let i = 0; i < rect.points.length; ++i) {
+                rect.points[i].x += deltaX;
+                rect.points[i].y += deltaY;
+            }
+            if (!this.drawing.isShapeNotConflicted(rect)) {
+                return;
+            }
+
+            let points = [];
+            for (let i = 0; i < this.points.length; ++i) {
+                let point = new Point(this.points[i].x + deltaX, this.points[i].y + deltaY);
+                points.push(point);
+            }
+            this.points = points;
+
+            let html = this.drawing.getHtmlHelper();
+            if (!html) {
+                return;
+            }
+
+            html.updateShape(this);
+            let connectPolylines = this.drawing.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this || x.getDestinationAnchor().shape == this);
+            for (let i = 0; i < connectPolylines.length; ++i) {
+                let cpl = connectPolylines[i];
+                cpl.update();
+            }
+        }
+    }
+
     public generateSvg(): string {
-        return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')}"
-style="fill:none;stroke:${this.drawing.getConfig().shapeBorderColor};stroke-width:${this.drawing.getConfig().shapeBorderStrokeWidth}"/>`;
+        if (!this.points.length) {
+            return '';
+        }
+        return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')} ${this.points[0].x},${this.points[0].y}"
+style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeBorderStrokeWidth}"/>`;
     }
 }
 
@@ -94,7 +161,7 @@ export class Rectangle extends Shape
         points.push(new Point(x + width, y));
         points.push(new Point(x + width, y + height));
         points.push(new Point(x, y + height));
-        super(points);
+        super(points, guid, drawing);
         this.anchors = [];
         this.guid = guid;
         this.drawing = drawing;

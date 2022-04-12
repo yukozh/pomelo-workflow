@@ -5,14 +5,14 @@ import { DrawingModel } from "./Models/DrawingModel";
 import { ShapeModel } from "./Models/ShapeModel";
 import { Point } from "./Point";
 import { PolylineBase } from "./Polyline";
-import { Rectangle, Shape } from "./Shape";
+import { Anchor, Rectangle, Shape } from "./Shape";
 
 export class DrawingConfiguration {
     public padding: number = 5;
     public shapeBorder: boolean = false;
-    public shapeBorderColor: string = 'blue';
+    public shapeStrokeColor: string = 'blue';
     public shapeBorderStrokeWidth: number = 1;
-    public connectPolylineStroke: number = 1;
+    public connectPolylineStrokeWidth: number = 1;
 }
 
 export enum ElementType {
@@ -36,9 +36,9 @@ export class Drawing {
         this.config = new DrawingConfiguration();
         this.config.padding = config.padding || this.config.padding;
         this.config.shapeBorder = config.shapeBorder || this.config.shapeBorder;
-        this.config.shapeBorderColor = config.shapeBorderColor || this.config.shapeBorderColor;
+        this.config.shapeStrokeColor = config.shapeStrokeColor || this.config.shapeStrokeColor;
         this.config.shapeBorderStrokeWidth = config.shapeBorderStrokeWidth || this.config.shapeBorderStrokeWidth;
-        this.config.connectPolylineStroke = config.connectPolylineStroke || this.config.connectPolylineStroke;
+        this.config.connectPolylineStrokeWidth = config.connectPolylineStrokeWidth || this.config.connectPolylineStrokeWidth;
 
         this.guid = guid || this.generateGuid();
     }
@@ -66,6 +66,10 @@ export class Drawing {
         });
     }
 
+    public getHtmlHelper(): DrawingHtmlHelper {
+        return this.htmlHelper;
+    }
+
     public serializeToJson(): string {
         let ret = <DrawingModel>{
             guid: this.guid,
@@ -91,18 +95,40 @@ export class Drawing {
         return JSON.stringify(ret);
     }
 
+    public clean(): void {
+        this.shapes.splice(0, this.shapes.length);
+        this.connectPolylines.splice(0, this.connectPolylines.length);
+        let html = this.getHtmlHelper();
+        if (!html) {
+            return;
+        }
+
+        html.clean();
+    }
+
     public deserializeFromJson(json: string): void {
         let model: DrawingModel = JSON.parse(json);
+
+        this.clean();
+
+        let html = this.getHtmlHelper();
+        if (html && model.guid) {
+            html.getDrawingSvg().setAttribute('data-drawing', model.guid);
+        }
+
         this.guid = model.guid || this.guid;
 
         for (let i = 0; i < model.shapes.length; ++i) {
             let shape = model.shapes[i];
-            this.createShape(shape.points, shape.guid);
+            let shapeInstance = this.createShape(shape.points.map(x => new Point(x.x, x.y)), shape.guid || this.generateGuid());
+            for (let j = 0; j < shape.anchors.length; ++j) {
+                shapeInstance.createAnchor(shape.anchors[j].xPercentage, shape.anchors[j].yPercentage);
+            }
         }
 
         for (let i = 0; i < model.connectPolylines.length; ++i) {
             let cpl = model.connectPolylines[i];
-            this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex, cpl.guid);
+            this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex, cpl.color, cpl.guid || this.generateGuid());
         }
     }
 
@@ -132,8 +158,8 @@ export class Drawing {
         cpl.setColor(color);
         let departure = this.findShapeByGuid(departureGuid);
         let destination = this.findShapeByGuid(destinationGuid);
-        cpl.initFromDepartureAndDestination(departure.getAnchors()[departureAnchorIndex], destination.getAnchors()[destinationAnchorIndex]);
         this.connectPolylines.push(cpl);
+        cpl.initFromDepartureAndDestination(departure.getAnchors()[departureAnchorIndex], destination.getAnchors()[destinationAnchorIndex]);
         return cpl;
     }
 
@@ -209,7 +235,7 @@ ${lines.join('\r\n')}
         this.htmlHelper = new DrawingHtmlHelper(this, selector);
     }
 
-    public shapeConflictTest(shape: string | Shape): boolean | null {
+    public isShapeNotConflicted(shape: string | Shape): boolean | null {
         let _shape: Shape;
         if (shape instanceof Shape) {
             _shape = shape;
@@ -233,9 +259,9 @@ ${lines.join('\r\n')}
         return true;
     }
 
-    public rectConflictTest(leftTop: Point, rightBottom: Point): boolean {
+    public isRectangleNotConflicted(leftTop: Point, rightBottom: Point): boolean {
         let rect = new Rectangle(leftTop.x, leftTop.y, rightBottom.x - leftTop.x, rightBottom.y - leftTop.y, null, null);
-        return this.shapeConflictTest(rect);
+        return this.isShapeNotConflicted(rect);
     }
 }
 
@@ -255,7 +281,7 @@ export class DrawingHtmlHelper {
         this.mountedElement = doms[0];
         this.maskLayerHtmlId = 'pomelo-wf-mask-' + drawing.getGuid();
         this.svgLayerHtmlId = 'pomelo-wf-svg-' + drawing.getGuid();
-        this.mountedElement.innerHTML = `<div id="${this.maskLayerHtmlId}"></div><div id="${this.svgLayerHtmlId}"></div>`;
+        this.mountedElement.innerHTML = `<div id="${this.maskLayerHtmlId}"></div><div id="${this.svgLayerHtmlId}">${this.drawing.generateSvg()}</div>`;
     }
     private getWindow(): any {
         return eval('window');
@@ -299,12 +325,26 @@ export class DrawingHtmlHelper {
         this.setSvgElement(ElementType.Polyline, guid, points, stylePatch);
     }
 
+    public getDrawingSvg(): any {
+        return this.mountedElement.querySelector(`[data-drawing="${this.drawing.getGuid()}"]`);
+    }
+
     public getShapeDOM(guid: string): any {
-        return this.getDocument().querySelector(`[data-shape="${guid}"]`);
+        return this.mountedElement.querySelector(`[data-shape="${guid}"]`);
     }
 
     public getConnectPolylineDOM(guid: string): any {
-        return this.getDocument().querySelector(`[data-polyline="${guid}"]`);
+        return this.mountedElement.querySelector(`[data-polyline="${guid}"]`);
+    }
+
+    public getShapeDOMs(): any[] {
+        let ret = this.mountedElement.querySelectorAll('[data-shape]');
+        return this.convertNodeListToArray(ret);
+    }
+
+    public getConnectPolylineDOMs(): any[] {
+        let ret = this.mountedElement.querySelectorAll('[data-polyline]');
+        return this.convertNodeListToArray(ret);
     }
 
     private setSvgElement(elementType: ElementType, guid: string, points: Point[] = null, stylePatch: any = null): void {
@@ -313,7 +353,8 @@ export class DrawingHtmlHelper {
             : this.getConnectPolylineDOM(guid);
 
         if (dom == null) {
-            throw `[Pomelo Workflow] ${guid} was not found`;
+            //console.warn(`[Pomelo Workflow] ${guid} was not found`);
+            return;
         }
 
         if (points != null) {
@@ -328,33 +369,142 @@ export class DrawingHtmlHelper {
             }
             dom.setAttribute('style', this.generateAttributeString(styles));
         }
+
+        this.updateSvgBorder();
+    }
+
+    public clean(): void {
+        this.getDrawingSvg().innerHTML = '';
     }
 
     public refresh(): void {
+        // Clean up
+        this.clean();
+
+        // Update
         let shapes = this.drawing.getShapes();
         for (let i = 0; i < shapes.length; ++i) {
             let shape = shapes[i];
-            let dom = this.getShapeDOM(shape.getGuid());
-            if (dom) {
-                this.setShape(shape.getGuid(), shape.points,
-                    {
-                        stroke: this.drawing.getConfig().shapeBorderColor,
-                        'stroke-width': this.drawing.getConfig().shapeBorderStrokeWidth
-                    });
-            }
+            this.updateShape(shape);
         }
 
         let polylines = this.drawing.getConnectPolylines();
         for (let i = 0; i < polylines.length; ++i) {
             let polyline = polylines[i];
-            let dom = this.getConnectPolylineDOM(polyline.getGuid());
-            if (dom) {
-                this.setShape(polyline.getGuid(), polyline.points,
-                    {
-                        stroke: polyline.getColor(),
-                        'stroke-width': this.drawing.getConfig().connectPolylineStroke
-                    });
+            this.updateConnectPolyline(polyline);
+        }
+
+        // Remove
+        let shapeGuidsToRemove = this.getShapeDOMs().map(x => x.getAttribute('data-shape')).filter(x => x == 'null' || shapes.every(y => y.getGuid() != x));
+        for (let i = 0; i < shapeGuidsToRemove.length; ++i) {
+            this.removeShape(shapeGuidsToRemove[i]);
+        }
+
+        let connectPolylineGuidsToRemove = this.getConnectPolylineDOMs().map(x => x.getAttribute('data-polyline')).filter(x => x == 'null' || polylines.every(y => y.getGuid() != x));
+        for (let i = 0; i < connectPolylineGuidsToRemove.length; ++i) {
+            this.removeConnectPolyline(connectPolylineGuidsToRemove[i]);
+        }
+
+        // Append
+        let shapesToAppend = shapes.filter(x => this.getShapeDOMs().map(x => x.getAttribute('data-shape')).every(y => x.getGuid() != y));
+        for (let i = 0; i < shapesToAppend.length; ++i) {
+            this.appendShape(shapesToAppend[i]);
+        }
+
+        let connectPolylinesToAppend = polylines.filter(x => this.getConnectPolylineDOMs().map(x => x.getAttribute('data-polyline')).every(y => x.getGuid() != y));
+        for (let i = 0; i < connectPolylinesToAppend.length; ++i) {
+            this.appendConnectPolyline(connectPolylinesToAppend[i]);
+        }
+
+        this.updateSvgBorder();
+    }
+
+    public updateShape(shape: Shape): void {
+        let shapeDOM = this.getShapeDOM(shape.getGuid());
+        if (!shapeDOM) {
+            return;
+        }
+
+        let points = shape.points.concat([shape.points[0]]);
+        this.setShape(shape.getGuid(), points, { stroke: this.drawing.getConfig().shapeStrokeColor, 'stroke-width': this.drawing.getConfig().shapeBorderStrokeWidth });
+    }
+
+    public updateConnectPolyline(connectPolyline: ConnectPolyline): void {
+        let connectPolylineDOM = this.getShapeDOM(connectPolyline.getGuid());
+        if (!connectPolylineDOM) {
+            return;
+        }
+
+        this.setShape(connectPolyline.getGuid(), connectPolyline.points, { stroke: connectPolyline.getColor(), 'stroke-width': this.drawing.getConfig().connectPolylineStrokeWidth });
+    }
+
+    public appendShape(shape: Shape): void {
+        let shapeDOM = this.getShapeDOM(shape.getGuid());
+        if (shapeDOM) {
+            return;
+        }
+
+        let svg = shape.generateSvg();
+        let element = this.getDocument().createElement('div');
+        this.getDrawingSvg().appendChild(element);
+        element.outerHTML = svg;
+
+        this.updateSvgBorder();
+    }
+
+    public appendConnectPolyline(connectPolyline: ConnectPolyline): void {
+        let connectPolylineDOM = this.getConnectPolylineDOM(connectPolyline.getGuid());
+        if (connectPolylineDOM) {
+            return;
+        }
+
+        let svg = connectPolyline.generateSvg();
+        let element = this.getDocument().createElement('div');
+        this.getDrawingSvg().appendChild(element);
+        element.outerHTML = svg;
+
+        this.updateSvgBorder();
+    }
+
+    public removeShape(guid: string): void {
+        let dom = this.getShapeDOM(guid);
+        if (dom) {
+            dom.outerHTML = '';
+        }
+
+        this.updateSvgBorder();
+    }
+
+    public removeConnectPolyline(guid: string): void {
+        let dom = this.getConnectPolylineDOM(guid);
+        if (dom) {
+            dom.outerHTML = '';
+        }
+
+        this.updateSvgBorder();
+    }
+
+    public updateSvgBorder(): void {
+        let border = this.drawing.getBorder();
+        if (!border) {
+            return;
+        }
+
+        this.getDrawingSvg().setAttribute('width', (border[1].x + this.drawing.getConfig().padding) + 'px');
+        this.getDrawingSvg().setAttribute('height', (border[1].y + this.drawing.getConfig().padding) + 'px');
+    }
+
+    private convertNodeListToArray(nodes) {
+        var array = null;
+        try {
+            array = Array.prototype.slice.call(nodes, 0);
+        } catch (ex) {
+            array = new Array();
+            for (var i = 0, len = nodes.length; i < len; i++) {
+                array.push(nodes[i]);
             }
         }
+
+        return array;
     }
 }
