@@ -25,6 +25,10 @@
     padding: 0 15px
 }
 
+    .header * {
+        vertical-align: middle;
+    }
+
     .header .logo {
         color: #666;
         width: 280px;
