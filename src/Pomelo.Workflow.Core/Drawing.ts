@@ -15,11 +15,17 @@ export class DrawingConfiguration {
     public connectPolylineStroke: number = 1;
 }
 
+export enum ElementType {
+    Shape,
+    Polyline
+}
+
 export class Drawing {
     private guid: string;
     private shapes: Shape[];
     private connectPolylines: ConnectPolyline[];
     private config: DrawingConfiguration;
+    private htmlHelper: DrawingHtmlHelper;
 
     public constructor(config: DrawingConfiguration, guid: string | null = null) {
         // Properties
@@ -99,7 +105,7 @@ export class Drawing {
 
         for (let i = 0; i < model.connectPolylines.length; ++i) {
             let cpl = model.connectPolylines[i];
-            this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex);
+            this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex, cpl.guid);
         }
     }
 
@@ -192,5 +198,133 @@ ${lines.join('\r\n')}
 
 </svg>`;
         return ret;
+    }
+
+    public mount(selector: string) {
+        if (this.htmlHelper) {
+            throw `[Pomelo Workflow] This drawing is already mounted.`;
+        }
+
+        this.htmlHelper = new DrawingHtmlHelper(this, selector);
+    }
+}
+
+export class DrawingHtmlHelper {
+    private drawing: Drawing;
+    private mountedElement: any = null;
+    private maskLayerHtmlId: string = null;
+    private svgLayerHtmlId: string = null;
+
+    public constructor(drawing: Drawing, selector) {
+        this.drawing = drawing;
+        let doms = this.getDocument().querySelectorAll(selector);
+        if (!doms.length) {
+            throw `[Pomelo Workflow] ${selector} was not found`;
+        }
+
+        this.mountedElement = doms[0];
+        this.maskLayerHtmlId = 'pomelo-wf-mask-' + drawing.getGuid();
+        this.svgLayerHtmlId = 'pomelo-wf-svg-' + drawing.getGuid();
+        this.mountedElement.innerHTML = `<div id="${this.maskLayerHtmlId}"></div><div id="${this.svgLayerHtmlId}"></div>`;
+    }
+    private getWindow(): any {
+        return eval('window');
+    }
+
+    private getDocument(): any {
+        return this.getWindow().document;
+    }
+
+    private generateAttributeCollection(style: string): any {
+        let ret = {};
+        if (!style) {
+            return ret;
+        }
+
+        let splited = style.split(';').map(x => x.trim());
+        for (let i = 0; i < splited.length; ++i) {
+            let stylePair = splited[0].split(':').map(x => x.trim());
+            if (stylePair.length != 2) {
+                continue;
+            }
+            ret[stylePair[0]] = stylePair[1];
+        }
+
+        return ret;
+    }
+
+    private generateAttributeString(style: any): string {
+        if (!style) {
+            return '';
+        }
+
+        return Object.getOwnPropertyNames(style).map(x => `${x}: ${style[x]}`).join('; ');
+    }
+
+    public setShape(guid: string, points: Point[] = null, stylePatch: any = null): void {
+        this.setSvgElement(ElementType.Shape, guid, points, stylePatch);
+    }
+
+    public setConnectPolyline(guid: string, points: Point[] = null, stylePatch: any = null): void {
+        this.setSvgElement(ElementType.Polyline, guid, points, stylePatch);
+    }
+
+    public getShapeDOM(guid: string): any {
+        return this.getDocument().querySelector(`[data-shape="${guid}"]`);
+    }
+
+    public getConnectPolylineDOM(guid: string): any {
+        return this.getDocument().querySelector(`[data-polyline="${guid}"]`);
+    }
+
+    private setSvgElement(elementType: ElementType, guid: string, points: Point[] = null, stylePatch: any = null): void {
+        let dom = elementType == ElementType.Shape
+            ? this.getShapeDOM(guid)
+            : this.getConnectPolylineDOM(guid);
+
+        if (dom == null) {
+            throw `[Pomelo Workflow] ${guid} was not found`;
+        }
+
+        if (points != null) {
+            dom.setAttribute('points', points.map(x => `${x.x},${x.y}`).join(' '));
+        }
+
+        if (stylePatch != null) {
+            let styles = this.generateAttributeCollection(dom.getAttribute('style'));
+            let keys = Object.getOwnPropertyNames(stylePatch);
+            for (let i = 0; i < keys.length; ++i) {
+                styles[keys[i]] = stylePatch[keys[i]];
+            }
+            dom.setAttribute('style', this.generateAttributeString(styles));
+        }
+    }
+
+    public refresh(): void {
+        let shapes = this.drawing.getShapes();
+        for (let i = 0; i < shapes.length; ++i) {
+            let shape = shapes[i];
+            let dom = this.getShapeDOM(shape.getGuid());
+            if (dom) {
+                this.setShape(shape.getGuid(), shape.points,
+                    {
+                        stroke: this.drawing.getConfig().shapeBorderColor,
+                        'stroke-width': this.drawing.getConfig().shapeBorderStrokeWidth
+                    });
+            }
+        }
+
+        let polylines = this.drawing.getConnectPolylines();
+        for (let i = 0; i < polylines.length; ++i) {
+            let polyline = polylines[i];
+            let dom = this.getConnectPolylineDOM(polyline.getGuid());
+            if (dom) {
+                this.setShape(polyline.getGuid(), polyline.points,
+                    {
+                        stroke: polyline.getColor(),
+                        'stroke-width': this.drawing.getConfig().connectPolylineStroke
+                    });
+            }
+        }
     }
 }
