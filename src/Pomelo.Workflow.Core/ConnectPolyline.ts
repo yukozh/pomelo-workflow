@@ -35,7 +35,7 @@ export class ConnectPolyline extends PolylineBase {
     private drawing: Drawing;
     private pathGeneratedSuccessfully: boolean = false;
 
-    public constructor(drawing: Drawing | null = null, guid: string | null = null) {
+    public constructor(guid: string | null = null, drawing: Drawing | null = null) {
         super();
         this.drawing = drawing;
         this.guid = guid || drawing.generateGuid();
@@ -615,5 +615,10 @@ export class ConnectPolyline extends PolylineBase {
         }
 
         return new Segment(point, destination);
+    }
+
+    public generateSvg(): string {
+        return `<polyline data-polyline="${this.getGuid()}" points="${this.getPaths().points.map(x => x.x + ',' + x.y).join(' ')}"
+style="fill:none;stroke:${this.getColor()};stroke-width:${this.drawing.getConfig().connectPolylineStroke}"/>`;
     }
 }

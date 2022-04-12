@@ -80,4 +80,9 @@ export class Shape extends PolylineBase {
         let fakeY = this.points[0].y - padding;
         return new Shape(fakeX, fakeY, fakeWidth, fakeHeight);
     }
+
+    public generateSvg(): string {
+        return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')}"
+style="fill:none;stroke:${this.drawing.getConfig().shapeBorderColor};stroke-width:${this.drawing.getConfig().shapeBorderStrokeWidth}"/>`;
+    }
 }

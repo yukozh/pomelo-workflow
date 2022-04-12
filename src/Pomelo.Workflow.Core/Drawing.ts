@@ -119,13 +119,13 @@ export class Drawing {
     }
 
     public createShape(left: number, top: number, width: number, height: number, guid: string | null = null): Shape {
-        let shape = new Shape(left, top, width, height, guid || this.generateGuid());
+        let shape = new Shape(left, top, width, height, guid || this.generateGuid(), this);
         this.shapes.push(shape);
         return shape;
     }
 
     public createConnectPolyline(departureGuid: string, departureAnchorIndex: number, destinationGuid: string, destinationAnchorIndex: number, color: string = '#555', guid: string | null = null): ConnectPolyline {
-        let cpl = new ConnectPolyline(this, guid);
+        let cpl = new ConnectPolyline(guid, this);
         cpl.setColor(color);
         let departure = this.findShapeByGuid(departureGuid);
         let destination = this.findShapeByGuid(destinationGuid);
@@ -181,13 +181,11 @@ export class Drawing {
         // Render shapes
         let shapes = [];
         if (this.config.shapeBorder) {
-            shapes = this.getShapes().map(el => `<polyline data-shape="${el.getGuid()}" points="${el.points.map(x => x.x + ',' + x.y).join(' ')} ${el.points[0].x},${el.points[0].y}"
-style="fill:none;stroke:${this.config.shapeBorderColor};stroke-width:${this.config.shapeBorderStrokeWidth}"/>`);
+            shapes = this.getShapes().map(el => el.generateSvg());
         }
 
         // Render connect polylines
-        let lines = this.getConnectPolylines().map(l => `<polyline data-polyline="${l.getGuid()}" points="${l.getPaths().points.map(x => x.x + ',' + x.y).join(' ')}"
-style="fill:none;stroke:${l.getColor()};stroke-width:${this.config.connectPolylineStroke}"/>`);
+        let lines = this.getConnectPolylines().map(l => l.generateSvg());
 
         let width = border ? border[1].x : 0;
         let height = border ? border[1].y : 0;
