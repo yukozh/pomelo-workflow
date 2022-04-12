@@ -35,9 +35,10 @@ export class ConnectPolyline extends PolylineBase {
     private drawing: Drawing;
     private pathGeneratedSuccessfully: boolean = false;
 
-    public constructor(drawing: Drawing | null = null) {
+    public constructor(drawing: Drawing | null = null, guid: string | null = null) {
         super();
         this.drawing = drawing;
+        this.guid = guid || drawing.generateGuid();
     }
 
     public getGuid(): string {

@@ -92,6 +92,10 @@ var PomeloWF = (function (exports) {
         exports.DrawingConfiguration = DrawingConfiguration;
         // Helpers
         exports.Orientation = Orientation;
+        var _window = eval('window');
+        if (_window) {
+            _window.PomeloWF = exports;
+        }
         return exports;
     })({});
     var bfsState = /** @class */ (function () {
@@ -211,28 +215,7 @@ var PomeloWF = (function (exports) {
             return ret;
         };
         ConnectPolyline.prototype.getElementsBorder = function (elements) {
-            var point1 = new Point(this.departurePoint.x, this.departurePoint.y);
-            var point2 = new Point(this.departurePoint.x, this.departurePoint.y);
-            point1.x = Math.min(point1.x, this.destinationPoint.x);
-            point1.y = Math.min(point1.y, this.destinationPoint.y);
-            point2.x = Math.max(point2.x, this.destinationPoint.x);
-            point2.y = Math.max(point2.y, this.destinationPoint.y);
-            for (var i = 0; i < elements.length; ++i) {
-                for (var j = 0; j < elements[i].points.length; ++j) {
-                    var _point = elements[i].points[j];
-                    point1.x = Math.min(point1.x, _point.x);
-                    point1.y = Math.min(point1.y, _point.y);
-                    point2.x = Math.max(point2.x, _point.x);
-                    point2.y = Math.max(point2.y, _point.y);
-                }
-            }
-            if (point1.x < 0) {
-                point1.x = 0;
-            }
-            if (point1.y < 0) {
-                point1.y = 0;
-            }
-            return [point1, point2];
+            return this.drawing.getBorder(elements.concat(new Segment(this.departurePoint, this.destinationPoint)));
         };
         ConnectPolyline.prototype.pop = function () {
             this.path.points.splice(this.path.points.length - 1, 1);
@@ -751,8 +734,43 @@ var PomeloWF = (function (exports) {
             this.connectPolylines.push(cpl);
             return cpl;
         };
+        Drawing.prototype.getBorder = function (elements) {
+            if (elements === void 0) { elements = null; }
+            if (elements == null) {
+                elements = (this.shapes).concat(this.connectPolylines);
+            }
+            if (!elements.length) {
+                return null;
+            }
+            var point1 = null;
+            var point2 = null;
+            var isFisrtPoint = true;
+            for (var i = 0; i < elements.length; ++i) {
+                for (var j = 0; j < elements[i].points.length; ++j) {
+                    if (isFisrtPoint) {
+                        isFisrtPoint = false;
+                        point1 = elements[i].points[j];
+                        point2 = elements[i].points[j];
+                    }
+                    var _point = elements[i].points[j];
+                    point1.x = Math.min(point1.x, _point.x);
+                    point1.y = Math.min(point1.y, _point.y);
+                    point2.x = Math.max(point2.x, _point.x);
+                    point2.y = Math.max(point2.y, _point.y);
+                }
+            }
+            if (point1.x < 0) {
+                point1.x = 0;
+            }
+            if (point1.y < 0) {
+                point1.y = 0;
+            }
+            return [point1, point2];
+        };
         Drawing.prototype.generateSvg = function () {
             var _this = this;
+            // Get border
+            var border = this.getBorder();
             // Render shapes
             var shapes = [];
             if (this.config.elementBorder) {
@@ -760,7 +778,9 @@ var PomeloWF = (function (exports) {
             }
             // Render connect polylines
             var lines = this.getConnectPolylines().map(function (l) { return "<polyline data-polyline=\"".concat(l.getGuid(), "\" points=\"").concat(l.getPaths().points.map(function (x) { return x.x + ',' + x.y; }).join(' '), "\"\n    style=\"fill:none;stroke:").concat(l.getColor(), ";stroke-width:").concat(_this.config.connectPolylineStroke, "\"/>"); });
-            var ret = "<svg width=\"100%\" height=\"100%\" data-drawing=\"".concat(this.getGuid(), "\" version=\"1.1\"\n    xmlns=\"http://www.w3.org/2000/svg\">\n    ").concat(shapes.join('\r\n'), "\n    ").concat(lines.join('\r\n'), "\n    \n    </svg>");
+            var width = border ? border[1].x : 0;
+            var height = border ? border[1].y : 0;
+            var ret = "<svg width=\"".concat(width, "px\" height=\"100%\" data-drawing=\"").concat(height, "px\" version=\"1.1\"\n    xmlns=\"http://www.w3.org/2000/svg\">\n    ").concat(shapes.join('\r\n'), "\n    ").concat(lines.join('\r\n'), "\n    \n    </svg>");
             return ret;
         };
         return Drawing;
@@ -1101,5 +1121,9 @@ var PomeloWF = (function (exports) {
     exports.DrawingConfiguration = DrawingConfiguration;
     // Helpers
     exports.Orientation = Orientation;
+    var _window = eval('window');
+    if (_window) {
+        _window.PomeloWF = exports;
+    }
     return exports;
 })({});

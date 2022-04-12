@@ -2,7 +2,7 @@ import assert = require('assert');
 import { Drawing, DrawingConfiguration } from '../Drawing';
 
 let config = new DrawingConfiguration();
-config.elementBorder = true;
+config.shapeBorder = true;
 
 describe("ConnectPolyline Tests", () => {
     it("Two Shapes Test", () => {

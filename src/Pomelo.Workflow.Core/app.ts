@@ -33,5 +33,10 @@ var PomeloWF = (function (exports: any): any {
     // Helpers
     exports.Orientation = Orientation;
 
+    let _window: any = eval('window');
+    if (_window) {
+        _window.PomeloWF = exports;
+    }
+
     return exports;
 })({});

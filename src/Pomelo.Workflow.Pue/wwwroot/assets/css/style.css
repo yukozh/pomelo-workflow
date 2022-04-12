@@ -1,0 +1,43 @@
+﻿body {
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+.main {
+    position: fixed;
+    left: 280px;
+    top: 70px;
+    bottom: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 15px 0 0 0;
+    overflow: auto;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    line-height: 70px;
+    font-size: 32px;
+    padding: 0 15px
+}
+
+    .header .logo {
+        color: #666;
+        width: 280px;
+        text-align: center;
+        display: inline-block;
+    }
+
+    .header .tab {
+        color: #666;
+        padding: 0 20px;
+        font-size: 20px;
+    }
+
+        .header .tab.active {
+            color: #1A76C6;
+        }

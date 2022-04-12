@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link href="/assets/css/style.css" rel="stylesheet" />
+    <title></title>
+</head>
+<body>
+    <div class="header">
+        <span class="logo">Pomelo WF</span>
+        <a class="tab active">设计</a>
+        <a class="tab">JSON</a>
+    </div>
+    <div class="main" v-show="active == 'design'">
+        <div id="drawing"></div>
+    </div>
+    <div class="main" v-show="active == 'json'">
+        <textarea>{{ json }}</textarea>
+    </div>
+</body>
+</html>
