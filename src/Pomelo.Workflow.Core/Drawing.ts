@@ -79,7 +79,9 @@ export class Drawing {
                 anchors: shape.getAnchors().map(anchor => <AnchorModel>{
                     xPercentage: anchor.xPercentage,
                     yPercentage: anchor.yPercentage
-                })
+                }),
+                viewName: shape.viewName,
+                arguments: shape.arguments
             }),
             connectPolylines: this.connectPolylines.map(cpl => <ConnectPolylineModel>{
                 guid: cpl.getGuid(),
@@ -111,16 +113,16 @@ export class Drawing {
 
         this.clean();
 
-        let html = this.getHtmlHelper();
-        if (html && model.guid) {
-            html.getDrawingSvg().setAttribute('data-drawing', model.guid);
-        }
+        //let html = this.getHtmlHelper();
+        //if (html && model.guid) {
+        //    html.getDrawingSvg().setAttribute('data-drawing', model.guid);
+        //}
 
         this.guid = model.guid || this.guid;
 
         for (let i = 0; i < model.shapes.length; ++i) {
             let shape = model.shapes[i];
-            let shapeInstance = this.createShape(shape.points.map(x => new Point(x.x, x.y)), shape.guid || this.generateGuid());
+            let shapeInstance = this.createShape(shape.points.map(x => new Point(x.x, x.y)), shape.guid || this.generateGuid(), shape.viewName, shape.arguments);
             for (let j = 0; j < shape.anchors.length; ++j) {
                 shapeInstance.createAnchor(shape.anchors[j].xPercentage, shape.anchors[j].yPercentage);
             }
@@ -147,8 +149,10 @@ export class Drawing {
         return shape;
     }
 
-    public createShape(points: Point[], guid: string | null = null): Shape {
+    public createShape(points: Point[], guid: string | null = null, viewName: string = null, args: object = {}): Shape {
         let shape = new Shape(points, guid || this.generateGuid(), this);
+        shape.viewName = viewName;
+        shape.arguments = args;
         this.shapes.push(shape);
         return shape;
     }

@@ -6,8 +6,6 @@ export class Anchor {
     public xPercentage: number;
     public yPercentage: number;
     public shape: Shape;
-    public viewName: string;
-    public arguments: object;
 
     public constructor(xPercentage: number, yPercentage: number, shape: Shape | null = null) {
         this.xPercentage = xPercentage;
@@ -29,9 +27,11 @@ export class Anchor {
 }
 
 export class Shape extends PolylineBase {
-    protected guid: string;
-    protected anchors: Anchor[];
-    protected drawing: Drawing;
+    public guid: string;
+    public anchors: Anchor[];
+    public drawing: Drawing;
+    public viewName: string;
+    public arguments: object;
 
     public constructor(points: Point[], guid: string | null = null, drawing: Drawing | null = null) {
         super();
@@ -155,8 +155,8 @@ style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-widt
 
 export class Rectangle extends Shape
 {
-    private width: number;
-    private height: number;
+    public width: number;
+    public height: number;
 
     public constructor(x: number, y: number, width: number, height: number, guid: string | null = null, drawing: Drawing | null = null) {
         let points: Point[] = [];
