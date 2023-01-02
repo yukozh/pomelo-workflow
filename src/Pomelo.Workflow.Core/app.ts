@@ -11,7 +11,7 @@ import { Point } from "./Point";
 import { Polyline } from "./Polyline";
 import { Shape } from "./Shape";
 
-var PomeloWF = (function (exports: any): any {
+(function (exports: any): any {
     // <Clousure />
 
     // Models
@@ -33,10 +33,5 @@ var PomeloWF = (function (exports: any): any {
     // Helpers
     exports.Orientation = Orientation;
 
-    let _window: any = eval('window');
-    if (_window) {
-        _window.PomeloWF = exports;
-    }
-
     return exports;
-})({});
+})(exports != undefined ? exports : (<any>window).PomeloWF);
