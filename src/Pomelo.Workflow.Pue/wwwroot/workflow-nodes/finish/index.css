@@ -27,3 +27,11 @@
     margin-left: -6px;
     border: none;
 }
+
+    .start-node-anchor-arrow.active {
+        color: #FF7B15;
+    }
+
+.start-node-anchor.active {
+    background: #FF7B15;
+}

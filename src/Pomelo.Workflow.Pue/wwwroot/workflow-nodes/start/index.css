@@ -27,3 +27,19 @@
     margin-left: -6px;
     border: none;
 }
+
+.start-node-anchor-arrow.connecting:hover {
+    color: #1A76C6;
+}
+
+.start-node-anchor.connecting:hover {
+    background: #1A76C6;
+}
+
+.start-node-anchor-arrow.active {
+    color: #FF7B15!important;
+}
+
+.start-node-anchor.active {
+    background: #FF7B15!important;
+}

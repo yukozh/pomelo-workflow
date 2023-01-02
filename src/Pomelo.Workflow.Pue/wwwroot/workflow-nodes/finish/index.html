@@ -1,7 +1,7 @@
 <div class="start-node" v-on:click="onClicked">
     <svg t="1672654576569" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7454" width="40" height="40"><path d="M661.247 857.615H362.753c-108.002 0-196.368-88.366-196.368-196.368V362.753c0-108.002 88.366-196.368 196.368-196.368h298.494c108.002 0 196.368 88.366 196.368 196.368v298.494c0 108.002-88.366 196.368-196.368 196.368z" fill="#FF7B15" p-id="7455"></path></svg>
     <template v-for="(anchor, i) in shape.anchors">
-        <a class="start-node-anchor-arrow" v-if="shape.drawing.connectPolylines.some(x => x.getDestinationAnchor() == anchor)" v-bind:style="`top: ${anchor.yPercentage * 100}%; left: ${anchor.xPercentage * 100}%; transform: rotate(${90 * i}deg);`">▼</a>
-        <a class="start-node-anchor" v-else-if="active" v-bind:style="`top: ${anchor.yPercentage * 100}%; left: ${anchor.xPercentage * 100}%`"></a>
+        <a class="start-node-anchor-arrow" v-bind:class="{ active: $parent.connectFrom == anchor, connecting: $parent.mode == 'connect' }" v-on:click="$parent.link(anchor)" pomelo-wf-anchor v-if="shape.drawing.connectPolylines.some(x => x.getDestinationAnchor() == anchor)" v-bind:style="`top: ${anchor.yPercentage * 100}%; left: ${anchor.xPercentage * 100}%; transform: rotate(${90 * i}deg);`">▼</a>
+        <a class="start-node-anchor" v-bind:class="{ active: $parent.connectFrom == anchor, connecting: $parent.mode == 'connect' }" v-on:click="$parent.link(anchor)" pomelo-wf-anchor v-else-if="active || $parent.mode == 'connect'" v-bind:style="`top: ${anchor.yPercentage * 100}%; left: ${anchor.xPercentage * 100}%`"></a>
     </template>
 </div>

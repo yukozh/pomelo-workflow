@@ -8,8 +8,21 @@ var component = '<{COMPONENT_NAME} class="pomelo-wf-node" v-if="shape.viewName =
 for (var i = 0; i < pomeloWfConfig.nodes.length; ++i) {
     components += component.replaceAll('{COMPONENT_NAME}', pomeloWfConfig.nodes[i].key);
 }
-var template = '<div v-on:click=\"onClicked\" v-bind:id=\"id\">\r\n    <div class=\"pomelo-wf-drawing\" v-bind:id=\"id + \'-inner\'\">\r\n        <svg v-if=\"drawing\" v-bind:width=\"width" v-bind:height=\"height\" v-bind:data-drawing=\"drawing.getGuid()\" version=\"1.1\"\r\n             xmlns=\"http:\/\/www.w3.org\/2000\/svg\">\r\n            <!-- Connected Polylines -->\r\n            <polyline v-for=\"polyline in drawing.getConnectPolylines()\"\r\n                      v-bind:data-polyline=\"polyline.getGuid()\" v-bind:points=\"polyline.path.points.map(x => x.x + \',\' + x.y).join(\' \')\"\r\n                      v-bind:style=\"`fill:none;stroke:${polyline.getColor()};stroke-width:${drawing.getConfig().connectPolylineStrokeWidth}`\" \/>\r\n\r\n            <!-- Shapes -->\r\n            <polyline v-for=\"shape in drawing.getShapes()\" v-if=\"drawing.getConfig().renderShape\"\r\n                      v-bind:data-shape=\"shape.getGuid()\" v-bind:points=\"`${shape.points.map(x => x.x + \',\' + x.y).join(\' \')} ${shape.points[0].x},${shape.points[0].y}`\"\r\n                      v-bind:style=\"`fill:none;stroke:${drawing.getConfig().shapeStrokeColor};stroke-width:${shape.drawing.getConfig().shapeStrokeWidth}`\" \/>\r\n        <\/svg>\r\n    <\/div>\r\n    <div class=\"pomelo-wf-elements\">\r\n        <div v-for=\"shape in drawing.getShapes()\"\r\n             v-bind:id=\"shape.getGuid()\"\r\n             v-bind:style=\"`position: absolute; top: ${shape.points[0].y}px; left: ${shape.points[0].x}px; width:${shape.width}px; height:${shape.height}px;`\">\r\n            {COMPONENTS}\r\n        <\/div>\r\n    <\/div>\r\n<\/div>';
+var template = '<div v-on:click=\"onClicked\" v-bind:id=\"id\">\r\n    <div class=\"pomelo-wf-drawing\" v-bind:id=\"id + \'-inner\'\">\r\n        <svg v-if=\"drawing\" v-bind:width=\"width" v-bind:height=\"height\" v-bind:data-drawing=\"drawing.getGuid()\" version=\"1.1\"\r\n             xmlns=\"http:\/\/www.w3.org\/2000\/svg\">\r\n            <!-- Connected Polylines -->\r\n            <polyline v-for=\"polyline in drawing.getConnectPolylines()\"\r\n                      v-bind:data-polyline=\"polyline.getGuid()\" v-bind:points=\"polyline.path.points.map(x => x.x + \',\' + x.y).join(\' \')\"\r\n                      v-bind:style=\"`fill:none;stroke:${polyline.getColor()};stroke-width:${drawing.getConfig().connectPolylineStrokeWidth}`\" \/>\r\n\r\n            <!-- Shapes -->\r\n            <polyline v-for=\"shape in drawing.getShapes()\" v-if=\"drawing.getConfig().renderShape\"\r\n                      v-bind:data-shape=\"shape.getGuid()\" v-bind:points=\"`${shape.points.map(x => x.x + \',\' + x.y).join(\' \')} ${shape.points[0].x},${shape.points[0].y}`\"\r\n                      v-bind:style=\"`fill:none;stroke:${drawing.getConfig().shapeStrokeColor};stroke-width:${shape.drawing.getConfig().shapeStrokeWidth}`\" \/>\r\n            <!-- Connecting -->\r\n            <polyline v-if=\"connectFrom\"\r\n                      stroke-dasharray=\"4 2\"\r\n                      v-bind:points=\"`${connectFrom.toPoint().x},${connectFrom.toPoint().y} ${mousePosition.x},${mousePosition.y}`\"\r\n                      v-bind:style=\"`fill:none;stroke:${drawing.getConfig().shapeStrokeColor};stroke-width:${drawing.getConfig().shapeStrokeWidth}`\" \/>\r\n        <\/svg>\r\n    <\/div>\r\n    <div class=\"pomelo-wf-elements\">\r\n        <div v-for=\"shape in drawing.getShapes()\"\r\n             v-bind:id=\"shape.getGuid()\"\r\n             v-bind:style=\"`position: absolute; top: ${shape.points[0].y}px; left: ${shape.points[0].x}px; width:${shape.width}px; height:${shape.height}px;`\">\r\n            {COMPONENTS}\r\n        <\/div>\r\n    <\/div>\r\n<\/div>';
 template = template.replaceAll('{COMPONENTS}', components);
+
+console.log(template);
+
+function isAnchor(el) {
+    while (el != null) {
+        if (el.hasAttribute('pomelo-wf-anchor')) {
+            return true;
+        }
+        el = el.parentElement;
+    }
+
+    return false;
+}
 
 Component('pomelo-workflow', {
     style: true,
@@ -24,7 +37,9 @@ Component('pomelo-workflow', {
             active: null,
             mode: 'view',
             dragStart: null,
-            addNode: null
+            addNode: null,
+            connectFrom: null,
+            mounsePosition: null
         };
     },
     created() {
@@ -54,7 +69,7 @@ Component('pomelo-workflow', {
                 }
             }
 
-            return 800;
+            return 10;
         },
         height() {
             if (this.drawing) {
@@ -64,18 +79,26 @@ Component('pomelo-workflow', {
                 }
             }
 
-            return 600;
+            return 10;
         }
     },
     mounted() {
         window.drawing = this;
+        document.addEventListener('mousemove', this.onMouseMoved);
     },
     unmounted() {
+        document.removeEventListener('mouseover', this.onMouseMoved);
         lifecycleManager.unregister(this.id);
     },
     methods: {
+        onMouseMoved(e) {
+            var base = document.querySelector('#' + this.id);
+            var rect = base.getBoundingClientRect();
+            var position = { x: e.x - rect.left, y: e.y - rect.top };
+            this.mousePosition = position;
+            this.$forceUpdate();
+        },
         onClicked(e) {
-            console.log(e.target);
             if (this.mode == 'add') {
                 var base = document.querySelector('#' + this.id);
                 var rect = base.getBoundingClientRect();
@@ -90,12 +113,39 @@ Component('pomelo-workflow', {
         onDragStart(e, shape) {
             if (shape.getGuid() != this.active) {
                 e.preventDefault();
+                return;
             }
+
+            if (isAnchor(e.target)) {
+                e.preventDefault();
+                return;
+            }
+
             this.dragStart = { x: e.x, y: e.y };
         },
         onDragEnd(e, shape) {
+            if (isAnchor(e.target)) {
+                e.preventDefault();
+                return;
+            }
+
             var offset = { x: e.x - this.dragStart.x, y: e.y - this.dragStart.y };
             shape.move({ x: shape.points[0].x + offset.x, y: shape.points[0].y + offset.y });
+        },
+        link(anchor) {
+            if (this.mode != 'connect') {
+                this.mode = 'connect';
+                this.connectFrom = anchor;
+            } else {
+                var from = this.connectFrom;
+                this.mode = 'view';
+                var fromGuid = from.shape.getGuid();
+                var indexFrom = from.shape.anchors.indexOf(from);
+                var toGuid = anchor.shape.getGuid();
+                var indexTo = anchor.shape.anchors.indexOf(anchor);
+                this.drawing.createConnectPolyline(fromGuid, indexFrom, toGuid, indexTo);
+                this.connectFrom = null;
+            }
         }
     }
 });

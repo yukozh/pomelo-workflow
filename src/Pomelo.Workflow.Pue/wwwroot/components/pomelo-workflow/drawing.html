@@ -1,4 +1,4 @@
-﻿<div v-on:click="onClicked" v-bind:id="id">
+﻿<div v-on:mouseup="onClicked" v-bind:id="id" class="pomelo-wf-drawing">
     <div class="pomelo-wf-drawing" v-bind:id="id + '-inner'">
         <svg v-if="drawing" v-bind:data-drawing="drawing.getGuid()" version="1.1"
              xmlns="http://www.w3.org/2000/svg">
@@ -11,6 +11,12 @@
             <polyline v-for="shape in drawing.getShapes()" v-if="drawing.getConfig().renderShape"
                       v-bind:data-shape="shape.getGuid()" v-bind:points="`${shape.points.map(x => x.x + ',' + x.y).join(' ')} ${shape.points[0].x},${shape.points[0].y}`"
                       v-bind:style="`fill:none;stroke:${drawing.getConfig().shapeStrokeColor};stroke-width:${shape.drawing.getConfig().shapeStrokeWidth}`" />
+
+            <!-- Connecting -->
+            <polyline v-if="connectFrom"
+                      stroke-dasharray="4 2"
+                      v-bind:points="`${connectFrom.toPoint().x},${connectFrom.toPoint().y} ${mousePosition.x},${mousePosition.y}`"
+                      v-bind:style="`fill:none;stroke:${drawing.getConfig().shapeStrokeColor};stroke-width:${drawing.getConfig().shapeStrokeWidth}`" />
         </svg>
     </div>
     <div class="pomelo-wf-elements">

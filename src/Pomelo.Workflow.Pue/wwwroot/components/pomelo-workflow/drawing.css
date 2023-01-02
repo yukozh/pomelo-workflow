@@ -13,3 +13,16 @@
 .pomelo-wf-node:active {
     cursor: grabbing;
 }
+
+[pomelo-wf-anchor] {
+    cursor: pointer;
+}
+
+.pomelo-wf-drawing {
+    position: absolute;
+    top: 0;
+    lefT: 0;
+    right: 0;
+    bottom: 0;
+    overflow: auto;
+}
