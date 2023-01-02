@@ -45,3 +45,16 @@
         .header .tab.active {
             color: #1A76C6;
         }
+
+.sidebar {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    overflow: auto;
+}
+
+.sidebar-container {
+    padding: 30px;
+}

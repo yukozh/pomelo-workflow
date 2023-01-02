@@ -1,0 +1,14 @@
+﻿.node-item {
+    display: block;
+    color: #777;
+    cursor: pointer;
+}
+
+.node-item > * {
+    vertical-align: middle;
+    font-size: 16px;
+}
+
+.node-item > svg {
+    height: 32px;
+}

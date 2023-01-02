@@ -1,0 +1,15 @@
+﻿.pomelo-wf-drawing {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.pomelo-wf-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.pomelo-wf-node:active {
+    cursor: grabbing;
+}

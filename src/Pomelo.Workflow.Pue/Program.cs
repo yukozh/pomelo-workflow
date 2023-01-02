@@ -1,4 +1,4 @@
-using Pomelo.Workflow.Pue;
+using Pomelo.Vue.Middleware;
 
 // Configure Service Collection
 var builder = WebApplication.CreateBuilder(args);
@@ -14,12 +14,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UsePueMiddleware();
 
 app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapRazorPages();
+app.UsePomeloVueMiddleware(x =>
+{
+    x.AssetsVersion = "20230102";
+    x.MappingPomeloVueJs = false;
+    x.MappingBase = "/assets/js/pomelo-vue/";
+});
 
 app.Run();

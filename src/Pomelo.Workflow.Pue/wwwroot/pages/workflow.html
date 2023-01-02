@@ -11,8 +11,20 @@
         <a class="tab active">设计</a>
         <a class="tab">JSON</a>
     </div>
+    <div class="sidebar">
+        <div class="sidebar-container">
+            <a v-on:click="add('start', 40, 40)" class="node-item">
+                <svg t="1672653702709" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5751" width="20" height="20"><path d="M380.677 176.279l390.182 225.272c85.024 49.089 85.024 171.81 0 220.899L380.677 847.721c-85.024 49.089-191.304-12.272-191.304-110.449V286.728c0-98.177 106.28-159.538 191.304-110.449z" fill="#FF7B15" p-id="5752"></path></svg>
+                开始
+            </a>
+            <a v-on:click="add('finish', 40, 40)" class="node-item">
+                <svg t="1672654576569" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7454" width="20" height="20"><path d="M661.247 857.615H362.753c-108.002 0-196.368-88.366-196.368-196.368V362.753c0-108.002 88.366-196.368 196.368-196.368h298.494c108.002 0 196.368 88.366 196.368 196.368v298.494c0 108.002-88.366 196.368-196.368 196.368z" fill="#FF7B15" p-id="7455"></path></svg>
+                停止
+            </a>
+        </div>
+    </div>
     <div class="main" v-show="active == 'design'">
-        <div id="drawing"></div>
+        <pomelo-workflow id="drawing"></pomelo-workflow>
     </div>
     <div class="main" v-show="active == 'json'">
         <textarea>{{ json }}</textarea>

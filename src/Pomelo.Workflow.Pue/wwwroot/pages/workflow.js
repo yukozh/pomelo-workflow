@@ -1,22 +1,22 @@
-﻿Page({
-    modules: [
-        '/assets/js/pomelo.workflow.vue.js',
-        '/assets/js/pomelo.workflow.core.js'
-    ],
+﻿var lifecycleManager = require('/components/pomelo-workflow/lifecycleManager').lifecycleManager;
+
+Page({
+    components: ['/components/pomelo-workflow/drawing'],
+    style: true,
     data() {
         return {
             active: 'design',
             json: '',
-            drawing: null
         }
     },
     created() {
-        var config = new PomeloWF.DrawingConfiguration();
-        config.renderShape = false;
-        config.shapeStrokeWidth = 2;
-        this.drawing = new PomeloWF.Drawing(config);
     },
     mounted() {
-        this.drawing.mount('#drawing');
+    },
+    methods: {
+        add(node, width, height) {
+            lifecycleManager.getById('drawing').addNode = { key: node, width: width, height: height };
+            lifecycleManager.getById('drawing').mode = 'add';
+        }
     }
 });

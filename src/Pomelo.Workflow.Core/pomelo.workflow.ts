@@ -34,4 +34,4 @@ import { Shape } from "./Shape";
     exports.Orientation = Orientation;
 
     return exports;
-})(exports != undefined ? exports : (<any>window).PomeloWF);
+})(module && module.exports ? module.exports : (<any>window).PomeloWF);

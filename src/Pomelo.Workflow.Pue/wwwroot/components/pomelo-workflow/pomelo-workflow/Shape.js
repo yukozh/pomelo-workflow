@@ -1,52 +1,38 @@
-import { Drawing } from "./Drawing";
-import { Point } from "./Point";
-import { PolylineBase } from "./Polyline";
-
-export class Anchor {
-    public xPercentage: number;
-    public yPercentage: number;
-    public shape: Shape;
-    public viewName: string;
-    public arguments: object;
-
-    public constructor(xPercentage: number, yPercentage: number, shape: Shape | null = null) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Rectangle = exports.Shape = exports.Anchor = void 0;
+const Point_1 = require("./Point");
+const Polyline_1 = require("./Polyline");
+class Anchor {
+    constructor(xPercentage, yPercentage, shape = null) {
         this.xPercentage = xPercentage;
         this.yPercentage = yPercentage;
         this.shape = shape;
     }
-
-    public toPoint(): Point {
-        return new Point(this.shape.points[0].x + this.xPercentage * this.shape.toRectalge().getWidth(), this.shape.points[0].y + this.yPercentage * this.shape.toRectalge().getHeight());
+    toPoint() {
+        return new Point_1.Point(this.shape.points[0].x + this.xPercentage * this.shape.toRectalge().getWidth(), this.shape.points[0].y + this.yPercentage * this.shape.toRectalge().getHeight());
     }
-
-    public toPointWithPadding(padding: number): Point {
+    toPointWithPadding(padding) {
         let fakeWidth = this.shape.toRectalge().getWidth() + padding * 2;
         let fakeHeight = this.shape.toRectalge().getHeight() + padding * 2;
         let fakeX = this.shape.points[0].x - padding;
         let fakeY = this.shape.points[0].y - padding;
-        return new Point(fakeX + this.xPercentage * fakeWidth, fakeY + this.yPercentage * fakeHeight);
+        return new Point_1.Point(fakeX + this.xPercentage * fakeWidth, fakeY + this.yPercentage * fakeHeight);
     }
 }
-
-export class Shape extends PolylineBase {
-    protected guid: string;
-    protected anchors: Anchor[];
-    protected drawing: Drawing;
-
-    public constructor(points: Point[], guid: string | null = null, drawing: Drawing | null = null) {
+exports.Anchor = Anchor;
+class Shape extends Polyline_1.PolylineBase {
+    constructor(points, guid = null, drawing = null) {
         super();
         this.guid = guid;
         this.drawing = drawing;
         if (points.length < 3) {
             throw 'The point count must larger than 3.';
         }
-
         for (let i = 0; i < points.length; ++i) {
             this.points.push(points[i]);
         }
-
         this.anchors = [];
-
         if (this.drawing) {
             let html = this.drawing.getHtmlHelper();
             if (html) {
@@ -54,13 +40,11 @@ export class Shape extends PolylineBase {
             }
         }
     }
-
-    public toRectalge(guid: string | null = null): Rectangle {
+    toRectalge(guid = null) {
         let minX = this.points[0].x;
         let minY = this.points[0].y;
         let maxX = minX;
         let maxY = minY;
-
         for (let i = 1; i < this.points.length; ++i) {
             let point = this.points[i];
             minX = Math.min(minX, point.x);
@@ -68,50 +52,40 @@ export class Shape extends PolylineBase {
             minY = Math.min(minY, point.y);
             maxY = Math.max(maxY, point.y);
         }
-
         return new Rectangle(minX, minY, maxX - minX, maxY - minY, guid, this.drawing);
     }
-
-    public getGuid(): string {
+    getGuid() {
         return this.guid;
     }
-
-    public getAnchors(): Anchor[] {
+    getAnchors() {
         return this.anchors;
     }
-
-    public createAnchor(xPercentage: number, yPercentage: number): Anchor {
+    createAnchor(xPercentage, yPercentage) {
         let anchor = new Anchor(xPercentage, yPercentage, this);
         this.anchors.push(anchor);
         return anchor;
     }
-
-    public remove(): void {
+    remove() {
         if (!this.drawing) {
             return;
         }
-
         //let html = this.drawing.getHtmlHelper();
         //if (!html) {
         //    return;
         //}
-
         let elements = this.drawing.getShapes();
         let index = elements.indexOf(this);
         if (index < 0) {
             return;
         }
-
         elements.splice(index, 1);
         /*html.removeShape(this.guid);*/
     }
-
-    public move(newTopLeft: Point): void {
+    move(newTopLeft) {
         let rect = this.toRectalge();
         let current = rect.points[0];
         let deltaX = newTopLeft.x - current.x;
         let deltaY = newTopLeft.y - current.y;
-
         if (this.drawing) {
             // Conflict test
             for (let i = 0; i < rect.points.length; ++i) {
@@ -121,19 +95,16 @@ export class Shape extends PolylineBase {
             if (!this.drawing.isShapeNotConflicted(rect)) {
                 return;
             }
-
             let points = [];
             for (let i = 0; i < this.points.length; ++i) {
-                let point = new Point(this.points[i].x + deltaX, this.points[i].y + deltaY);
+                let point = new Point_1.Point(this.points[i].x + deltaX, this.points[i].y + deltaY);
                 points.push(point);
             }
             this.points = points;
-
             //let html = this.drawing.getHtmlHelper();
             //if (!html) {
             //    return;
             //}
-
             //html.updateShape(this);
             let connectPolylines = this.drawing.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this || x.getDestinationAnchor().shape == this);
             for (let i = 0; i < connectPolylines.length; ++i) {
@@ -142,28 +113,22 @@ export class Shape extends PolylineBase {
             }
         }
     }
-
-    public generateSvg(): string {
+    generateSvg() {
         if (!this.points.length || this.drawing && !this.drawing.getConfig().renderShape) {
             return '';
         }
-
         return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')} ${this.points[0].x},${this.points[0].y}"
 style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeStrokeWidth}"/>`;
     }
 }
-
-export class Rectangle extends Shape
-{
-    private width: number;
-    private height: number;
-
-    public constructor(x: number, y: number, width: number, height: number, guid: string | null = null, drawing: Drawing | null = null) {
-        let points: Point[] = [];
-        points.push(new Point(x, y));
-        points.push(new Point(x + width, y));
-        points.push(new Point(x + width, y + height));
-        points.push(new Point(x, y + height));
+exports.Shape = Shape;
+class Rectangle extends Shape {
+    constructor(x, y, width, height, guid = null, drawing = null) {
+        let points = [];
+        points.push(new Point_1.Point(x, y));
+        points.push(new Point_1.Point(x + width, y));
+        points.push(new Point_1.Point(x + width, y + height));
+        points.push(new Point_1.Point(x, y + height));
         super(points, guid, drawing);
         this.anchors = [];
         this.guid = guid;
@@ -173,18 +138,14 @@ export class Rectangle extends Shape
         }
         this.width = width;
         this.height = height;
-
     }
-
-    public getWidth(): number {
+    getWidth() {
         return this.width;
     }
-
-    public getHeight(): number {
+    getHeight() {
         return this.height;
     }
-
-    public cloneAndExpand(padding: number): Rectangle {
+    cloneAndExpand(padding) {
         let fakeWidth = this.getWidth() + padding * 2;
         let fakeHeight = this.getHeight() + padding * 2;
         let fakeX = this.points[0].x - padding;
@@ -192,3 +153,5 @@ export class Rectangle extends Shape
         return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.drawing);
     }
 }
+exports.Rectangle = Rectangle;
+//# sourceMappingURL=Shape.js.map

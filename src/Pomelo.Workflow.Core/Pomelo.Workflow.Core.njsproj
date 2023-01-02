@@ -15,7 +15,7 @@
     <ProjectGuid>c6b45f6a-1c57-4fda-bd28-0f399c182ca1</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>app.ts</StartupFile>
+    <StartupFile>pomelo.workflow.ts</StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
     <SearchPath>
     </SearchPath>
@@ -33,13 +33,12 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="app.ts" />
+    <None Include="pomelo.workflow.ts" />
     <Content Include="package.json" />
     <Content Include="pomelo.json">
       <SubType>Code</SubType>
     </Content>
     <Content Include="README.md" />
-    <Content Include="tsconfig-release.json" />
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>

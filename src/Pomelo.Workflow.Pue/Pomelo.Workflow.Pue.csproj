@@ -7,7 +7,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\node\" />
+    <Compile Remove="wwwroot\node\**" />
+    <Content Remove="wwwroot\node\**" />
+    <EmbeddedResource Remove="wwwroot\node\**" />
+    <None Remove="wwwroot\node\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Pomelo.Vue.Middleware" Version="6.0.0-r20221216015523" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\AnchorModel.js" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\AnchorModel.js.map" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ConnectPolylineModel.js" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ConnectPolylineModel.js.map" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\DrawingModel.js" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\DrawingModel.js.map" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\PointModel.js" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\PointModel.js.map" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ShapeModel.js" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ShapeModel.js.map" />
   </ItemGroup>
 
 </Project>

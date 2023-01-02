@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "defaultProvider": "unpkg",
+  "libraries": [
+    {
+      "library": "pomelo-vue@1.0.39",
+      "destination": "wwwroot/assets/js/pomelo-vue/"
+    }
+  ]
+}
