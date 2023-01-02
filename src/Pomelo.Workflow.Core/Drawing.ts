@@ -73,16 +73,7 @@ export class Drawing {
     public serializeToJson(): string {
         let ret = <DrawingModel>{
             guid: this.guid,
-            shapes: this.shapes.map(shape => <ShapeModel>{
-                guid: shape.getGuid(),
-                points: shape.points,
-                anchors: shape.getAnchors().map(anchor => <AnchorModel>{
-                    xPercentage: anchor.xPercentage,
-                    yPercentage: anchor.yPercentage
-                }),
-                viewName: shape.viewName,
-                arguments: shape.arguments
-            }),
+            shapes: this.shapes.map(shape => shape.toViewModel()),
             connectPolylines: this.connectPolylines.map(cpl => <ConnectPolylineModel>{
                 guid: cpl.getGuid(),
                 departureShapeGuid: cpl.getDepartureAnchor().shape.getGuid(),
@@ -121,8 +112,12 @@ export class Drawing {
         this.guid = model.guid || this.guid;
 
         for (let i = 0; i < model.shapes.length; ++i) {
-            let shape = model.shapes[i];
-            let shapeInstance = this.createShape(shape.points.map(x => new Point(x.x, x.y)), shape.guid || this.generateGuid(), shape.viewName, shape.arguments);
+            let shape:any = model.shapes[i];
+            let shapeInstance = shape.type == 'Shape'
+                ? this.createShape(shape.points.map(x => new Point(x.x, x.y)), shape.guid || this.generateGuid(), shape.viewName, shape.arguments)
+                : this.createRect(shape.points[0].x, shape.points[0].y, shape.width, shape.height, shape.guid || this.generateGuid());
+            shapeInstance.viewName = shape.viewName;
+            shapeInstance.arguments = shape.arguments;
             for (let j = 0; j < shape.anchors.length; ++j) {
                 shapeInstance.createAnchor(shape.anchors[j].xPercentage, shape.anchors[j].yPercentage);
             }

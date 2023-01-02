@@ -120,6 +120,18 @@ class Shape extends Polyline_1.PolylineBase {
         return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')} ${this.points[0].x},${this.points[0].y}"
 style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeStrokeWidth}"/>`;
     }
+    toViewModel() {
+        return {
+            guid: this.getGuid(),
+            points: this.points,
+            anchors: this.getAnchors().map(anchor => ({
+                xPercentage: anchor.xPercentage,
+                yPercentage: anchor.yPercentage
+            })),
+            viewName: this.viewName,
+            arguments: this.arguments
+        };
+    }
 }
 exports.Shape = Shape;
 class Rectangle extends Shape {
@@ -151,6 +163,13 @@ class Rectangle extends Shape {
         let fakeX = this.points[0].x - padding;
         let fakeY = this.points[0].y - padding;
         return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.drawing);
+    }
+    toViewModel() {
+        var ret = super.toViewModel();
+        ret.type = 'Rectangle';
+        ret.width = this.width;
+        ret.height = this.height;
+        return ret;
     }
 }
 exports.Rectangle = Rectangle;

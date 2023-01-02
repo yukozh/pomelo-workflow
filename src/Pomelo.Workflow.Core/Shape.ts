@@ -1,4 +1,6 @@
 import { Drawing } from "./Drawing";
+import { AnchorModel } from "./Models/AnchorModel";
+import { RectangleModel, ShapeModel } from "./Models/ShapeModel";
 import { Point } from "./Point";
 import { PolylineBase } from "./Polyline";
 
@@ -151,6 +153,19 @@ export class Shape extends PolylineBase {
         return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')} ${this.points[0].x},${this.points[0].y}"
 style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeStrokeWidth}"/>`;
     }
+
+    public toViewModel(): ShapeModel {
+        return <ShapeModel>{
+            guid: this.getGuid(),
+            points: this.points,
+            anchors: this.getAnchors().map(anchor => <AnchorModel>{
+                xPercentage: anchor.xPercentage,
+                yPercentage: anchor.yPercentage
+            }),
+            viewName: this.viewName,
+            arguments: this.arguments
+        }
+    }
 }
 
 export class Rectangle extends Shape
@@ -190,5 +205,13 @@ export class Rectangle extends Shape
         let fakeX = this.points[0].x - padding;
         let fakeY = this.points[0].y - padding;
         return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.drawing);
+    }
+
+    override toViewModel(): RectangleModel {
+        var ret = <RectangleModel>super.toViewModel();
+        ret.type = 'Rectangle';
+        ret.width = this.width;
+        ret.height = this.height;
+        return ret;
     }
 }

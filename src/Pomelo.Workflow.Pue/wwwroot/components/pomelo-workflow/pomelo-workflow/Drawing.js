@@ -57,14 +57,7 @@ class Drawing {
     serializeToJson() {
         let ret = {
             guid: this.guid,
-            shapes: this.shapes.map(shape => ({
-                guid: shape.getGuid(),
-                points: shape.points,
-                anchors: shape.getAnchors().map(anchor => ({
-                    xPercentage: anchor.xPercentage,
-                    yPercentage: anchor.yPercentage
-                }))
-            })),
+            shapes: this.shapes.map(shape => shape.toViewModel()),
             connectPolylines: this.connectPolylines.map(cpl => ({
                 guid: cpl.getGuid(),
                 departureShapeGuid: cpl.getDepartureAnchor().shape.getGuid(),
@@ -89,14 +82,18 @@ class Drawing {
     deserializeFromJson(json) {
         let model = JSON.parse(json);
         this.clean();
-        let html = this.getHtmlHelper();
-        if (html && model.guid) {
-            html.getDrawingSvg().setAttribute('data-drawing', model.guid);
-        }
+        //let html = this.getHtmlHelper();
+        //if (html && model.guid) {
+        //    html.getDrawingSvg().setAttribute('data-drawing', model.guid);
+        //}
         this.guid = model.guid || this.guid;
         for (let i = 0; i < model.shapes.length; ++i) {
             let shape = model.shapes[i];
-            let shapeInstance = this.createShape(shape.points.map(x => new Point_1.Point(x.x, x.y)), shape.guid || this.generateGuid());
+            let shapeInstance = shape.type == 'Shape'
+                ? this.createShape(shape.points.map(x => new Point_1.Point(x.x, x.y)), shape.guid || this.generateGuid(), shape.viewName, shape.arguments)
+                : this.createRect(shape.points[0].x, shape.points[0].y, shape.width, shape.height, shape.guid || this.generateGuid());
+            shapeInstance.viewName = shape.viewName;
+            shapeInstance.arguments = shape.arguments;
             for (let j = 0; j < shape.anchors.length; ++j) {
                 shapeInstance.createAnchor(shape.anchors[j].xPercentage, shape.anchors[j].yPercentage);
             }
@@ -118,8 +115,10 @@ class Drawing {
         this.shapes.push(shape);
         return shape;
     }
-    createShape(points, guid = null) {
+    createShape(points, guid = null, viewName = null, args = {}) {
         let shape = new Shape_1.Shape(points, guid || this.generateGuid(), this);
+        shape.viewName = viewName;
+        shape.arguments = args;
         this.shapes.push(shape);
         return shape;
     }
