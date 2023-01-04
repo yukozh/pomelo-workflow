@@ -191,13 +191,19 @@ Component('pomelo-workflow', {
             this.active = cpl;
         },
         onKeyUp(e) {
-            if (e.key != 'Delete') {
+            if (e.key == 'Escape') {
+                this.connectFrom = null;
+                this.mousePosition = null;
+                this.dragStart = null;
+                this.active = null;
+                this.mode = 'view';
                 return;
             }
 
-            if (this.active) {
+            if (this.active && e.key == 'Delete') {
                 this.active.remove();
                 this.active = null;
+                return;
             }
         }
     }
