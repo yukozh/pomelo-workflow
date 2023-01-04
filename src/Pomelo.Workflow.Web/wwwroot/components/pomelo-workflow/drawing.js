@@ -82,7 +82,6 @@ Component('pomelo-workflow', {
     },
     mounted() {
         window.drawing = this;
-        this.drawing.deserializeFromJson('{"guid":"6edbd564-3c7b-42e2-badc-224b03ac336e","shapes":[{"guid":"b739530e-20dd-40ba-b5d0-b18e72bddb6f","points":[{"x":166,"y":79},{"x":206,"y":79},{"x":206,"y":119},{"x":166,"y":119}],"anchors":[{"xPercentage":0.5,"yPercentage":0},{"xPercentage":1,"yPercentage":0.5},{"xPercentage":0.5,"yPercentage":1},{"xPercentage":0,"yPercentage":0.5}],"node":"start","type":"Rectangle","width":40,"height":40},{"guid":"fb6d299d-30a9-4e80-a622-735ad9f56f66","points":[{"x":328,"y":167},{"x":368,"y":167},{"x":368,"y":207},{"x":328,"y":207}],"anchors":[{"xPercentage":0.5,"yPercentage":0},{"xPercentage":1,"yPercentage":0.5},{"xPercentage":0.5,"yPercentage":1},{"xPercentage":0,"yPercentage":0.5}],"node":"finish","type":"Rectangle","width":40,"height":40}],"connectPolylines":[{"guid":"0bd003dc-4488-42bc-951e-c91f38b299c0","departureShapeGuid":"b739530e-20dd-40ba-b5d0-b18e72bddb6f","destinationShapeGuid":"fb6d299d-30a9-4e80-a622-735ad9f56f66","departureAnchorIndex":1,"destinationAnchorIndex":0,"color":"#555","path":[{"x":206,"y":99},{"x":216,"y":99},{"x":348,"y":99},{"x":348,"y":157},{"x":348,"y":167}]}]}')
         document.addEventListener('mousemove', this.onMouseMoved);
     },
     unmounted() {
