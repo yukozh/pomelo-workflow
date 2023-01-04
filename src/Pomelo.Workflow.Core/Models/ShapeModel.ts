@@ -7,7 +7,7 @@ export class ShapeModel {
     points: Point[];
     anchors: AnchorModel[];
     name: string;
-    viewName: string;
+    node: string;
     arguments: object;
 }
 

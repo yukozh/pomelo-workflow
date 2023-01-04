@@ -32,7 +32,7 @@ export class Shape extends PolylineBase {
     public guid: string;
     public anchors: Anchor[];
     public drawing: Drawing;
-    public viewName: string;
+    public node: string;
     public arguments: object;
 
     public constructor(points: Point[], guid: string | null = null, drawing: Drawing | null = null) {
@@ -48,13 +48,6 @@ export class Shape extends PolylineBase {
         }
 
         this.anchors = [];
-
-        if (this.drawing) {
-            let html = this.drawing.getHtmlHelper();
-            if (html) {
-                html.appendShape(this);
-            }
-        }
     }
 
     public toRectalge(guid: string | null = null): Rectangle {
@@ -93,19 +86,15 @@ export class Shape extends PolylineBase {
             return;
         }
 
-        //let html = this.drawing.getHtmlHelper();
-        //if (!html) {
-        //    return;
-        //}
-
         let elements = this.drawing.getShapes();
         let index = elements.indexOf(this);
         if (index < 0) {
             return;
         }
 
+        var cpls = this.drawing.getConnectPolylines().filter(x => this.getAnchors().some(y => x.getDepartureAnchor() == y || x.getDestinationAnchor() == y));
+        cpls.forEach(function (c) { c.remove(); });
         elements.splice(index, 1);
-        /*html.removeShape(this.guid);*/
     }
 
     public move(newTopLeft: Point): void {
@@ -162,7 +151,7 @@ style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-widt
                 xPercentage: anchor.xPercentage,
                 yPercentage: anchor.yPercentage
             }),
-            viewName: this.viewName,
+            node: this.node,
             arguments: this.arguments
         }
     }

@@ -33,12 +33,6 @@ class Shape extends Polyline_1.PolylineBase {
             this.points.push(points[i]);
         }
         this.anchors = [];
-        if (this.drawing) {
-            let html = this.drawing.getHtmlHelper();
-            if (html) {
-                html.appendShape(this);
-            }
-        }
     }
     toRectalge(guid = null) {
         let minX = this.points[0].x;
@@ -69,17 +63,14 @@ class Shape extends Polyline_1.PolylineBase {
         if (!this.drawing) {
             return;
         }
-        //let html = this.drawing.getHtmlHelper();
-        //if (!html) {
-        //    return;
-        //}
         let elements = this.drawing.getShapes();
         let index = elements.indexOf(this);
         if (index < 0) {
             return;
         }
+        var cpls = this.drawing.getConnectPolylines().filter(x => this.getAnchors().some(y => x.getDepartureAnchor() == y || x.getDestinationAnchor() == y));
+        cpls.forEach(function (c) { c.remove(); });
         elements.splice(index, 1);
-        /*html.removeShape(this.guid);*/
     }
     move(newTopLeft) {
         let rect = this.toRectalge();
@@ -128,7 +119,7 @@ style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-widt
                 xPercentage: anchor.xPercentage,
                 yPercentage: anchor.yPercentage
             })),
-            viewName: this.viewName,
+            node: this.node,
             arguments: this.arguments
         };
     }

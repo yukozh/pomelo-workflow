@@ -1,4 +1,4 @@
-Component('finish', {
+Component('start', {
     style: true,
     props: ['shape', 'arguments'],
     data() {
@@ -20,6 +20,10 @@ Component('finish', {
     },
     methods: {
         onClicked() {
+            if (!this.$parent.edit) {
+                return;
+            }
+
             this.$parent.active = this.shape.getGuid();
         }
     }

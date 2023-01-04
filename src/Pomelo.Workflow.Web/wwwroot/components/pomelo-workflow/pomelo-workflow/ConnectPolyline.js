@@ -72,17 +72,6 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         }
         this.points = this.path.points;
         this.pathGeneratedSuccessfully = ret;
-        // Update SVG
-        let html = this.drawing.getHtmlHelper();
-        if (html) {
-            let dom = html.getConnectPolylineDOM(this.getGuid());
-            if (dom) {
-                html.updateConnectPolyline(this);
-            }
-            else {
-                html.appendConnectPolyline(this);
-            }
-        }
         return ret;
     }
     generateElementSegments(shapes, connectPolylines) {
@@ -556,17 +545,12 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         if (!this.drawing) {
             return;
         }
-        let html = this.drawing.getHtmlHelper();
-        if (!html) {
-            return;
-        }
         let elements = this.drawing.getConnectPolylines();
         let index = elements.indexOf(this);
         if (index < 0) {
             return;
         }
         elements.splice(index, 1);
-        html.removeConnectPolyline(this.guid);
     }
     generateSvg() {
         if (!this.points.length) {

@@ -99,17 +99,6 @@ export class ConnectPolyline extends PolylineBase {
 
         this.points = this.path.points;
         this.pathGeneratedSuccessfully = ret;
-
-        // Update SVG
-        let html = this.drawing.getHtmlHelper();
-        if (html) {
-            let dom = html.getConnectPolylineDOM(this.getGuid());
-            if (dom) {
-                html.updateConnectPolyline(this);
-            } else {
-                html.appendConnectPolyline(this);
-            }
-        }
         return ret;
     }
 
@@ -638,11 +627,6 @@ export class ConnectPolyline extends PolylineBase {
             return;
         }
 
-        let html = this.drawing.getHtmlHelper();
-        if (!html) {
-            return;
-        }
-
         let elements = this.drawing.getConnectPolylines();
         let index = elements.indexOf(this);
         if (index < 0) {
@@ -650,7 +634,6 @@ export class ConnectPolyline extends PolylineBase {
         }
 
         elements.splice(index, 1);
-        html.removeConnectPolyline(this.guid);
     }
 
     public generateSvg(): string {
