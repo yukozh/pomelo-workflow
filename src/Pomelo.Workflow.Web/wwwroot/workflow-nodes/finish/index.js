@@ -7,7 +7,7 @@ Component('finish', {
     },
     computed: {
         active() {
-            return this.$parent.active == this.shape.getGuid();
+            return this.$parent.active == this.shape;
         }
     },
     created() {
@@ -24,7 +24,7 @@ Component('finish', {
                 return;
             }
 
-            this.$parent.active = this.shape.getGuid();
+            this.$parent.active = this.shape;
         }
     }
 });

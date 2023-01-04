@@ -117,7 +117,7 @@ Component('pomelo-workflow', {
                 return;
             }
 
-            if (shape.getGuid() != this.active) {
+            if (shape != this.active) {
                 e.preventDefault();
                 return;
             }

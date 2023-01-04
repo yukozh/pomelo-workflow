@@ -24,7 +24,7 @@
         </div>
     </div>
     <div class="main" v-show="active == 'design'">
-        <pomelo-workflow id="drawing" v-bind:edit="false"></pomelo-workflow>
+        <pomelo-workflow id="drawing" v-bind:edit="true"></pomelo-workflow>
     </div>
     <div class="main" v-show="active == 'json'">
         <textarea>{{ json }}</textarea>
