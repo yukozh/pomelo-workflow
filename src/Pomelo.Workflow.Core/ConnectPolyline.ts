@@ -101,11 +101,11 @@ export class ConnectPolyline extends PolylineBase {
         return this.pathGeneratedSuccessfully;
     }
 
-    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, fastMode: boolean = false): boolean {
+    public initFromDepartureAndDestination(departure: Anchor, destination: Anchor, fastMode: boolean = false, except: PolylineBase[] = []): boolean {
         this.pathGeneratedSuccessfully = false;
         this.departure = departure;
         this.destination = destination;
-        return this.update();
+        return this.update(fastMode, except);
     }
 
     public update(fastMode: boolean = false, except: PolylineBase[] = null): boolean {
