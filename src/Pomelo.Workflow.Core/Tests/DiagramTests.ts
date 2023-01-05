@@ -1,27 +1,27 @@
 import assert = require('assert');
-import { Drawing, DrawingConfiguration } from '../Drawing';
+import { Diagram, DiagramConfiguration } from '../Diagram';
 
-let config = new DrawingConfiguration();
+let config = new DiagramConfiguration();
 config.renderShape = true;
 
 describe("Drawing Tests", () => {
     it("Svg Generation Test", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let diagram = new Diagram(config);
 
-        let shape1 = drawing.createRect(20, 20, 20, 20);
+        let shape1 = diagram.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
-        assert.equal(drawing.getShapes().length, 1);
+        assert.equal(diagram.getShapes().length, 1);
         assert.equal(shape1.getAnchors().length, 1);
 
-        let shape2 = drawing.createRect(80, 100, 20, 20);
+        let shape2 = diagram.createRect(80, 100, 20, 20);
         let anchor2 = shape2.createAnchor(1, .5);
-        assert.equal(drawing.getShapes().length, 2);
+        assert.equal(diagram.getShapes().length, 2);
         assert.equal(shape2.getAnchors().length, 1);
 
         // Act
-        let cp = drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0);
-        assert.equal(drawing.getConnectPolylines().length, 1);
+        let cp = diagram.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0);
+        assert.equal(diagram.getConnectPolylines().length, 1);
         console.log('Shape 1:');
         console.log(shape1.points);
         console.log('Shape 2:');
@@ -29,7 +29,7 @@ describe("Drawing Tests", () => {
         console.log(`Depatrue: (${shape1.getAnchors()[0].toPoint().x},${shape1.getAnchors()[0].toPoint().y})`);
         console.log(`Destination: (${shape2.getAnchors()[0].toPoint().x},${shape2.getAnchors()[0].toPoint().y})`);
         let ret = cp.getPathGenerationResult();
-        let svg = drawing.generateSvg();
+        let svg = diagram.generateSvg();
         console.log(svg);
 
         // Assert
@@ -45,30 +45,30 @@ describe("Drawing Tests", () => {
 
     it("Json Generation Test", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let diagram = new Diagram(config);
 
-        let shape1 = drawing.createRect(20, 20, 20, 20);
+        let shape1 = diagram.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
         assert.equal(anchor1.toPoint().x, 20);
         assert.equal(anchor1.toPoint().y, 20 + 10);
 
-        let shape2 = drawing.createRect(200, 30, 20, 20);
+        let shape2 = diagram.createRect(200, 30, 20, 20);
         shape2.createAnchor(1, .5);
         shape2.createAnchor(.5, 1);
 
-        let shape3 = drawing.createRect(100, 20, 20, 20);
+        let shape3 = diagram.createRect(100, 20, 20, 20);
         shape3.createAnchor(0, .5);
 
-        let shape4 = drawing.createRect(260, 15, 20, 20);
+        let shape4 = diagram.createRect(260, 15, 20, 20);
         shape4.createAnchor(1, .5);
         shape4.createAnchor(.5, 1);
 
-        drawing.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0, 'orange');
-        drawing.createConnectPolyline(shape3.getGuid(), 0, shape4.getGuid(), 0, 'red');
-        drawing.createConnectPolyline(shape2.getGuid(), 1, shape4.getGuid(), 1, 'green');
+        diagram.createConnectPolyline(shape1.getGuid(), 0, shape2.getGuid(), 0, 'orange');
+        diagram.createConnectPolyline(shape3.getGuid(), 0, shape4.getGuid(), 0, 'red');
+        diagram.createConnectPolyline(shape2.getGuid(), 1, shape4.getGuid(), 1, 'green');
 
         // Act
-        let json = drawing.serializeToJson();
+        let json = diagram.serializeToJson();
         console.log(json);
 
         // Assert

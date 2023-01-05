@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const ConnectPolyline_1 = require("./ConnectPolyline");
-const Drawing_1 = require("./Drawing");
+const Diagram_1 = require("./Diagram");
 const ExtremePoint_1 = require("./ExtremePoint");
 const AnchorModel_1 = require("./Models/AnchorModel");
 const ConnectPolylineModel_1 = require("./Models/ConnectPolylineModel");
-const DrawingModel_1 = require("./Models/DrawingModel");
+const DiagramModel_1 = require("./Models/DiagramModel");
 const PointModel_1 = require("./Models/PointModel");
 const ShapeModel_1 = require("./Models/ShapeModel");
 const Orientation_1 = require("./Orientation");
@@ -15,19 +15,19 @@ const Shape_1 = require("./Shape");
 (function (exports) {
     // <Clousure />
     // Models
-    exports.DrawingModel = DrawingModel_1.DrawingModel;
+    exports.DiagramModel = DiagramModel_1.DiagramModel;
     exports.ShapeModel = ShapeModel_1.ShapeModel;
     exports.ConnectPolylineModel = ConnectPolylineModel_1.ConnectPolylineModel;
     exports.AnchorModel = AnchorModel_1.AnchorModel;
     exports.PointModel = PointModel_1.PointModel;
     // Entities
-    exports.Drawing = Drawing_1.Drawing;
+    exports.Diagram = Diagram_1.Diagram;
     exports.Shape = Shape_1.Shape;
     exports.ConnectPolyline = ConnectPolyline_1.ConnectPolyline;
     exports.Polyline = Polyline_1.Polyline;
     exports.Point = Point_1.Point;
     exports.ExtremePoint = ExtremePoint_1.ExtremePoint;
-    exports.DrawingConfiguration = Drawing_1.DrawingConfiguration;
+    exports.DiagramConfiguration = Diagram_1.DiagramConfiguration;
     // Helpers
     exports.Orientation = Orientation_1.Orientation;
     return exports;

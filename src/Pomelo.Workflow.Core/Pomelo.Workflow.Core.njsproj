@@ -45,7 +45,7 @@
     <TypeScriptCompile Include="ConnectPolyline.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="Drawing.ts">
+    <TypeScriptCompile Include="Diagram.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="ExtremePoint.ts">
@@ -57,7 +57,7 @@
     <TypeScriptCompile Include="Models\ConnectPolylineModel.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="Models\DrawingModel.ts">
+    <TypeScriptCompile Include="Models\DiagramModel.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="Models\PointModel.ts">
@@ -79,7 +79,7 @@
     <TypeScriptCompile Include="Shape.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="Tests\DrawingTests.ts" />
+    <TypeScriptCompile Include="Tests\DiagramTests.ts" />
     <TypeScriptCompile Include="tests\ConnectPolylineTests.ts">
       <SubType>Code</SubType>
       <TestFramework>Mocha</TestFramework>

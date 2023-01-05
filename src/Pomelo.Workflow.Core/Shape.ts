@@ -1,4 +1,4 @@
-import { Drawing } from "./Drawing";
+import { Diagram } from "./Diagram";
 import { AnchorModel } from "./Models/AnchorModel";
 import { RectangleModel, ShapeModel } from "./Models/ShapeModel";
 import { Point } from "./Point";
@@ -31,14 +31,14 @@ export class Anchor {
 export class Shape extends PolylineBase {
     public guid: string;
     public anchors: Anchor[];
-    public drawing: Drawing;
+    public diagram: Diagram;
     public node: string;
     public arguments: object;
 
-    public constructor(points: Point[], guid: string | null = null, drawing: Drawing | null = null) {
+    public constructor(points: Point[], guid: string | null = null, diagram: Diagram | null = null) {
         super();
         this.guid = guid;
-        this.drawing = drawing;
+        this.diagram = diagram;
         if (points.length < 3) {
             throw 'The point count must larger than 3.';
         }
@@ -64,7 +64,7 @@ export class Shape extends PolylineBase {
             maxY = Math.max(maxY, point.y);
         }
 
-        return new Rectangle(minX, minY, maxX - minX, maxY - minY, guid, this.drawing);
+        return new Rectangle(minX, minY, maxX - minX, maxY - minY, guid, this.diagram);
     }
 
     public getGuid(): string {
@@ -82,17 +82,17 @@ export class Shape extends PolylineBase {
     }
 
     public remove(): void {
-        if (!this.drawing) {
+        if (!this.diagram) {
             return;
         }
 
-        let elements = this.drawing.getShapes();
+        let elements = this.diagram.getShapes();
         let index = elements.indexOf(this);
         if (index < 0) {
             return;
         }
 
-        var cpls = this.drawing.getConnectPolylines().filter(x => this.getAnchors().some(y => x.getDepartureAnchor() == y || x.getDestinationAnchor() == y));
+        var cpls = this.diagram.getConnectPolylines().filter(x => this.getAnchors().some(y => x.getDepartureAnchor() == y || x.getDestinationAnchor() == y));
         cpls.forEach(function (c) { c.remove(); });
         elements.splice(index, 1);
     }
@@ -103,13 +103,13 @@ export class Shape extends PolylineBase {
         let deltaX = newTopLeft.x - current.x;
         let deltaY = newTopLeft.y - current.y;
 
-        if (this.drawing) {
+        if (this.diagram) {
             // Conflict test
             for (let i = 0; i < rect.points.length; ++i) {
                 rect.points[i].x += deltaX;
                 rect.points[i].y += deltaY;
             }
-            if (!this.drawing.isShapeNotConflicted(rect)) {
+            if (!this.diagram.isShapeNotConflicted(rect)) {
                 return;
             }
 
@@ -119,14 +119,7 @@ export class Shape extends PolylineBase {
                 points.push(point);
             }
             this.points = points;
-
-            //let html = this.drawing.getHtmlHelper();
-            //if (!html) {
-            //    return;
-            //}
-
-            //html.updateShape(this);
-            let connectPolylines = this.drawing.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this || x.getDestinationAnchor().shape == this);
+            let connectPolylines = this.diagram.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this || x.getDestinationAnchor().shape == this);
             for (let i = 0; i < connectPolylines.length; ++i) {
                 let cpl = connectPolylines[i];
                 cpl.update();
@@ -135,12 +128,12 @@ export class Shape extends PolylineBase {
     }
 
     public generateSvg(): string {
-        if (!this.points.length || this.drawing && !this.drawing.getConfig().renderShape) {
+        if (!this.points.length || this.diagram && !this.diagram.getConfig().renderShape) {
             return '';
         }
 
         return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')} ${this.points[0].x},${this.points[0].y}"
-style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeStrokeWidth}"/>`;
+style="fill:none;stroke:${this.diagram.getConfig().shapeStrokeColor};stroke-width:${this.diagram.getConfig().shapeStrokeWidth}"/>`;
     }
 
     public toViewModel(): ShapeModel {
@@ -162,16 +155,16 @@ export class Rectangle extends Shape
     public width: number;
     public height: number;
 
-    public constructor(x: number, y: number, width: number, height: number, guid: string | null = null, drawing: Drawing | null = null) {
+    public constructor(x: number, y: number, width: number, height: number, guid: string | null = null, diagram: Diagram | null = null) {
         let points: Point[] = [];
         points.push(new Point(x, y));
         points.push(new Point(x + width, y));
         points.push(new Point(x + width, y + height));
         points.push(new Point(x, y + height));
-        super(points, guid, drawing);
+        super(points, guid, diagram);
         this.anchors = [];
         this.guid = guid;
-        this.drawing = drawing;
+        this.diagram = diagram;
         if (width == 0 || height == 0) {
             throw 'The width and height cannot be zero';
         }
@@ -193,7 +186,7 @@ export class Rectangle extends Shape
         let fakeHeight = this.getHeight() + padding * 2;
         let fakeX = this.points[0].x - padding;
         let fakeY = this.points[0].y - padding;
-        return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.drawing);
+        return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.diagram);
     }
 
     override toViewModel(): RectangleModel {

@@ -1,13 +1,13 @@
 import assert = require('assert');
-import { Drawing, DrawingConfiguration } from '../Drawing';
+import { Diagram, DiagramConfiguration } from '../Diagram';
 
-let config = new DrawingConfiguration();
+let config = new DiagramConfiguration();
 config.renderShape = true;
 
 describe("ConnectPolyline Tests", () => {
     it("Two Shapes Test", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let drawing = new Diagram(config);
 
         let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
@@ -42,7 +42,7 @@ describe("ConnectPolyline Tests", () => {
 
     it("Three Shapes Test #1", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let drawing = new Diagram(config);
 
         let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
@@ -67,7 +67,7 @@ describe("ConnectPolyline Tests", () => {
 
     it("Three Shapes Test #2", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let drawing = new Diagram(config);
 
         let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
@@ -92,7 +92,7 @@ describe("ConnectPolyline Tests", () => {
 
     it("Three Shapes Test #3", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let drawing = new Diagram(config);
 
         let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
@@ -115,7 +115,7 @@ describe("ConnectPolyline Tests", () => {
 
     it("Three Shapes Test #4", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let drawing = new Diagram(config);
 
         let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
@@ -139,7 +139,7 @@ describe("ConnectPolyline Tests", () => {
 
     it("Four Shapes Test #1", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let drawing = new Diagram(config);
 
         let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
@@ -172,7 +172,7 @@ describe("ConnectPolyline Tests", () => {
 
     it("Four Shapes Test #2", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let drawing = new Diagram(config);
 
         let shape1 = drawing.createRect(20, 20, 20, 20);
         let anchor1 = shape1.createAnchor(0, .5);
@@ -205,7 +205,7 @@ describe("ConnectPolyline Tests", () => {
 
     it("Four Shapes Test #3", () => {
         // Arrange
-        let drawing = new Drawing(config);
+        let drawing = new Diagram(config);
 
         let shape1 = drawing.createRect(80, 20, 20, 20);
         shape1.createAnchor(.5, 1);

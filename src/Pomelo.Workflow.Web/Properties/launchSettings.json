@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "Pomelo.Workflow.Pue": {
+    "Pomelo.Workflow.Web": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

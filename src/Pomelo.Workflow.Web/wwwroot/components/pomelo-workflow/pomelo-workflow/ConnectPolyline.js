@@ -16,15 +16,15 @@ class bfsState {
     }
 }
 class ConnectPolyline extends Polyline_1.PolylineBase {
-    constructor(guid = null, drawing = null) {
+    constructor(guid = null, diagram = null) {
         super();
         this.path = new Polyline_1.Polyline();
         this.padding = 5;
         this.color = '#555';
         this.pathGeneratedSuccessfully = false;
-        this.drawing = drawing;
-        this.guid = guid || drawing.generateGuid();
-        this.padding = drawing.getConfig().padding;
+        this.diagram = diagram;
+        this.guid = guid || diagram.generateGuid();
+        this.padding = diagram.getConfig().padding;
     }
     getGuid() {
         return this.guid;
@@ -45,7 +45,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         return this.destination;
     }
     getDrawingElements() {
-        return this.drawing.getShapes().map(x => x).concat(this.drawing.getConnectPolylines().map(x => x));
+        return this.diagram.getShapes().map(x => x).concat(this.diagram.getConnectPolylines().map(x => x));
     }
     refreshAnchorPositions() {
         this.departurePoint = this.departure.toPointWithPadding(this.padding);
@@ -62,7 +62,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
     }
     update(fastMode = false) {
         this.refreshAnchorPositions();
-        this.generateElementSegments(this.drawing.getShapes(), this.drawing.getConnectPolylines());
+        this.generateElementSegments(this.diagram.getShapes(), this.diagram.getConnectPolylines());
         this.path.points.splice(0, this.path.points.length);
         let ret = fastMode
             ? this.buildPathBFS()
@@ -542,10 +542,10 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         return new Segment_1.Segment(point, destination);
     }
     remove() {
-        if (!this.drawing) {
+        if (!this.diagram) {
             return;
         }
-        let elements = this.drawing.getConnectPolylines();
+        let elements = this.diagram.getConnectPolylines();
         let index = elements.indexOf(this);
         if (index < 0) {
             return;
@@ -557,7 +557,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
             return '';
         }
         return `<polyline data-polyline="${this.getGuid()}" points="${this.getPaths().points.map(x => x.x + ',' + x.y).join(' ')}"
-style="fill:none;stroke:${this.getColor()};stroke-width:${this.drawing.getConfig().connectPolylineStrokeWidth}"/>`;
+style="fill:none;stroke:${this.getColor()};stroke-width:${this.diagram.getConfig().connectPolylineStrokeWidth}"/>`;
     }
 }
 exports.ConnectPolyline = ConnectPolyline;

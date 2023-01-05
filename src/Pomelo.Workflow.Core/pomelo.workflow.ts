@@ -1,9 +1,9 @@
 import { ConnectPolyline } from "./ConnectPolyline";
-import { Drawing, DrawingConfiguration } from "./Drawing";
+import { Diagram, DiagramConfiguration } from "./Diagram";
 import { ExtremePoint } from "./ExtremePoint";
 import { AnchorModel } from "./Models/AnchorModel";
 import { ConnectPolylineModel } from "./Models/ConnectPolylineModel";
-import { DrawingModel } from "./Models/DrawingModel";
+import { DiagramModel } from "./Models/DiagramModel";
 import { PointModel } from "./Models/PointModel";
 import { ShapeModel } from "./Models/ShapeModel";
 import { Orientation } from "./Orientation";
@@ -15,20 +15,20 @@ import { Shape } from "./Shape";
     // <Clousure />
 
     // Models
-    exports.DrawingModel = DrawingModel;
+    exports.DiagramModel = DiagramModel;
     exports.ShapeModel = ShapeModel;
     exports.ConnectPolylineModel = ConnectPolylineModel;
     exports.AnchorModel = AnchorModel;
     exports.PointModel = PointModel;
 
     // Entities
-    exports.Drawing = Drawing;
+    exports.Diagram = Diagram;
     exports.Shape = Shape;
     exports.ConnectPolyline = ConnectPolyline;
     exports.Polyline = Polyline;
     exports.Point = Point;
     exports.ExtremePoint = ExtremePoint;
-    exports.DrawingConfiguration = DrawingConfiguration;
+    exports.DiagramConfiguration = DiagramConfiguration;
 
     // Helpers
     exports.Orientation = Orientation;

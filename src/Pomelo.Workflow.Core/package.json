@@ -1,7 +1,7 @@
 {
-  "name": "pomelo.workflow.frontend",
+  "name": "pomelo.workflow.core",
   "version": "0.0.0",
-  "description": "Pomelo.Workflow.Frontend",
+  "description": "Pomelo.Workflow.Core",
   "main": "app.js",
   "author": {
     "name": ""

@@ -1,4 +1,4 @@
-﻿.pomelo-wf-drawing {
+﻿.pomelo-wf-diagram {
     position: absolute;
     top: 0;
     left: 0;
@@ -18,7 +18,7 @@
     cursor: pointer;
 }
 
-.pomelo-wf-drawing {
+.pomelo-wf-diagram {
     position: absolute;
     top: 0;
     lefT: 0;

@@ -22,10 +22,10 @@ class Anchor {
 }
 exports.Anchor = Anchor;
 class Shape extends Polyline_1.PolylineBase {
-    constructor(points, guid = null, drawing = null) {
+    constructor(points, guid = null, diagram = null) {
         super();
         this.guid = guid;
-        this.drawing = drawing;
+        this.diagram = diagram;
         if (points.length < 3) {
             throw 'The point count must larger than 3.';
         }
@@ -46,7 +46,7 @@ class Shape extends Polyline_1.PolylineBase {
             minY = Math.min(minY, point.y);
             maxY = Math.max(maxY, point.y);
         }
-        return new Rectangle(minX, minY, maxX - minX, maxY - minY, guid, this.drawing);
+        return new Rectangle(minX, minY, maxX - minX, maxY - minY, guid, this.diagram);
     }
     getGuid() {
         return this.guid;
@@ -60,15 +60,15 @@ class Shape extends Polyline_1.PolylineBase {
         return anchor;
     }
     remove() {
-        if (!this.drawing) {
+        if (!this.diagram) {
             return;
         }
-        let elements = this.drawing.getShapes();
+        let elements = this.diagram.getShapes();
         let index = elements.indexOf(this);
         if (index < 0) {
             return;
         }
-        var cpls = this.drawing.getConnectPolylines().filter(x => this.getAnchors().some(y => x.getDepartureAnchor() == y || x.getDestinationAnchor() == y));
+        var cpls = this.diagram.getConnectPolylines().filter(x => this.getAnchors().some(y => x.getDepartureAnchor() == y || x.getDestinationAnchor() == y));
         cpls.forEach(function (c) { c.remove(); });
         elements.splice(index, 1);
     }
@@ -77,13 +77,13 @@ class Shape extends Polyline_1.PolylineBase {
         let current = rect.points[0];
         let deltaX = newTopLeft.x - current.x;
         let deltaY = newTopLeft.y - current.y;
-        if (this.drawing) {
+        if (this.diagram) {
             // Conflict test
             for (let i = 0; i < rect.points.length; ++i) {
                 rect.points[i].x += deltaX;
                 rect.points[i].y += deltaY;
             }
-            if (!this.drawing.isShapeNotConflicted(rect)) {
+            if (!this.diagram.isShapeNotConflicted(rect)) {
                 return;
             }
             let points = [];
@@ -92,12 +92,7 @@ class Shape extends Polyline_1.PolylineBase {
                 points.push(point);
             }
             this.points = points;
-            //let html = this.drawing.getHtmlHelper();
-            //if (!html) {
-            //    return;
-            //}
-            //html.updateShape(this);
-            let connectPolylines = this.drawing.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this || x.getDestinationAnchor().shape == this);
+            let connectPolylines = this.diagram.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this || x.getDestinationAnchor().shape == this);
             for (let i = 0; i < connectPolylines.length; ++i) {
                 let cpl = connectPolylines[i];
                 cpl.update();
@@ -105,11 +100,11 @@ class Shape extends Polyline_1.PolylineBase {
         }
     }
     generateSvg() {
-        if (!this.points.length || this.drawing && !this.drawing.getConfig().renderShape) {
+        if (!this.points.length || this.diagram && !this.diagram.getConfig().renderShape) {
             return '';
         }
         return `<polyline data-shape="${this.getGuid()}" points="${this.points.map(x => x.x + ',' + x.y).join(' ')} ${this.points[0].x},${this.points[0].y}"
-style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-width:${this.drawing.getConfig().shapeStrokeWidth}"/>`;
+style="fill:none;stroke:${this.diagram.getConfig().shapeStrokeColor};stroke-width:${this.diagram.getConfig().shapeStrokeWidth}"/>`;
     }
     toViewModel() {
         return {
@@ -126,16 +121,16 @@ style="fill:none;stroke:${this.drawing.getConfig().shapeStrokeColor};stroke-widt
 }
 exports.Shape = Shape;
 class Rectangle extends Shape {
-    constructor(x, y, width, height, guid = null, drawing = null) {
+    constructor(x, y, width, height, guid = null, diagram = null) {
         let points = [];
         points.push(new Point_1.Point(x, y));
         points.push(new Point_1.Point(x + width, y));
         points.push(new Point_1.Point(x + width, y + height));
         points.push(new Point_1.Point(x, y + height));
-        super(points, guid, drawing);
+        super(points, guid, diagram);
         this.anchors = [];
         this.guid = guid;
-        this.drawing = drawing;
+        this.diagram = diagram;
         if (width == 0 || height == 0) {
             throw 'The width and height cannot be zero';
         }
@@ -153,7 +148,7 @@ class Rectangle extends Shape {
         let fakeHeight = this.getHeight() + padding * 2;
         let fakeX = this.points[0].x - padding;
         let fakeY = this.points[0].y - padding;
-        return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.drawing);
+        return new Rectangle(fakeX, fakeY, fakeWidth, fakeHeight, this.guid, this.diagram);
     }
     toViewModel() {
         var ret = super.toViewModel();

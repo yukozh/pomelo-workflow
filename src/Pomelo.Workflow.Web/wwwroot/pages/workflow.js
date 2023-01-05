@@ -1,7 +1,7 @@
 ﻿var lifecycleManager = require('/components/pomelo-workflow/lifecycleManager').lifecycleManager;
 
 Page({
-    components: ['/components/pomelo-workflow/drawing'],
+    components: ['/components/pomelo-workflow/index'],
     style: true,
     data() {
         return {
@@ -15,8 +15,8 @@ Page({
     },
     methods: {
         add(node, width, height) {
-            lifecycleManager.getById('drawing').addNode = { key: node, width: width, height: height };
-            lifecycleManager.getById('drawing').mode = 'add';
+            lifecycleManager.getById('diagram').addNode = { key: node, width: width, height: height };
+            lifecycleManager.getById('diagram').mode = 'add';
         }
     }
 });

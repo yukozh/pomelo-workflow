@@ -22,8 +22,8 @@
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\AnchorModel.js.map" />
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ConnectPolylineModel.js" />
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ConnectPolylineModel.js.map" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\DrawingModel.js" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\DrawingModel.js.map" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\DiagramModel.js" />
+    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\DiagramModel.js.map" />
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\PointModel.js" />
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\PointModel.js.map" />
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ShapeModel.js" />

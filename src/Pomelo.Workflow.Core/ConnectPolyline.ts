@@ -1,4 +1,4 @@
-import { Drawing } from "./Drawing";
+import { Diagram } from "./Diagram";
 import { AbsoluteOrientation, Orientation } from "./Orientation";
 import { Point } from "./Point";
 import { PolylineBase, Polyline } from "./Polyline";
@@ -32,14 +32,14 @@ export class ConnectPolyline extends PolylineBase {
     private originalShapeSegments: Segment[];
     private polylineSegments: Segment[];
     private color: string = '#555';
-    private drawing: Drawing;
+    private diagram: Diagram;
     private pathGeneratedSuccessfully: boolean = false;
 
-    public constructor(guid: string | null = null, drawing: Drawing | null = null) {
+    public constructor(guid: string | null = null, diagram: Diagram | null = null) {
         super();
-        this.drawing = drawing;
-        this.guid = guid || drawing.generateGuid();
-        this.padding = drawing.getConfig().padding;
+        this.diagram = diagram;
+        this.guid = guid || diagram.generateGuid();
+        this.padding = diagram.getConfig().padding;
     }
 
     public getGuid(): string {
@@ -67,7 +67,7 @@ export class ConnectPolyline extends PolylineBase {
     }
 
     private getDrawingElements(): PolylineBase[] {
-        return this.drawing.getShapes().map(x => <PolylineBase>x).concat(this.drawing.getConnectPolylines().map(x => <PolylineBase>x));
+        return this.diagram.getShapes().map(x => <PolylineBase>x).concat(this.diagram.getConnectPolylines().map(x => <PolylineBase>x));
     }
 
     private refreshAnchorPositions(): void {
@@ -88,7 +88,7 @@ export class ConnectPolyline extends PolylineBase {
 
     public update(fastMode: boolean = false): boolean {
         this.refreshAnchorPositions();
-        this.generateElementSegments(this.drawing.getShapes(), this.drawing.getConnectPolylines());
+        this.generateElementSegments(this.diagram.getShapes(), this.diagram.getConnectPolylines());
         this.path.points.splice(0, this.path.points.length);
         let ret = fastMode
             ? this.buildPathBFS()
@@ -623,11 +623,11 @@ export class ConnectPolyline extends PolylineBase {
     }
 
     public remove(): void {
-        if (!this.drawing) {
+        if (!this.diagram) {
             return;
         }
 
-        let elements = this.drawing.getConnectPolylines();
+        let elements = this.diagram.getConnectPolylines();
         let index = elements.indexOf(this);
         if (index < 0) {
             return;
@@ -641,6 +641,6 @@ export class ConnectPolyline extends PolylineBase {
             return '';
         }
         return `<polyline data-polyline="${this.getGuid()}" points="${this.getPaths().points.map(x => x.x + ',' + x.y).join(' ')}"
-style="fill:none;stroke:${this.getColor()};stroke-width:${this.drawing.getConfig().connectPolylineStrokeWidth}"/>`;
+style="fill:none;stroke:${this.getColor()};stroke-width:${this.diagram.getConfig().connectPolylineStrokeWidth}"/>`;
     }
 }
