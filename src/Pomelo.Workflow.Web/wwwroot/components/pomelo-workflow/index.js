@@ -37,7 +37,8 @@ Component('pomelo-workflow', {
             dragStart: null,
             addNode: null,
             connectFrom: null,
-            mounsePosition: null
+            mounsePosition: null,
+            connectInfo: null
         };
     },
     created() {
@@ -155,6 +156,7 @@ Component('pomelo-workflow', {
             if (this.mode != 'connect') {
                 this.mode = 'connect';
                 this.connectFrom = anchor;
+                this.connectInfo = { color: color, type: type, args: args };
             } else {
                 var from = this.connectFrom;
                 this.mode = 'view';
@@ -162,8 +164,9 @@ Component('pomelo-workflow', {
                 var indexFrom = from.shape.anchors.indexOf(from);
                 var toGuid = anchor.shape.getGuid();
                 var indexTo = anchor.shape.anchors.indexOf(anchor);
-                this.diagram.createConnectPolyline(fromGuid, indexFrom, toGuid, indexTo, color, type, args);
+                this.diagram.createConnectPolyline(fromGuid, indexFrom, toGuid, indexTo, this.connectInfo.color, this.connectInfo.type, this.connectInfo.args);
                 this.connectFrom = null;
+                this.connectInfo = null;
             }
         },
         onPolylineMouseOver(e) {
@@ -210,6 +213,7 @@ Component('pomelo-workflow', {
             this.mousePosition = null;
             this.dragStart = null;
             this.active = null;
+            this.connectInfo = null;
             this.mode = 'view';
         },
         isDeparture() {

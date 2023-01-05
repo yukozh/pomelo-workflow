@@ -56,8 +56,12 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
     getDestinationAnchor() {
         return this.destination;
     }
-    getDrawingElements() {
-        return this.diagram.getShapes().map(x => x).concat(this.diagram.getConnectPolylines().map(x => x));
+    getDiagramElements(except) {
+        let ret = this.diagram.getShapes().map(x => x).concat(this.diagram.getConnectPolylines().map(x => x));
+        if (except) {
+            ret = ret.filter(x => !except.some(y => y == x));
+        }
+        return ret;
     }
     refreshAnchorPositions() {
         this.departurePoint = this.departure.toPointWithPadding(this.padding);
@@ -72,19 +76,32 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         this.destination = destination;
         return this.update();
     }
-    update(fastMode = false) {
+    update(fastMode = false, except = null) {
         this.refreshAnchorPositions();
         this.generateElementSegments(this.diagram.getShapes(), this.diagram.getConnectPolylines());
         this.path.points.splice(0, this.path.points.length);
         let ret = fastMode
-            ? this.buildPathBFS()
-            : this.buildPathDFS(this.departurePoint);
+            ? this.buildPathDFS(this.departurePoint, 0, except)
+            : this.buildPathBFS(except);
         if (ret) {
             this.path.points = [this.departure.toPoint()].concat(this.path.points).concat([this.destination.toPoint()]);
         }
+        this.optimize();
         this.points = this.path.points;
         this.pathGeneratedSuccessfully = ret;
         return ret;
+    }
+    optimize() {
+        if (this.path.points.length >= 3) {
+            if (this.path.points[this.path.points.length - 3].x == this.path.points[this.path.points.length - 2].x
+                && this.path.points[this.path.points.length - 2].x == this.path.points[this.path.points.length - 1].x) {
+                this.path.points.splice(this.path.points.length - 2, 1);
+            }
+            if (this.path.points[this.path.points.length - 3].y == this.path.points[this.path.points.length - 2].y
+                && this.path.points[this.path.points.length - 2].y == this.path.points[this.path.points.length - 1].y) {
+                this.path.points.splice(this.path.points.length - 2, 1);
+            }
+        }
     }
     generateElementSegments(shapes, connectPolylines) {
         let segments = [];
@@ -158,14 +175,14 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
     pop() {
         this.path.points.splice(this.path.points.length - 1, 1);
     }
-    buildPathDFS(point, depth = 0) {
+    buildPathDFS(point, depth = 0, except) {
         this.path.points.push(point);
         if (point.equalsTo(this.destinationPoint)) {
             return true;
         }
-        let availablePoints = this.generateAvailableNextPoints(this.path);
+        let availablePoints = this.generateAvailableNextPoints(this.path, except);
         for (let i = 0; i < availablePoints.length; ++i) {
-            if (this.buildPathDFS(availablePoints[i], depth + 1)) {
+            if (this.buildPathDFS(availablePoints[i], depth + 1, except)) {
                 return true;
             }
             else {
@@ -174,7 +191,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         }
         return false;
     }
-    buildPathBFS() {
+    buildPathBFS(except) {
         let initState = new bfsState(new Polyline_1.Polyline(), this.departurePoint);
         let queue = [initState];
         while (queue.length) {
@@ -186,13 +203,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
             if (state.path.points[state.path.points.length - 1].equalsTo(this.destinationPoint)) {
                 return true;
             }
-            let result = this.generateAvailableNextPoints(state.path);
-            let destination = result.filter(x => x.equalsTo(this.destinationPoint));
-            if (destination.length) {
-                let resultState = new bfsState(state.path, destination[0], state.depth + 1);
-                this.path = resultState.path;
-                return true;
-            }
+            let result = this.generateAvailableNextPoints(state.path, except);
             queue = queue.concat(result.map(x => new bfsState(state.path, x, state.depth + 1)));
         }
     }
@@ -250,10 +261,10 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         }
         return orientations;
     }
-    getElementsX() {
+    getElementsX(except) {
         let ret = [];
-        for (let i = 0; i < this.getDrawingElements().length; ++i) {
-            let element = this.getDrawingElements()[i];
+        for (let i = 0; i < this.getDiagramElements(except).length; ++i) {
+            let element = this.getDiagramElements(except)[i];
             for (let j = 0; j < element.points.length; ++j) {
                 let result = element.points[j].x;
                 if (ret.indexOf(result) < 0) {
@@ -263,10 +274,10 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         }
         return ret;
     }
-    getElementsY() {
+    getElementsY(except) {
         let ret = [];
-        for (let i = 0; i < this.getDrawingElements().length; ++i) {
-            let element = this.getDrawingElements()[i];
+        for (let i = 0; i < this.getDiagramElements(except).length; ++i) {
+            let element = this.getDiagramElements(except)[i];
             for (let j = 0; j < element.points.length; ++j) {
                 let result = element.points[j].y;
                 if (ret.indexOf(result) < 0) {
@@ -276,12 +287,12 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         }
         return ret;
     }
-    getCrossedPointsWithSegment(segment, path) {
+    getCrossedPointsWithSegment(segment, path, except) {
         let ret = [];
         let orientation = Orientation_1.Orientation.getOrientationFromTwoPoints(segment.points[0], segment.points[1]);
         switch (orientation) {
             case Orientation_1.AbsoluteOrientation.Bottom: {
-                let elementYs = this.getElementsY().filter(x => x > segment.points[0].y);
+                let elementYs = this.getElementsY(except).filter(x => x > segment.points[0].y);
                 for (let i = 0; i < elementYs.length; ++i) {
                     ret.push(new Point_1.Point(segment.points[0].x, elementYs[i]));
                 }
@@ -291,7 +302,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
                 break;
             }
             case Orientation_1.AbsoluteOrientation.Top: {
-                let elementYs = this.getElementsY().filter(x => x < segment.points[0].y);
+                let elementYs = this.getElementsY(except).filter(x => x < segment.points[0].y);
                 for (let i = 0; i < elementYs.length; ++i) {
                     ret.push(new Point_1.Point(segment.points[0].x, elementYs[i]));
                 }
@@ -301,7 +312,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
                 break;
             }
             case Orientation_1.AbsoluteOrientation.Right: {
-                let elementXs = this.getElementsX().filter(x => x > segment.points[0].x);
+                let elementXs = this.getElementsX(except).filter(x => x > segment.points[0].x);
                 for (let i = 0; i < elementXs.length; ++i) {
                     ret.push(new Point_1.Point(elementXs[i], segment.points[0].y));
                 }
@@ -311,7 +322,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
                 break;
             }
             case Orientation_1.AbsoluteOrientation.Left: {
-                let elementXs = this.getElementsX().filter(x => x < segment.points[0].x);
+                let elementXs = this.getElementsX(except).filter(x => x < segment.points[0].x);
                 for (let i = 0; i < elementXs.length; ++i) {
                     ret.push(new Point_1.Point(elementXs[i], segment.points[0].y));
                 }
@@ -336,7 +347,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         }
         return ret;
     }
-    generateAvailableNextPoints(path) {
+    generateAvailableNextPoints(path, except) {
         let points = [];
         let orientations = this.prioritizeOrientations(path);
         let lastPoint = path.points[path.points.length - 1];
@@ -344,7 +355,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         for (let i = 0; i < orientations.length; ++i) {
             let orientation = orientations[i];
             let halfLine = this.generateHalfLine(lastPoint, orientation, border);
-            let crossedPoints = this.getCrossedPointsWithSegment(halfLine, path);
+            let crossedPoints = this.getCrossedPointsWithSegment(halfLine, path, except);
             crossedPoints = crossedPoints
                 .filter(x => x);
             // Don't cross segment
@@ -372,12 +383,12 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
                         || fixedPoint.x > border[1].x + this.padding || fixedPoint.y > border[1].y + this.padding) {
                         break;
                     }
-                    if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path)) {
+                    if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path, except)) {
                         break;
                     }
                     if (orientation == Orientation_1.AbsoluteOrientation.Bottom || orientation == Orientation_1.AbsoluteOrientation.Top) {
                         if (unavailableRange.every(range => fixedPoint.y < range[0] || fixedPoint.y > range[1])) {
-                            if (this.isValidPoint(fixedPoint, path)) {
+                            if (this.isValidPoint(fixedPoint, path, except)) {
                                 fixedPoints.push(fixedPoint);
                                 break;
                             }
@@ -385,7 +396,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
                     }
                     else {
                         if (unavailableRange.every(range => fixedPoint.x < range[0] || fixedPoint.x > range[1])) {
-                            if (this.isValidPoint(fixedPoint, path)) {
+                            if (this.isValidPoint(fixedPoint, path, except)) {
                                 fixedPoints.push(fixedPoint);
                                 break;
                             }
@@ -397,7 +408,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
             points = points.concat(crossedPoints).concat(fixedPoints);
         }
         points = points.filter(x => x);
-        points = points.filter(x => this.isValidPoint(x, path));
+        points = points.filter(x => this.isValidPoint(x, path, except));
         let origin = this.destinationPoint;
         // Greedy: Always try to get closer to the destination
         points.sort((a, b) => {
@@ -405,7 +416,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         });
         return points;
     }
-    isValidPoint(point, path) {
+    isValidPoint(point, path, except) {
         let count = 0;
         // 0. Null Check
         if (!point) {
@@ -422,7 +433,18 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         if (path.points.filter(x => x.equalsTo(point)).length) {
             return false;
         }
-        // 3. Border Check
+        // 3. Avoid turn back
+        if (path.points.length >= 2) {
+            if (path.points[path.points.length - 2].x == path.points[path.points.length - 1].x
+                && path.points[path.points.length - 1].x == point.x) {
+                return false;
+            }
+            if (path.points[path.points.length - 2].y == path.points[path.points.length - 1].y
+                && path.points[path.points.length - 1].y == point.y) {
+                return false;
+            }
+        }
+        // 4. Border Check
         let border = this.getElementsBorder(this.elementSegments);
         let borderCheckResult = border[0].x - this.padding <= point.x
             && point.x <= border[1].x + this.padding
@@ -431,7 +453,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
         if (!borderCheckResult) {
             return false;
         }
-        // 4. Point Cross Check
+        // 5. Point Cross Check
         {
             let isDestinationOrDeparture = point.equalsTo(this.destinationPoint) || point.equalsTo(this.departurePoint);
             // a) The current point should not in the existed path segment
@@ -446,7 +468,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
                 return false;
             }
             // b) The current point should not locate inside of any shapes
-            if (this.getDrawingElements().filter(x => x.isPointInPolygon(point)).length && !isDestinationOrDeparture) { // Use actual shape(not expanded)
+            if (this.getDiagramElements(except).filter(x => x.isPointInPolygon(point)).length && !isDestinationOrDeparture) { // Use actual shape(not expanded)
                 return false;
             }
             // c) Current segment should not cross with others
@@ -460,7 +482,7 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
                 return false;
             }
         }
-        // 5. Segment Cross Check: The generated segment should not have cross points with others
+        // 6. Segment Cross Check: The generated segment should not have cross points with others
         let lastPoint = path.points[path.points.length - 1];
         let segment = new Segment_1.Segment(lastPoint, point);
         if (this.polylineSegments.filter(x => x.getCrossStateWithSegment(segment) == Segment_1.SegmentCrossState.Infinite).length) {

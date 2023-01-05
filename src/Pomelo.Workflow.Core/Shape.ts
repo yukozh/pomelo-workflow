@@ -121,9 +121,14 @@ export class Shape extends PolylineBase {
             }
             this.points = points;
             let connectPolylines = this.diagram.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this || x.getDestinationAnchor().shape == this);
+            let except = [];
+            for (let i = 0; i < connectPolylines.length; ++i) {
+                except.push(connectPolylines[i]);
+            }
             for (let i = 0; i < connectPolylines.length; ++i) {
                 let cpl = connectPolylines[i];
-                cpl.update();
+                cpl.update(false, except);
+                except.splice(0, 1);
             }
         }
     }
