@@ -77,7 +77,9 @@ export class Diagram {
                 departureAnchorIndex: cpl.getDepartureAnchor().shape.getAnchors().indexOf(cpl.getDepartureAnchor()),
                 destinationAnchorIndex: cpl.getDestinationAnchor().shape.getAnchors().indexOf(cpl.getDestinationAnchor()),
                 color: cpl.getColor(),
-                path: cpl.getPaths().points
+                path: cpl.getPaths().points,
+                type: cpl.getType(),
+                arguments: cpl.getArguments()
             })
         };
 
@@ -109,8 +111,8 @@ export class Diagram {
         }
 
         for (let i = 0; i < model.connectPolylines.length; ++i) {
-            let cpl = model.connectPolylines[i];
-            this.createConnectPolyline(cpl.departureShapeGuid, cpl.departureAnchorIndex, cpl.destinationShapeGuid, cpl.destinationAnchorIndex, cpl.color, cpl.guid || this.generateGuid());
+            let cplModel = model.connectPolylines[i];
+            this.createConnectPolyline(cplModel.departureShapeGuid, cplModel.departureAnchorIndex, cplModel.destinationShapeGuid, cplModel.destinationAnchorIndex, cplModel.color, cplModel.type, cplModel.arguments, cplModel.guid || this.generateGuid());
         }
     }
 
@@ -137,9 +139,11 @@ export class Diagram {
         return shape;
     }
 
-    public createConnectPolyline(departureGuid: string, departureAnchorIndex: number, destinationGuid: string, destinationAnchorIndex: number, color: string = '#555', guid: string | null = null): ConnectPolyline {
+    public createConnectPolyline(departureGuid: string, departureAnchorIndex: number, destinationGuid: string, destinationAnchorIndex: number, color: string = '#555', type: string = null, args: object = null, guid: string | null = null): ConnectPolyline {
         let cpl = new ConnectPolyline(guid, this);
         cpl.setColor(color);
+        cpl.setType(type);
+        cpl.setArguments(args);
         let departure = this.findShapeByGuid(departureGuid);
         let destination = this.findShapeByGuid(destinationGuid);
         this.connectPolylines.push(cpl);

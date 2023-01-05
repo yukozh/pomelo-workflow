@@ -25,6 +25,14 @@ Component('finish', {
             }
 
             this.$parent.active = this.shape;
+        },
+        link(anchor) {
+            if (this.$parent.isDeparture()) {
+                alert('This node cannot be departure');
+                this.$parent.cancelOperations();
+            } else {
+                this.$parent.link(anchor);
+            }
         }
     }
 });

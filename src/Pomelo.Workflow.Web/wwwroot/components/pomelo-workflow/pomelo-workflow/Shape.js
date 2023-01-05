@@ -99,6 +99,12 @@ class Shape extends Polyline_1.PolylineBase {
             }
         }
     }
+    getIncomingConnectedPolylines() {
+        return this.diagram.getConnectPolylines().filter(x => x.getDestinationAnchor().shape == this);
+    }
+    getOutgoingConnectedPolylines() {
+        return this.diagram.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this);
+    }
     generateSvg() {
         if (!this.points.length || this.diagram && !this.diagram.getConfig().renderShape) {
             return '';

@@ -35,6 +35,18 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
     getColor() {
         return this.color;
     }
+    setType(type) {
+        this.type = type;
+    }
+    getType() {
+        return this.type;
+    }
+    setArguments(args) {
+        this.arguments = args;
+    }
+    getArguments() {
+        return this.arguments;
+    }
     getPaths() {
         return this.path;
     }

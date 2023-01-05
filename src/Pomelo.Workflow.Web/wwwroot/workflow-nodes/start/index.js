@@ -25,6 +25,14 @@ Component('start', {
             }
 
             this.$parent.active = this.shape;
+        },
+        link(anchor) {
+            if (this.$parent.isDeparture()) {
+                this.$parent.link(anchor);
+            } else {
+                alert('This node cannot be destination');
+                this.$parent.cancelOperations();
+            }
         }
     }
 });

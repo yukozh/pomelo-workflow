@@ -1,3 +1,4 @@
+import { ConnectPolyline } from "./ConnectPolyline";
 import { Diagram } from "./Diagram";
 import { AnchorModel } from "./Models/AnchorModel";
 import { RectangleModel, ShapeModel } from "./Models/ShapeModel";
@@ -125,6 +126,14 @@ export class Shape extends PolylineBase {
                 cpl.update();
             }
         }
+    }
+
+    public getIncomingConnectedPolylines(): ConnectPolyline[] {
+        return this.diagram.getConnectPolylines().filter(x => x.getDestinationAnchor().shape == this);
+    }
+
+    public getOutgoingConnectedPolylines(): ConnectPolyline[] {
+        return this.diagram.getConnectPolylines().filter(x => x.getDepartureAnchor().shape == this);
     }
 
     public generateSvg(): string {

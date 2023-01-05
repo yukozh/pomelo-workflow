@@ -8,4 +8,6 @@ export class ConnectPolylineModel {
     destinationAnchorIndex: number;
     path: PointModel[];
     color: string;
+    type: string;
+    arguments: object;
 }

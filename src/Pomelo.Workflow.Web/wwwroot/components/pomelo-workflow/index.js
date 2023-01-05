@@ -148,7 +148,10 @@ Component('pomelo-workflow', {
             }
             shape.move({ x: shape.points[0].x + offset.x, y: shape.points[0].y + offset.y });
         },
-        link(anchor) {
+        link(anchor, color, type, args) {
+            color = color || this.diagram.getConfig().color;
+            type = type || 'default';
+
             if (this.mode != 'connect') {
                 this.mode = 'connect';
                 this.connectFrom = anchor;
@@ -159,7 +162,7 @@ Component('pomelo-workflow', {
                 var indexFrom = from.shape.anchors.indexOf(from);
                 var toGuid = anchor.shape.getGuid();
                 var indexTo = anchor.shape.anchors.indexOf(anchor);
-                this.diagram.createConnectPolyline(fromGuid, indexFrom, toGuid, indexTo);
+                this.diagram.createConnectPolyline(fromGuid, indexFrom, toGuid, indexTo, color, type, args);
                 this.connectFrom = null;
             }
         },
@@ -192,11 +195,7 @@ Component('pomelo-workflow', {
         },
         onKeyUp(e) {
             if (e.key == 'Escape') {
-                this.connectFrom = null;
-                this.mousePosition = null;
-                this.dragStart = null;
-                this.active = null;
-                this.mode = 'view';
+                this.cancelOperations();
                 return;
             }
 
@@ -205,6 +204,19 @@ Component('pomelo-workflow', {
                 this.active = null;
                 return;
             }
+        },
+        cancelOperations() {
+            this.connectFrom = null;
+            this.mousePosition = null;
+            this.dragStart = null;
+            this.active = null;
+            this.mode = 'view';
+        },
+        isDeparture() {
+            return this.connectFrom == null;
+        },
+        isDestination() {
+            return this.connectFrom != null;
         }
     }
 });
