@@ -32,20 +32,26 @@ namespace Pomelo.Workflow.Storage
         ValueTask UpdateWorkflowAsync(
             Guid id, 
             UpdateWorkflowRequest request, 
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         ValueTask<Guid> CreateWorkflowAsync(
             CreateWorkflowRequest request, 
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         ValueTask<int> CreateWorkflowVersion(
             Guid id, 
             CreateWorkflowVersionRequest request, 
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
-        ValueTask<int> GetLatestVersionAsync(
+        ValueTask<int?> GetLatestVersionAsync(
             Guid id,
-            WorkflowVersionStatus status = WorkflowVersionStatus.Available,
+            WorkflowVersionStatus? status = WorkflowVersionStatus.Available,
+            CancellationToken cancellationToken = default);
+
+        ValueTask UpdateWorkflowVersionStatusAsync(
+            Guid id,
+            int version, 
+            WorkflowVersionStatus status, 
             CancellationToken cancellationToken = default);
     }
 }

@@ -115,6 +115,25 @@ namespace Pomelo.Workflow.Storage
                 .Select(x => x.Version)
                 .FirstOrDefaultAsync(cancellationToken);
         }
+
+        public async ValueTask UpdateWorkflowVersionStatusAsync(
+            Guid id, 
+            int version, 
+            WorkflowVersionStatus status, 
+            CancellationToken cancellationToken = default)
+        {
+            var workflowVersion = await db.WorkflowVersions
+                .Where(x => x.WorkflowId == id && x.Version == version)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (workflowVersion == null)
+            {
+                throw new KeyNotFoundException($"The workflow version {id} #{version} was not found");
+            }
+
+            workflowVersion.Status = status;
+            await db.SaveChangesAsync(cancellationToken);
+        }
     }
 
     public static class DbWorkflowStorageProviderExtensions
@@ -138,11 +157,13 @@ namespace Pomelo.Workflow.Storage
             {
                 e.HasIndex(x => new { x.WorkflowId, x.WorkflowVersion });
                 e.HasMany(x => x.Steps).WithOne(x => x.WorkflowInstance);
+                e.Property(x => x.Arguments).HasColumnType("json");
             });
 
             builder.Entity<DbStep>(e =>
             {
                 e.Property(x => x.Type).HasMaxLength(64);
+                e.Property(x => x.Arguments).HasColumnType("json");
                 e.HasIndex(x => new { x.WorkflowInstanceId, x.Order });
             });
 
