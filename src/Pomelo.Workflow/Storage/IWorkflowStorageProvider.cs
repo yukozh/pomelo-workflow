@@ -8,20 +8,44 @@ namespace Pomelo.Workflow.Storage
     /// </summary>
     public interface IWorkflowStorageProvider
     {
-        ValueTask<IEnumerable<Models.Workflow>> GetWorkflowsAsync(string name = null, CancellationToken cancellationToken = default);
+        ValueTask<IEnumerable<Models.Workflow>> GetWorkflowsAsync(
+            string name = null, 
+            CancellationToken cancellationToken = default);
 
-        ValueTask<IEnumerable<GetWorkflowVersionResponse>> GetWorkflowVersionsAsync(Guid id, CancellationToken cancellationToken = default);
+        ValueTask<IEnumerable<GetWorkflowVersionResponse>> GetWorkflowVersionsAsync(
+            Guid id, 
+            CancellationToken cancellationToken = default);
 
-        ValueTask<WorkflowVersion> GetWorkflowVersionAsync(Guid id, int version, CancellationToken cancellationToken);
+        ValueTask<WorkflowVersion> GetWorkflowVersionAsync(
+            Guid id, 
+            int version, 
+            CancellationToken cancellationToken);
 
-        ValueTask<Models.Workflow> GetWorkflowAsync(Guid id, CancellationToken cancellationToken = default);
+        ValueTask<Models.Workflow> GetWorkflowAsync(
+            Guid id,
+            CancellationToken cancellationToken = default);
 
-        ValueTask DeleteWorkflowAsync(Guid id, CancellationToken cancellationToken = default);
+        ValueTask DeleteWorkflowAsync(
+            Guid id, 
+            CancellationToken cancellationToken = default);
 
-        ValueTask UpdateWorkflowAsync(Guid id, UpdateWorkflowRequest request, CancellationToken cancellationToken);
+        ValueTask UpdateWorkflowAsync(
+            Guid id, 
+            UpdateWorkflowRequest request, 
+            CancellationToken cancellationToken);
 
-        ValueTask<Guid> CreateWorkflowAsync(CreateWorkflowRequest request, CancellationToken cancellationToken);
+        ValueTask<Guid> CreateWorkflowAsync(
+            CreateWorkflowRequest request, 
+            CancellationToken cancellationToken);
 
-        ValueTask<int> CreateWorkflowVersion(Guid id, CreateWorkflowVersionRequest request, CancellationToken cancellationToken);
+        ValueTask<int> CreateWorkflowVersion(
+            Guid id, 
+            CreateWorkflowVersionRequest request, 
+            CancellationToken cancellationToken);
+
+        ValueTask<int> GetLatestVersionAsync(
+            Guid id,
+            WorkflowVersionStatus status = WorkflowVersionStatus.Available,
+            CancellationToken cancellationToken = default);
     }
 }

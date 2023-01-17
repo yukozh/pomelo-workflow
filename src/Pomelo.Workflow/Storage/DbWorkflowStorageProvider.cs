@@ -96,6 +96,25 @@ namespace Pomelo.Workflow.Storage
             workflow.Description = request.Description;
             await db.SaveChangesAsync(cancellationToken);
         }
+
+        public async ValueTask<int?> GetLatestVersionAsync(
+            Guid id,
+            WorkflowVersionStatus? status = WorkflowVersionStatus.Available,
+            CancellationToken cancellationToken = default)
+        {
+            IQueryable<DbWorkflowVersion> workflowVersions = db.WorkflowVersions
+                .Where(x => x.WorkflowId == id);
+
+            if (status.HasValue)
+            {
+                workflowVersions = workflowVersions.Where(x => x.Status == status);
+            }
+
+            return await workflowVersions
+                .OrderByDescending(x => x.Version)
+                .Select(x => x.Version)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
     }
 
     public static class DbWorkflowStorageProviderExtensions

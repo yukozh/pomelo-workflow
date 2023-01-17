@@ -2,9 +2,9 @@
 {
     public class DefaultWorkflowHandler
     {
-        protected readonly PomeloWorkflow PomeloWorkflow;
+        protected readonly WorkflowManager PomeloWorkflow;
 
-        public DefaultWorkflowHandler(PomeloWorkflow pomeloWorkflow)
+        public DefaultWorkflowHandler(WorkflowManager pomeloWorkflow)
         {
             PomeloWorkflow = pomeloWorkflow;
         }
