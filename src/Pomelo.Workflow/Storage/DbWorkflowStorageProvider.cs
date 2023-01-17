@@ -6,7 +6,7 @@ using Pomelo.Workflow.Models.ViewModels;
 namespace Pomelo.Workflow.Storage
 {
     public class DbWorkflowStorageProvider<TDbContext> 
-        : WorkflowStorageProviderBase
+        : IWorkflowStorageProvider
         where TDbContext : DbContext, IWorkflowDbContext
     {
         readonly TDbContext db;
@@ -16,7 +16,7 @@ namespace Pomelo.Workflow.Storage
             this.db = db;
         }
 
-        public override async ValueTask<Guid> CreateWorkflowAsync(CreateWorkflowRequest request, CancellationToken cancellationToken)
+        public async ValueTask<Guid> CreateWorkflowAsync(CreateWorkflowRequest request, CancellationToken cancellationToken)
         {
             var workflow = new DbWorkflow
             {
@@ -29,7 +29,7 @@ namespace Pomelo.Workflow.Storage
             return workflow.Id;
         }
 
-        public override async ValueTask<int> CreateWorkflowVersion(Guid id, CreateWorkflowVersionRequest request, CancellationToken cancellationToken)
+        public async ValueTask<int> CreateWorkflowVersion(Guid id, CreateWorkflowVersionRequest request, CancellationToken cancellationToken)
         {
             if (!await db.Workflows.AnyAsync(x => x.Id == id, cancellationToken))
             {
@@ -47,7 +47,7 @@ namespace Pomelo.Workflow.Storage
             return workflowVersion.Version;
         }
 
-        public override async ValueTask DeleteWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
+        public async ValueTask DeleteWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
         {
             if (await db.WorkflowVersions.AnyAsync(x => x.WorkflowId == id, cancellationToken))
             {
@@ -59,16 +59,25 @@ namespace Pomelo.Workflow.Storage
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        public override async ValueTask<Models.Workflow> GetWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
+        public async ValueTask<Models.Workflow> GetWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
             => await db.Workflows.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        public override async ValueTask<IEnumerable<Models.Workflow>> GetWorkflowsAsync(CancellationToken cancellationToken = default)
-            => await db.Workflows.ToListAsync(cancellationToken);
+        public async ValueTask<IEnumerable<Models.Workflow>> GetWorkflowsAsync(string name = null, CancellationToken cancellationToken = default)
+        {
+            IQueryable<DbWorkflow> workflows = db.Workflows;
 
-        public override async ValueTask<WorkflowVersion> GetWorkflowVersionAsync(Guid id, int version, CancellationToken cancellationToken)
+            if (name != null)
+            {
+                workflows = workflows.Where(x => x.Name.Contains(name));
+            }
+
+            return await workflows.ToListAsync(cancellationToken);
+        }
+
+        public async ValueTask<WorkflowVersion> GetWorkflowVersionAsync(Guid id, int version, CancellationToken cancellationToken)
             => await db.WorkflowVersions.FirstOrDefaultAsync(x => x.WorkflowId == id && x.Version == version, cancellationToken);
 
-        public override async ValueTask<IEnumerable<GetWorkflowVersionResponse>> GetWorkflowVersionsAsync(Guid id, CancellationToken cancellationToken = default)
+        public async ValueTask<IEnumerable<GetWorkflowVersionResponse>> GetWorkflowVersionsAsync(Guid id, CancellationToken cancellationToken = default)
             => await db.WorkflowVersions
                 .Where(x => x.WorkflowId == id)
                 .Select(x => new GetWorkflowVersionResponse 
@@ -78,7 +87,7 @@ namespace Pomelo.Workflow.Storage
                     Version = x.Version
                 }).ToListAsync(cancellationToken);
 
-        public override async ValueTask UpdateWorkflowAsync(Guid id, UpdateWorkflowRequest request, CancellationToken cancellationToken)
+        public async ValueTask UpdateWorkflowAsync(Guid id, UpdateWorkflowRequest request, CancellationToken cancellationToken)
         {
             var workflow = await db.Workflows
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
