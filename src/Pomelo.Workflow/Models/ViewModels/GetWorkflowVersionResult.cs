@@ -1,6 +1,6 @@
 ﻿namespace Pomelo.Workflow.Models.ViewModels
 {
-    public class GetWorkflowVersionResponse
+    public class GetWorkflowVersionResult
     {
         public Guid WorkflowId { get; set; }
 

@@ -16,7 +16,7 @@ namespace Pomelo.Workflow.Models
 
         public string Node { get; set; }
 
-        public JToken Arguments { get; set; }
+        public Dictionary<string, JToken> Arguments { get; set; }
     }
 
     public class Rectangle : Shape 

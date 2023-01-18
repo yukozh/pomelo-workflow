@@ -16,13 +16,13 @@ namespace Pomelo.Workflow.Models
 
         public Guid WorkflowInstanceId { get; set; }
 
-        public string Type { get; set; }
+        public Guid ShapeId { get; set; }
 
-        public int Order { get; set; }
+        public string Type { get; set; }
 
         public StepStatus Status { get; set; }
 
-        public JToken Arguments { get; set; }
+        public Dictionary<string, JToken> Arguments { get; set; }
 
         public string Error { get; set; }
 

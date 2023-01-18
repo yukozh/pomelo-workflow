@@ -1,6 +1,6 @@
 ﻿namespace Pomelo.Workflow
 {
-    public class WorkflowHandlerAttribute
+    public class WorkflowHandlerAttribute : Attribute
     {
         public string Type { get; init; }
 

@@ -1,7 +1,11 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Pomelo.Workflow.Models;
+using Pomelo.Workflow.Models.EntityFramework;
 using Pomelo.Workflow.Models.ViewModels;
 using Pomelo.Workflow.Storage;
+using Pomelo.Workflow.WorkflowHandler;
+using System.Reflection;
 
 namespace Pomelo.Workflow
 {
@@ -151,7 +155,7 @@ namespace Pomelo.Workflow
             return await storage.GetWorkflowAsync(id, cancellationToken);
         }
 
-        public virtual async ValueTask<IEnumerable<GetWorkflowVersionResponse>> GetWorkflowVersionsAsync(
+        public virtual async ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
             Guid id,
             CancellationToken cancellationToken = default)
         { 
@@ -229,12 +233,156 @@ namespace Pomelo.Workflow
             return version;
         }
 
-        public async ValueTask<Guid> StartNewInstanceAsync(
+        public async ValueTask<StartNewInstanceResult> StartNewInstanceAsync(
             Guid workflowId,
             int version,
+            Dictionary<string, JToken> arguments,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var workflowVersion = await GetWorkflowVersionAsync(workflowId, version, cancellationToken);
+            var diagram = workflowVersion.Diagram;
+            var instanceId = await storage.CreateWorkflowInstanceAsync(workflowId, version, arguments, cancellationToken);
+            var start = diagram.Shapes.FirstOrDefault(x => x.Node == "start");
+            if (start == null) 
+            {
+                throw new KeyNotFoundException("Start node was not found in this diagram");
+            }
+
+            var mergedArguments = MergeArguments(arguments, start.Arguments);
+
+            var step = new DbStep
+            {
+                Arguments = mergedArguments,
+                ShapeId = start.Guid,
+                Status = StepStatus.NotStarted,
+                WorkflowInstanceId = workflowId,
+                Type = start.Node
+            };
+            var stepId = await storage.CreateWorkflowStepAsync(instanceId, step, cancellationToken);
+            return new StartNewInstanceResult 
+            {
+                InstanceId = instanceId,
+                StartStepId = stepId
+            };
+        }
+
+        public async ValueTask<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
+            Guid stepId,
+            StepStatus status,
+            Action<Dictionary<string, JToken>> updateArgumentsDelegate,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await storage
+                .UpdateWorkflowStepAsync(stepId, status, updateArgumentsDelegate, cancellationToken);
+
+            if (result.PreviousStatus != result.NewStatus)
+            {
+                var step = await storage.GetStepAsync(stepId, cancellationToken);
+                var handler = await CreateHandlerAsync(step, cancellationToken);
+                await handler.OnStepStatusChanged(result.NewStatus, result.PreviousStatus, cancellationToken);
+            }
+
+            if (result.NewStatus >= StepStatus.Failed)
+            { 
+                
+            }
+
+            return result;
+        }
+
+        public async ValueTask<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
+            Guid instanceId,
+            WorkflowStatus status,
+            Action<Dictionary<string, JToken>> updateArgumentsDelegate,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await storage
+                .UpdateWorkflowInstanceAsync(instanceId, status, updateArgumentsDelegate, cancellationToken);
+
+            return result;
+        }
+
+        public async ValueTask StartWorkflowInstanceAsync(
+            Guid instanceId, 
+            CancellationToken cancellationToken)
+        {
+            await storage.UpdateWorkflowInstanceAsync(
+                instanceId, 
+                WorkflowStatus.InProgress,
+                null, 
+                cancellationToken);
+
+            var instance = await storage
+                .GetWorkflowInstanceAsync(instanceId, cancellationToken);
+
+            var workflowVersion = await storage
+                .GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
+
+            var diagram = workflowVersion.Diagram;
+            var startShape = diagram.Shapes.FirstOrDefault(x => x.Node == "start");
+
+            var startStep = await storage.GetStepByShapeId(instanceId, startShape.Guid, cancellationToken);
+
+            await storage.UpdateWorkflowInstanceAsync(
+                instanceId,
+                WorkflowStatus.InProgress,
+                null,
+                cancellationToken
+            );
+
+            await storage.UpdateWorkflowStepAsync(
+                startStep.Id,
+                StepStatus.InProgress,
+                null, 
+                cancellationToken);
+        }
+
+        protected async ValueTask<WorkflowHandlerBase> CreateHandlerAsync(
+            Step step, 
+            CancellationToken cancellationToken)
+        {
+            var workflowInstance = await storage.GetWorkflowInstanceAsync(
+                step.WorkflowInstanceId, 
+                cancellationToken);
+
+            var workflowVersion = await storage.GetWorkflowVersionAsync(
+                workflowInstance.WorkflowId,
+                workflowInstance.WorkflowVersion,
+                cancellationToken);
+
+            var handlerType = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(x => x.DefinedTypes)
+                    .Where(x => x.IsClass && x.GetCustomAttribute<WorkflowHandlerAttribute>(true).Type == GetStepShape(step, workflowVersion.Diagram).Node)
+                    .First();
+
+            return (WorkflowHandlerBase)Activator.CreateInstance(handlerType, this, step);
+        }
+
+        protected Shape GetStepShape(Step step, Diagram diagram)
+            => diagram.Shapes.FirstOrDefault(x => x.Guid == step.ShapeId);
+
+        private Dictionary<string, JToken> MergeArguments(
+            Dictionary<string, JToken> args1, 
+            Dictionary<string, JToken> args2)
+        {
+            var ret = new Dictionary<string, JToken>();
+
+            foreach (var arg in args1)
+            {
+                ret[arg.Key] = arg.Value;
+            }
+
+            foreach(var arg in args2)
+            {
+                if (ret.ContainsKey(arg.Key))
+                {
+                    continue;
+                }
+
+                ret[arg.Key] = arg.Value;
+            }
+
+            return ret;
         }
 
         private string GenerateDiagram(Guid id, bool empty = false)

@@ -1,4 +1,5 @@
-﻿using Pomelo.Workflow.Models;
+﻿using Newtonsoft.Json.Linq;
+using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
 
 namespace Pomelo.Workflow.Storage
@@ -12,7 +13,7 @@ namespace Pomelo.Workflow.Storage
             string name = null, 
             CancellationToken cancellationToken = default);
 
-        ValueTask<IEnumerable<GetWorkflowVersionResponse>> GetWorkflowVersionsAsync(
+        ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
             Guid id, 
             CancellationToken cancellationToken = default);
 
@@ -52,6 +53,42 @@ namespace Pomelo.Workflow.Storage
             Guid id,
             int version, 
             WorkflowVersionStatus status, 
+            CancellationToken cancellationToken = default);
+
+        ValueTask<Guid> CreateWorkflowInstanceAsync(
+            Guid id,
+            int version,
+            Dictionary<string, JToken> arguments,
+            CancellationToken cancellationToken = default);
+
+        ValueTask<Guid> CreateWorkflowStepAsync(
+            Guid instanceId,
+            Step step,
+            CancellationToken cancellationToken);
+
+        ValueTask<WorkflowInstance> GetWorkflowInstanceAsync(
+            Guid instanceId,
+            CancellationToken cancellationToken);
+
+        ValueTask<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
+            Guid instanceId,
+            WorkflowStatus status,
+            Action<Dictionary<string, JToken>> updateArgumentsDelegate,
+            CancellationToken cancellationToken = default);
+
+        ValueTask<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
+            Guid stepId,
+            StepStatus status,
+            Action<Dictionary<string, JToken>> updateArgumentsDelegate,
+            CancellationToken cancellationToken = default);
+
+        ValueTask<Step> GetStepByShapeId(
+            Guid instanceId,
+            Guid shapeId,
+            CancellationToken cancellationToken = default);
+
+        ValueTask<Step> GetStepAsync(
+            Guid stepId,
             CancellationToken cancellationToken = default);
     }
 }

@@ -2,6 +2,7 @@
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.EntityFramework;
 using Pomelo.Workflow.Models.ViewModels;
+using Newtonsoft.Json.Linq;
 
 namespace Pomelo.Workflow.Storage
 {
@@ -77,10 +78,10 @@ namespace Pomelo.Workflow.Storage
         public async ValueTask<WorkflowVersion> GetWorkflowVersionAsync(Guid id, int version, CancellationToken cancellationToken)
             => await db.WorkflowVersions.FirstOrDefaultAsync(x => x.WorkflowId == id && x.Version == version, cancellationToken);
 
-        public async ValueTask<IEnumerable<GetWorkflowVersionResponse>> GetWorkflowVersionsAsync(Guid id, CancellationToken cancellationToken = default)
+        public async ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(Guid id, CancellationToken cancellationToken = default)
             => await db.WorkflowVersions
                 .Where(x => x.WorkflowId == id)
-                .Select(x => new GetWorkflowVersionResponse 
+                .Select(x => new GetWorkflowVersionResult 
                 {
                     Diagram = x.Diagram,
                     WorkflowId = x.WorkflowId,
@@ -134,6 +135,122 @@ namespace Pomelo.Workflow.Storage
             workflowVersion.Status = status;
             await db.SaveChangesAsync(cancellationToken);
         }
+
+        public async ValueTask<Guid> CreateWorkflowInstanceAsync(
+            Guid id,
+            int version,
+            Dictionary<string, JToken> arguments,
+            CancellationToken cancellationToken = default)
+        {
+            var workflowVersion = db.WorkflowVersions
+                .FirstOrDefaultAsync(x => x.WorkflowId == id && x.Version == version, cancellationToken);
+
+            if (workflowVersion == null)
+            {
+                throw new KeyNotFoundException($"The workflow version {id} #{version} was not found");
+            }
+
+            var instance = new DbWorkflowInstance
+            {
+                Arguments = arguments,
+                Status = WorkflowStatus.NotStarted,
+                WorkflowId = id,
+                WorkflowVersion = version
+            };
+            db.WorkflowInstances.Add(instance);
+            await db.SaveChangesAsync(cancellationToken);
+            return instance.Id;
+        }
+
+        public async ValueTask<Guid> CreateWorkflowStepAsync(
+            Guid instanceId,
+            Step step,
+            CancellationToken cancellationToken)
+        {
+            var _step = new DbStep
+            {
+                Arguments = step.Arguments,
+                ShapeId = step.ShapeId,
+                Status = StepStatus.NotStarted,
+                CreatedAt = step.CreatedAt,
+                Error = step.Error,
+                WorkflowInstanceId = instanceId,
+                Type = step.Type
+            };
+            db.Steps.Add(_step);
+            await db.SaveChangesAsync(cancellationToken);
+            return step.Id;
+        }
+
+        public async ValueTask<WorkflowInstance> GetWorkflowInstanceAsync(
+            Guid instanceId, 
+            CancellationToken cancellationToken)
+            => await db.WorkflowInstances
+                .FirstOrDefaultAsync(x => x.Id == instanceId, cancellationToken);
+
+        public async ValueTask<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
+            Guid instanceId,
+            WorkflowStatus status, 
+            Action<Dictionary<string, JToken>> updateArgumentsDelegate, 
+            CancellationToken cancellationToken = default)
+        {
+            var instance = await db.WorkflowInstances
+                .FirstOrDefaultAsync(x => x.Id == instanceId, cancellationToken);
+
+            if (instance == null)
+            {
+                throw new KeyNotFoundException($"Workflow instance {instanceId} was not found");
+            }
+
+            var ret = new UpdateWorkflowInstanceResult 
+            {
+                NewStatus = status,
+                OldStatus = instance.Status
+            };
+
+            instance.Status = status;
+            updateArgumentsDelegate?.Invoke(instance.Arguments);
+            await db.SaveChangesAsync(cancellationToken);
+
+            return ret;
+        }
+
+        public async ValueTask<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
+            Guid stepId, 
+            StepStatus status, 
+            Action<Dictionary<string, JToken>> updateArgumentsDelegate, 
+            CancellationToken cancellationToken = default)
+        {
+            var step = await db.Steps
+                .FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
+
+            if (step == null)
+            {
+                throw new KeyNotFoundException($"Workflow step {stepId} was not found");
+            }
+
+            var ret = new UpdateWorkflowStepResult
+            {
+                NewStatus = status,
+                PreviousStatus = step.Status
+            };
+
+            step.Status = status;
+            updateArgumentsDelegate?.Invoke(step.Arguments);
+            await db.AddRangeAsync(cancellationToken);
+            return ret;
+        }
+
+        public async ValueTask<Step> GetStepByShapeId(
+            Guid instanceId, 
+            Guid shapeId, 
+            CancellationToken cancellationToken = default)
+            => await db.Steps.FirstOrDefaultAsync(x => x.ShapeId == shapeId, cancellationToken);
+
+        public async ValueTask<Step> GetStepAsync(
+            Guid stepId,
+            CancellationToken cancellationToken = default)
+            => await db.Steps.FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
     }
 
     public static class DbWorkflowStorageProviderExtensions
@@ -164,7 +281,7 @@ namespace Pomelo.Workflow.Storage
             {
                 e.Property(x => x.Type).HasMaxLength(64);
                 e.Property(x => x.Arguments).HasColumnType("json");
-                e.HasIndex(x => new { x.WorkflowInstanceId, x.Order });
+                e.HasIndex(x => new { x.WorkflowInstanceId, x.ShapeId });
             });
 
             return builder;
