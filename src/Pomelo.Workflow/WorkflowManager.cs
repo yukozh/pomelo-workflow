@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.EntityFramework;
@@ -233,7 +234,7 @@ namespace Pomelo.Workflow
             return version;
         }
 
-        public async ValueTask<StartNewInstanceResult> StartNewInstanceAsync(
+        public async ValueTask<StartNewInstanceResult> CreateNewWorkflowInstanceAsync(
             Guid workflowId,
             int version,
             Dictionary<string, JToken> arguments,
@@ -286,7 +287,7 @@ namespace Pomelo.Workflow
             if (result.NewStatus >= StepStatus.Failed)
             { 
                 // 1. Prepare
-                var instance = await storage.GetWorkflowInstanceAsync(stepId, cancellationToken);
+                var instance = await storage.GetWorkflowInstanceAsync(step.WorkflowInstanceId, cancellationToken);
                 var workflowVersion = await storage.GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
                 var diagram = workflowVersion.Diagram;
 
@@ -297,7 +298,7 @@ namespace Pomelo.Workflow
                     .ToList();
                 var shapes = diagram
                     .Shapes
-                    .Where(x => connections.Select(x => x.Guid).Contains(x.Guid))
+                    .Where(x => connections.Select(x => x.DestinationShapeGuid).Contains(x.Guid))
                     .ToList();
 
                 // 3. Get each handlers
@@ -306,32 +307,42 @@ namespace Pomelo.Workflow
                     var node = shape.Node;
                     var handlerType = GetHandlerType(node);
                     var method = handlerType.GetMethods().FirstOrDefault(x => x.IsStatic && x.Name == "IsAbleToConnectToCurrentStepAsync");
-                    var connection = connections.First(x => x.DestinationShapeGuid == shape.Guid);
-                    var isAbleToConnect = await (ValueTask<bool>)method.Invoke(null, new object[] 
-                    { 
-                        connection.Type,
-                        connection.Arguments, 
-                        shape, 
-                        step,
-                        cancellationToken 
-                    });
+                    var isAbleToConnect = true;
+                    if (method != null)
+                    {
+                        var connection = connections.First(x => x.DestinationShapeGuid == shape.Guid);
+                        isAbleToConnect = await (ValueTask<bool>)method.Invoke(null, new object[]
+                        {
+                            connection.Type,
+                            connection.Arguments,
+                            shape,
+                            step,
+                            cancellationToken
+                        });
+                    }
                     if (!isAbleToConnect)
                     {
                         continue;
                     }
 
-                    // 4. Create next step
-                    await storage.CreateWorkflowStepAsync(instance.Id, new Step 
+                    // 4. Create or get next step
+                    var nextStepId = (await storage.GetStepByShapeId(instance.Id, shape.Guid, cancellationToken))?.Id;
+                    if (!nextStepId.HasValue)
                     {
-                        Arguments = shape.Arguments,
-                        Status = StepStatus.NotStarted,
-                        Type = shape.Node,
-                        WorkflowInstanceId = instance.Id
-                    }, cancellationToken);
+                        nextStepId = await storage.CreateWorkflowStepAsync(instance.Id, new Step
+                        {
+                            Arguments = shape.Arguments,
+                            Status = StepStatus.NotStarted,
+                            Type = shape.Node,
+                            WorkflowInstanceId = instance.Id,
+                            ShapeId = shape.Guid
+                        }, cancellationToken);
+                    }
 
                     // 5. Determine if all the previous steps are finished
-                    var steps = await storage.GetPreviousStepsAsync(step.Id, cancellationToken);
-                    var handler = await CreateHandlerAsync(step, cancellationToken);
+                    var steps = await storage.GetPreviousStepsAsync(nextStepId.Value, cancellationToken);
+                    var nextStep = await storage.GetStepAsync(nextStepId.Value, cancellationToken);
+                    var handler = await CreateHandlerAsync(nextStep, cancellationToken);
                     var allFinished = steps.ShapeIds.Count() == steps.Steps.Count() 
                         && steps.Steps.All(x => x.Status >= StepStatus.Failed);
                     await handler.OnPreviousStepFinishedAsync(step, allFinished, cancellationToken);
@@ -355,7 +366,7 @@ namespace Pomelo.Workflow
 
         public async ValueTask StartWorkflowInstanceAsync(
             Guid instanceId, 
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             await storage.UpdateWorkflowInstanceAsync(
                 instanceId, 
@@ -374,14 +385,14 @@ namespace Pomelo.Workflow
 
             var startStep = await storage.GetStepByShapeId(instanceId, startShape.Guid, cancellationToken);
 
-            await storage.UpdateWorkflowInstanceAsync(
+            await UpdateWorkflowInstanceAsync(
                 instanceId,
                 WorkflowStatus.InProgress,
                 null,
                 cancellationToken
             );
 
-            await storage.UpdateWorkflowStepAsync(
+            await UpdateWorkflowStepAsync(
                 startStep.Id,
                 StepStatus.InProgress,
                 null,
@@ -410,7 +421,7 @@ namespace Pomelo.Workflow
         protected Type GetHandlerType(string name)
             => AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.DefinedTypes)
-                .Where(x => x.IsClass && x.GetCustomAttribute<WorkflowHandlerAttribute>(true).Type == name)
+                .Where(x => x != null && x.IsClass && x.GetCustomAttribute<WorkflowHandlerAttribute>(true)?.Type == name)
                 .First();
 
         protected Shape GetStepShape(Step step, Diagram diagram)
@@ -422,12 +433,12 @@ namespace Pomelo.Workflow
         {
             var ret = new Dictionary<string, JToken>();
 
-            foreach (var arg in args1)
+            foreach (var arg in args1 ?? new Dictionary<string, JToken>())
             {
                 ret[arg.Key] = arg.Value;
             }
 
-            foreach(var arg in args2)
+            foreach(var arg in args2 ?? new Dictionary<string, JToken>())
             {
                 if (ret.ContainsKey(arg.Key))
                 {
@@ -455,6 +466,14 @@ namespace Pomelo.Workflow
                     .Replace("{POLYLINE_GUID}", Guid.NewGuid().ToString())
                     .Replace("{DIAGRAM_GUID}", id.ToString());
             }
+        }
+    }
+
+    public static class WorkflowManagerExtensions
+    {
+        public static IServiceCollection AddWorkflowManager(this IServiceCollection services)
+        {
+            return services.AddScoped<WorkflowManager>();
         }
     }
 }

@@ -9,7 +9,11 @@ Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "Pomelo.Workflow.Core", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pomelo.Workflow.Web", "src\Pomelo.Workflow.Web\Pomelo.Workflow.Web.csproj", "{E1823F2D-9FEA-4812-BC33-7E7B9CA0E3D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomelo.Workflow", "src\Pomelo.Workflow\Pomelo.Workflow.csproj", "{191ABF83-A911-4680-8494-CBE5080BF415}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pomelo.Workflow", "src\Pomelo.Workflow\Pomelo.Workflow.csproj", "{191ABF83-A911-4680-8494-CBE5080BF415}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{B112FF8E-89DF-4FFA-83FC-53D6D88EA5A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomelo.Workflow.Tests", "test\Pomelo.Workflow.Tests\Pomelo.Workflow.Tests.csproj", "{BDB39862-FD91-49CE-A528-77F76D55B4DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +33,10 @@ Global
 		{191ABF83-A911-4680-8494-CBE5080BF415}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{191ABF83-A911-4680-8494-CBE5080BF415}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{191ABF83-A911-4680-8494-CBE5080BF415}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDB39862-FD91-49CE-A528-77F76D55B4DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDB39862-FD91-49CE-A528-77F76D55B4DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDB39862-FD91-49CE-A528-77F76D55B4DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDB39862-FD91-49CE-A528-77F76D55B4DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -37,6 +45,7 @@ Global
 		{C6B45F6A-1C57-4FDA-BD28-0F399C182CA1} = {D5F93320-E9F9-48BA-8FFB-BBC54D58B51C}
 		{E1823F2D-9FEA-4812-BC33-7E7B9CA0E3D4} = {D5F93320-E9F9-48BA-8FFB-BBC54D58B51C}
 		{191ABF83-A911-4680-8494-CBE5080BF415} = {D5F93320-E9F9-48BA-8FFB-BBC54D58B51C}
+		{BDB39862-FD91-49CE-A528-77F76D55B4DD} = {B112FF8E-89DF-4FFA-83FC-53D6D88EA5A2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7038CFAC-8C07-488C-ABDA-FDEB0A3DEE37}

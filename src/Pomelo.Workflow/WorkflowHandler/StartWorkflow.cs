@@ -2,6 +2,7 @@
 
 namespace Pomelo.Workflow.WorkflowHandler
 {
+    [WorkflowHandler("start")]
     public class StartWorkflowHandler : WorkflowHandlerBase
     {
         public StartWorkflowHandler(WorkflowManager workflowManager, Step step) : base(workflowManager, step) 

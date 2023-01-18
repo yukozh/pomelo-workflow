@@ -3,6 +3,7 @@ using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.EntityFramework;
 using Pomelo.Workflow.Models.ViewModels;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Pomelo.Workflow.Storage
 {
@@ -179,7 +180,7 @@ namespace Pomelo.Workflow.Storage
             };
             db.Steps.Add(_step);
             await db.SaveChangesAsync(cancellationToken);
-            return step.Id;
+            return _step.Id;
         }
 
         public async ValueTask<WorkflowInstance> GetWorkflowInstanceAsync(
@@ -242,7 +243,7 @@ namespace Pomelo.Workflow.Storage
                 step.Error = error;
             }
             updateArgumentsDelegate?.Invoke(step.Arguments);
-            await db.AddRangeAsync(cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
             return ret;
         }
 
@@ -296,6 +297,7 @@ namespace Pomelo.Workflow.Storage
             builder.Entity<DbWorkflowVersion>(e =>
             {
                 e.HasKey(x => new { x.WorkflowId, x.Version });
+                e.Property(x => x.Diagram).HasColumnType("json");
             });
 
             builder.Entity<DbWorkflowInstance>(e =>
@@ -313,6 +315,12 @@ namespace Pomelo.Workflow.Storage
             });
 
             return builder;
+        }
+
+        public static IServiceCollection AddDbWorkflowStorageProvider<TDbContext>(this IServiceCollection services)
+            where TDbContext : DbContext, IWorkflowDbContext
+        {
+            return services.AddScoped<IWorkflowStorageProvider, DbWorkflowStorageProvider<TDbContext>>();
         }
     }
 }

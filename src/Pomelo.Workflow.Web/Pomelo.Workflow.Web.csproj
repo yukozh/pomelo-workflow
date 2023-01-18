@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
@@ -14,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
     <PackageReference Include="Pomelo.Vue.Middleware" Version="6.0.0-r20221216015523" />
   </ItemGroup>
 
@@ -28,6 +28,10 @@
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\PointModel.js.map" />
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ShapeModel.js" />
     <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ShapeModel.js.map" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Pomelo.Workflow\Pomelo.Workflow.csproj" />
   </ItemGroup>
 
 </Project>
