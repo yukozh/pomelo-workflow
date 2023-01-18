@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
+using System.Runtime.CompilerServices;
 
 namespace Pomelo.Workflow.Storage
 {
@@ -64,11 +65,11 @@ namespace Pomelo.Workflow.Storage
         ValueTask<Guid> CreateWorkflowStepAsync(
             Guid instanceId,
             Step step,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         ValueTask<WorkflowInstance> GetWorkflowInstanceAsync(
             Guid instanceId,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         ValueTask<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
             Guid instanceId,
@@ -80,6 +81,7 @@ namespace Pomelo.Workflow.Storage
             Guid stepId,
             StepStatus status,
             Action<Dictionary<string, JToken>> updateArgumentsDelegate,
+            string error = null,
             CancellationToken cancellationToken = default);
 
         ValueTask<Step> GetStepByShapeId(
@@ -88,6 +90,10 @@ namespace Pomelo.Workflow.Storage
             CancellationToken cancellationToken = default);
 
         ValueTask<Step> GetStepAsync(
+            Guid stepId,
+            CancellationToken cancellationToken = default);
+
+        ValueTask<GetPreviousStepsResult> GetPreviousStepsAsync(
             Guid stepId,
             CancellationToken cancellationToken = default);
     }

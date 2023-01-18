@@ -219,6 +219,7 @@ namespace Pomelo.Workflow.Storage
             Guid stepId, 
             StepStatus status, 
             Action<Dictionary<string, JToken>> updateArgumentsDelegate, 
+            string error = null,
             CancellationToken cancellationToken = default)
         {
             var step = await db.Steps
@@ -236,6 +237,10 @@ namespace Pomelo.Workflow.Storage
             };
 
             step.Status = status;
+            if (error != null)
+            {
+                step.Error = error;
+            }
             updateArgumentsDelegate?.Invoke(step.Arguments);
             await db.AddRangeAsync(cancellationToken);
             return ret;
@@ -251,6 +256,29 @@ namespace Pomelo.Workflow.Storage
             Guid stepId,
             CancellationToken cancellationToken = default)
             => await db.Steps.FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
+
+        public async ValueTask<GetPreviousStepsResult> GetPreviousStepsAsync(
+            Guid stepId,
+            CancellationToken cancellationToken = default)
+        {
+            var step = await GetStepAsync(stepId, cancellationToken);
+            var instance = await GetWorkflowInstanceAsync(step.WorkflowInstanceId, cancellationToken);
+            var workflowVersion = await GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
+            var diagram = workflowVersion.Diagram;
+            var shapeIds = diagram.ConnectPolylines
+                .Where(x => x.DestinationShapeGuid == step.ShapeId)
+                .Select(x => x.DepartureShapeGuid)
+                .ToList();
+            var steps = await db.Steps
+                .Where(x => x.WorkflowInstanceId == instance.Id && shapeIds.Contains(x.ShapeId))
+                .ToListAsync(cancellationToken);
+            var ret = new GetPreviousStepsResult 
+            {
+                ShapeIds = shapeIds,
+                Steps = steps
+            };
+            return ret;
+        }
     }
 
     public static class DbWorkflowStorageProviderExtensions

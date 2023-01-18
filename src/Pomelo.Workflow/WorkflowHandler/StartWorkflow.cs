@@ -7,20 +7,26 @@ namespace Pomelo.Workflow.WorkflowHandler
         public StartWorkflowHandler(WorkflowManager workflowManager, Step step) : base(workflowManager, step) 
         { }
 
-        public override ValueTask OnPreviousStepFinishedAsync(Step previousStep, CancellationToken cancellationToken)
+        public override ValueTask OnPreviousStepFinishedAsync(
+            Step previousStep,
+            bool allPreviousStepsFinished, 
+            CancellationToken cancellationToken)
         {
             return ValueTask.CompletedTask;
         }
 
-        public override async ValueTask OnStepStatusChanged(StepStatus newStatus, StepStatus previousStatus, CancellationToken cancellationToken)
+        public override async ValueTask OnStepStatusChangedAsync(
+            StepStatus newStatus,
+            StepStatus previousStatus,
+            CancellationToken cancellationToken)
         {
             switch(newStatus)
             {
                 case StepStatus.InProgress:
-                    await WorkflowManager.UpdateWorkflowStepAsync(CurrentStep.Id, StepStatus.Succeeded, null, cancellationToken);
+                    await WorkflowManager.UpdateWorkflowStepAsync(CurrentStep.Id, StepStatus.Succeeded, null, null, cancellationToken);
                     break;
                 case StepStatus.Succeeded:
-                    // TODO: Get or create next step
+                    // TODO: Get or create next step  
                     break;
             }
         }

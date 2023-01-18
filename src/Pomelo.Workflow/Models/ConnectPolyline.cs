@@ -18,6 +18,6 @@ namespace Pomelo.Workflow.Models
 
         public string Type { get; set; }
 
-        public JToken Arguments { get; set; }
+        public Dictionary<string, JToken> Arguments { get; set; }
     }
 }

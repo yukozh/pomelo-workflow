@@ -1,4 +1,5 @@
-﻿using Pomelo.Workflow.Models;
+﻿using Newtonsoft.Json.Linq;
+using Pomelo.Workflow.Models;
 
 namespace Pomelo.Workflow.WorkflowHandler
 {
@@ -13,8 +14,18 @@ namespace Pomelo.Workflow.WorkflowHandler
             CurrentStep = step;
         }
 
-        public abstract ValueTask OnStepStatusChanged(StepStatus newStatus, StepStatus previousStatus, CancellationToken cancellationToken);
+        public abstract ValueTask OnStepStatusChangedAsync(StepStatus newStatus, StepStatus previousStatus, CancellationToken cancellationToken);
 
-        public abstract ValueTask OnPreviousStepFinishedAsync(Step previousStep, CancellationToken cancellationToken);
+        public abstract ValueTask OnPreviousStepFinishedAsync(Step previousStep, bool allPreviousStepsFinished, CancellationToken cancellationToken);
+
+        public static ValueTask<bool> IsAbleToConnectToCurrentStepAsync(
+            string connectType,
+            Dictionary<string, JToken> connectArguments,
+            Shape shape,
+            Step previousStep,
+            CancellationToken cancellationToken = default)
+        {
+            return ValueTask.FromResult(false);
+        }
     }
 }
