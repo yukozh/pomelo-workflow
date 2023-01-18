@@ -210,6 +210,7 @@ namespace Pomelo.Workflow.Storage
             };
 
             instance.Status = status;
+            instance.UpdatedAt = DateTime.UtcNow;
             updateArgumentsDelegate?.Invoke(instance.Arguments);
             await db.SaveChangesAsync(cancellationToken);
 
@@ -238,12 +239,14 @@ namespace Pomelo.Workflow.Storage
             };
 
             step.Status = status;
+            step.UpdatedAt = DateTime.UtcNow;
             if (error != null)
             {
                 step.Error = error;
             }
             updateArgumentsDelegate?.Invoke(step.Arguments);
             await db.SaveChangesAsync(cancellationToken);
+            await UpdateWorkflowInstanceUpdateTimeAsync(step.WorkflowInstanceId, cancellationToken);
             return ret;
         }
 
@@ -279,6 +282,22 @@ namespace Pomelo.Workflow.Storage
                 Steps = steps
             };
             return ret;
+        }
+
+        public async ValueTask UpdateWorkflowInstanceUpdateTimeAsync(
+            Guid instanceId, 
+            CancellationToken cancellationToken = default)
+        {
+            var instance = await db.WorkflowInstances
+                .FirstOrDefaultAsync(x => x.Id == instanceId, cancellationToken);
+
+            if (instance == null)
+            {
+                throw new KeyNotFoundException($"The workflow instance {instanceId} was not found");
+            }
+
+            instance.UpdatedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync(cancellationToken);
         }
     }
 

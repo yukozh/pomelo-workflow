@@ -36,6 +36,8 @@ namespace Pomelo.Workflow.Tests
             }, true);
             var newInstanceResult = await wf.CreateNewWorkflowInstanceAsync(wfId, 1, null);
             await wf.StartWorkflowInstanceAsync(newInstanceResult.InstanceId);
+
+            // Assert
         }
     }
 }

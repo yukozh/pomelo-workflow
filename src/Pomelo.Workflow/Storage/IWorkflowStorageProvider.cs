@@ -96,5 +96,9 @@ namespace Pomelo.Workflow.Storage
         ValueTask<GetPreviousStepsResult> GetPreviousStepsAsync(
             Guid stepId,
             CancellationToken cancellationToken = default);
+
+        ValueTask UpdateWorkflowInstanceUpdateTimeAsync(
+            Guid instanceId,
+            CancellationToken cancellationToken = default);
     }
 }
