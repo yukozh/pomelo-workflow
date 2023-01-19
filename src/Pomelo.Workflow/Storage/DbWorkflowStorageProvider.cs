@@ -199,7 +199,7 @@ namespace Pomelo.Workflow.Storage
                 WorkflowInstanceId = instanceId,
                 Type = step.Type
             };
-            db.Steps.Add(_step);
+            db.WorkflowInstanceSteps.Add(_step);
             await db.SaveChangesAsync(cancellationToken);
             return _step.Id;
         }
@@ -245,7 +245,7 @@ namespace Pomelo.Workflow.Storage
             string error = null,
             CancellationToken cancellationToken = default)
         {
-            var step = await db.Steps
+            var step = await db.WorkflowInstanceSteps
                 .FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
 
             if (step == null)
@@ -275,12 +275,12 @@ namespace Pomelo.Workflow.Storage
             Guid instanceId, 
             Guid shapeId, 
             CancellationToken cancellationToken = default)
-            => await db.Steps.FirstOrDefaultAsync(x => x.ShapeId == shapeId, cancellationToken);
+            => await db.WorkflowInstanceSteps.FirstOrDefaultAsync(x => x.ShapeId == shapeId, cancellationToken);
 
         public async ValueTask<WorkflowInstanceStep> GetWorkflowInstanceStepAsync(
             Guid stepId,
             CancellationToken cancellationToken = default)
-            => await db.Steps.FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
+            => await db.WorkflowInstanceSteps.FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
 
         public async ValueTask<GetPreviousStepsResult> GetPreviousStepsAsync(
             Guid stepId,
@@ -294,7 +294,7 @@ namespace Pomelo.Workflow.Storage
                 .Where(x => x.DestinationShapeGuid == step.ShapeId)
                 .Select(x => x.DepartureShapeGuid)
                 .ToList();
-            var steps = await db.Steps
+            var steps = await db.WorkflowInstanceSteps
                 .Where(x => x.WorkflowInstanceId == instance.Id && shapeIds.Contains(x.ShapeId))
                 .ToListAsync(cancellationToken);
             var ret = new GetPreviousStepsResult 
@@ -324,7 +324,7 @@ namespace Pomelo.Workflow.Storage
         public async ValueTask<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
             Guid instanceId,
             CancellationToken cancellationToken = default)
-            => await db.Steps
+            => await db.WorkflowInstanceSteps
                 .Where(x => x.WorkflowInstanceId == instanceId)
                 .OrderBy(x => x.CreatedAt)
                 .ToListAsync(cancellationToken);

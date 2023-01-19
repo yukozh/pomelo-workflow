@@ -4,11 +4,11 @@ namespace Pomelo.Workflow.WorkflowHandler
 {
     public abstract class ProcessWorkflowBase : WorkflowHandlerBase
     {
-        public ProcessWorkflowBase(WorkflowManager workflowManager, Step step) : base(workflowManager, step)
+        public ProcessWorkflowBase(WorkflowManager workflowManager, WorkflowInstanceStep step) : base(workflowManager, step)
         { }
 
         public override async ValueTask OnPreviousStepFinishedAsync(
-            Step previousStep,
+            WorkflowInstanceStep previousStep,
             bool allPreviousStepsFinished,
             CancellationToken cancellationToken)
         {

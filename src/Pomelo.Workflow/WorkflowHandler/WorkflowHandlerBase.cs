@@ -6,9 +6,9 @@ namespace Pomelo.Workflow.WorkflowHandler
     public abstract class WorkflowHandlerBase
     {
         protected readonly WorkflowManager WorkflowManager;
-        protected readonly Step CurrentStep;
+        protected readonly WorkflowInstanceStep CurrentStep;
 
-        public WorkflowHandlerBase(WorkflowManager workflowManager, Step step)
+        public WorkflowHandlerBase(WorkflowManager workflowManager, WorkflowInstanceStep step)
         {
             WorkflowManager = workflowManager;
             CurrentStep = step;
@@ -16,13 +16,13 @@ namespace Pomelo.Workflow.WorkflowHandler
 
         public abstract ValueTask OnStepStatusChangedAsync(StepStatus newStatus, StepStatus previousStatus, CancellationToken cancellationToken);
 
-        public abstract ValueTask OnPreviousStepFinishedAsync(Step previousStep, bool allPreviousStepsFinished, CancellationToken cancellationToken);
+        public abstract ValueTask OnPreviousStepFinishedAsync(WorkflowInstanceStep previousStep, bool allPreviousStepsFinished, CancellationToken cancellationToken);
 
         public static ValueTask<bool> IsAbleToConnectToCurrentStepAsync(
             string connectType,
             Dictionary<string, JToken> connectArguments,
             Shape shape,
-            Step previousStep,
+            WorkflowInstanceStep previousStep,
             CancellationToken cancellationToken = default)
         {
             return ValueTask.FromResult(false);

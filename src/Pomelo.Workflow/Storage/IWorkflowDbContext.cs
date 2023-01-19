@@ -11,6 +11,6 @@ namespace Pomelo.Workflow.Storage
 
         public DbSet<DbWorkflowInstance> WorkflowInstances { get; set; }
 
-        public DbSet<DbStep> Steps { get; set; }
+        public DbSet<DbStep> WorkflowInstanceSteps { get; set; }
     }
 }
