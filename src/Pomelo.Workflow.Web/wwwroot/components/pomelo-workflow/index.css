@@ -26,3 +26,7 @@
     bottom: 0;
     overflow: auto;
 }
+
+svg, svg * {
+    pointer-events: all!important;
+}
