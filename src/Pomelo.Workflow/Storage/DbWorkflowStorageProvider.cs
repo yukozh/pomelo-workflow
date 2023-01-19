@@ -299,6 +299,14 @@ namespace Pomelo.Workflow.Storage
             instance.UpdatedAt = DateTime.UtcNow;
             await db.SaveChangesAsync(cancellationToken);
         }
+
+        public async ValueTask<IEnumerable<Step>> GetInstanceStepsAsync(
+            Guid instanceId,
+            CancellationToken cancellationToken = default)
+            => await db.Steps
+                .Where(x => x.WorkflowInstanceId == instanceId)
+                .OrderBy(x => x.CreatedAt)
+                .ToListAsync(cancellationToken);
     }
 
     public static class DbWorkflowStorageProviderExtensions

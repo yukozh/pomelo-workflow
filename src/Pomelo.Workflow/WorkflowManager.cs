@@ -284,7 +284,8 @@ namespace Pomelo.Workflow
                 await handler.OnStepStatusChangedAsync(result.NewStatus, result.PreviousStatus, cancellationToken);
             }
 
-            if (result.NewStatus >= StepStatus.Failed)
+            step = await storage.GetStepAsync(step.Id, cancellationToken);
+            if (step.Status >= StepStatus.Failed)
             { 
                 // 1. Prepare
                 var instance = await storage.GetWorkflowInstanceAsync(step.WorkflowInstanceId, cancellationToken);
@@ -340,8 +341,12 @@ namespace Pomelo.Workflow
                     }
 
                     // 5. Determine if all the previous steps are finished
-                    var steps = await storage.GetPreviousStepsAsync(nextStepId.Value, cancellationToken);
                     var nextStep = await storage.GetStepAsync(nextStepId.Value, cancellationToken);
+                    if (nextStep.Status >= StepStatus.Failed)
+                    {
+                        continue;
+                    }
+                    var steps = await storage.GetPreviousStepsAsync(nextStepId.Value, cancellationToken);
                     var handler = await CreateHandlerAsync(nextStep, cancellationToken);
                     var allFinished = steps.ShapeIds.Count() == steps.Steps.Count() 
                         && steps.Steps.All(x => x.Status >= StepStatus.Failed);
@@ -398,6 +403,64 @@ namespace Pomelo.Workflow
                 null,
                 null,
                 cancellationToken);
+        }
+
+        public async ValueTask<IEnumerable<Step>> GetInstanceStepsAsync(
+            Guid instanceId,
+            CancellationToken cancellationToken = default)
+            => await storage.GetInstanceStepsAsync(instanceId, cancellationToken);
+
+        public async ValueTask<InstanceDiagram> GetInstanceDiagramAsync(
+            Guid instanceId,
+            CancellationToken cancellationToken = default)
+        {
+            var steps = await GetInstanceStepsAsync(instanceId, cancellationToken);
+            var instance = await storage.GetWorkflowInstanceAsync(instanceId, cancellationToken);
+            var workflowVersion = await storage.GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
+            var diagram = new InstanceDiagram 
+            {
+                ConnectPolylines = workflowVersion.Diagram.ConnectPolylines,
+                Shapes = workflowVersion.Diagram.Shapes.Select(x => new InstanceShape 
+                {
+                    Anchors = x.Anchors,
+                    Arguments = x.Arguments,
+                    Guid = x.Guid,
+                    Name = x.Name,
+                    Node = x.Node,
+                    Points = x.Points,
+                    Type = x.Type
+                }).ToList(),
+                Status = instance.Status,
+                Guid = workflowVersion.Diagram.Guid,
+                Version = workflowVersion.Diagram.Version
+            };
+
+            foreach(var connection in diagram.ConnectPolylines)
+            {
+                connection.Dashed = true;
+            }
+
+            foreach(var step in steps)
+            {
+                if (step.Status >= StepStatus.Failed)
+                {
+                    foreach (var connection in diagram.ConnectPolylines.Where(x => x.DepartureShapeGuid == step.ShapeId))
+                    {
+                        if (steps.Any(x => x.ShapeId == connection.DestinationShapeGuid))
+                        {
+                            connection.Dashed = false;
+                        }
+                    }
+                }
+
+                var shape = diagram.Shapes.First(x => x.Guid == step.ShapeId);
+                shape.Arguments = step.Arguments;
+                shape.CreatedAt = step.CreatedAt;
+                shape.UpdatedAt = step.UpdatedAt;
+                shape.Status = step.Status;
+            }
+
+            return diagram;
         }
 
         protected async ValueTask<WorkflowHandlerBase> CreateHandlerAsync(

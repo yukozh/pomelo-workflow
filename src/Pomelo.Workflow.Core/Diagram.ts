@@ -79,7 +79,8 @@ export class Diagram {
                 color: cpl.getColor(),
                 path: cpl.getPaths().points,
                 type: cpl.getType(),
-                arguments: cpl.getArguments()
+                arguments: cpl.getArguments(),
+                dashed: cpl.getDashed()
             })
         };
 
@@ -112,7 +113,7 @@ export class Diagram {
 
         for (let i = 0; i < model.connectPolylines.length; ++i) {
             let cplModel = model.connectPolylines[i];
-            this.createConnectPolyline(cplModel.departureShapeGuid, cplModel.departureAnchorIndex, cplModel.destinationShapeGuid, cplModel.destinationAnchorIndex, cplModel.color, cplModel.type, cplModel.arguments, cplModel.guid || this.generateGuid());
+            this.createConnectPolyline(cplModel.departureShapeGuid, cplModel.departureAnchorIndex, cplModel.destinationShapeGuid, cplModel.destinationAnchorIndex, cplModel.color, cplModel.type, cplModel.arguments, cplModel.dashed, cplModel.guid || this.generateGuid());
         }
     }
 
@@ -139,11 +140,12 @@ export class Diagram {
         return shape;
     }
 
-    public createConnectPolyline(departureGuid: string, departureAnchorIndex: number, destinationGuid: string, destinationAnchorIndex: number, color: string = '#555', type: string = null, args: object = null, guid: string | null = null): ConnectPolyline {
+    public createConnectPolyline(departureGuid: string, departureAnchorIndex: number, destinationGuid: string, destinationAnchorIndex: number, color: string = '#555', type: string = null, args: object = null, dashed: boolean = false, guid: string | null = null): ConnectPolyline {
         let cpl = new ConnectPolyline(guid, this);
         cpl.setColor(color);
         cpl.setType(type);
         cpl.setArguments(args);
+        cpl.setDashed(dashed);
         let departure = this.findShapeByGuid(departureGuid);
         let destination = this.findShapeByGuid(destinationGuid);
         this.connectPolylines.push(cpl);

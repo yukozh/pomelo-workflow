@@ -16,6 +16,8 @@ namespace Pomelo.Workflow.Models
 
         public string Color { get; set; }
 
+        public bool Dashed { get; set; }
+
         public string Type { get; set; }
 
         public Dictionary<string, JToken> Arguments { get; set; }

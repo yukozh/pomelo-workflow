@@ -35,6 +35,7 @@ export class ConnectPolyline extends PolylineBase {
     private diagram: Diagram;
     private pathGeneratedSuccessfully: boolean = false;
     private type: string;
+    private dashed: boolean;
     private arguments: object;
 
     public constructor(guid: string | null = null, diagram: Diagram | null = null) {
@@ -48,12 +49,20 @@ export class ConnectPolyline extends PolylineBase {
         return this.guid;
     }
 
+    public getColor(): string {
+        return this.color;
+    }
+
     public setColor(color: string): void {
         this.color = color;
     }
 
-    public getColor(): string {
-        return this.color;
+    public getDashed(): boolean {
+        return this.dashed;
+    }
+
+    public setDashed(dashed: boolean): void {
+        this.dashed = dashed;
     }
 
     public setType(type: string): void {

@@ -1,14 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Pomelo.Workflow.Storage;
 
 namespace Pomelo.Workflow.Tests
 {
-    public class UnitTest1
+    public class WorkflowManagerTests
     {
         [Fact]
-        public async Task Test1()
+        public async Task SimpleStartFinishWorkflowTest()
         {
             // Arrange
             var collection = new ServiceCollection();
@@ -36,8 +35,11 @@ namespace Pomelo.Workflow.Tests
             }, true);
             var newInstanceResult = await wf.CreateNewWorkflowInstanceAsync(wfId, 1, null);
             await wf.StartWorkflowInstanceAsync(newInstanceResult.InstanceId);
+            var instanceDiagram = await wf.GetInstanceDiagramAsync(newInstanceResult.InstanceId);
 
             // Assert
+            Assert.Equal(Models.WorkflowStatus.Finished, instanceDiagram.Status);
+            Assert.True(instanceDiagram.Shapes.All(x => x.Status == Models.StepStatus.Succeeded));
         }
     }
 }
