@@ -21,7 +21,8 @@ namespace Pomelo.Workflow
 {
     public class WorkflowManager
     {
-        private readonly IWorkflowStorageProvider storage;
+        protected readonly IWorkflowStorageProvider storage;
+        protected readonly IServiceProvider services;
 
         public virtual string DefaultWorkflowDiagramTemplate => @"{
     ""guid"": ""{DIAGRAM_GUID}"",
@@ -146,9 +147,10 @@ namespace Pomelo.Workflow
     ""connectPolylines"": []
 }";
 
-        public WorkflowManager(IWorkflowStorageProvider storage) 
+        public WorkflowManager(IServiceProvider services, IWorkflowStorageProvider storage) 
         {
             this.storage = storage;
+            this.services = services;
         }
 
         public virtual async Task<IEnumerable<Models.Workflow>> GetWorkflowsAsync(
@@ -312,83 +314,117 @@ namespace Pomelo.Workflow
                 await handler.OnStepStatusChangedAsync(result.NewStatus, result.PreviousStatus, cancellationToken);
             }
 
-            step = await storage.GetWorkflowInstanceStepAsync(step.Id, cancellationToken);
-            if (step.Status >= StepStatus.Failed)
-            { 
-                // 1. Prepare
-                var instance = await storage.GetWorkflowInstanceAsync(step.WorkflowInstanceId, cancellationToken);
-                var workflowVersion = await storage.GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
-                var diagram = workflowVersion.Diagram;
-
-                // 2. Get connected polylines (outgoing)
-                var connections = diagram
-                    .ConnectPolylines
-                    .Where(x => x.DepartureShapeGuid == step.ShapeId)
-                    .ToList();
-
-                var shapes = diagram // Destinations
-                    .Shapes
-                    .Where(x => connections.Select(x => x.DestinationShapeGuid).Contains(x.ToObject<Shape>().Guid))
-                    .ToList();
-
-                // 3. Get each handlers
-                var currentShape = diagram.Shapes
-                    .Where(x => x.ToObject<Shape>().Guid == step.ShapeId)
-                    .Select(x => x.ToObject<Shape>())
-                    .First();
-
-                if (currentStepHandler == null)
+            try
+            {
+                step = await storage.GetWorkflowInstanceStepAsync(step.Id, cancellationToken);
+                if (step.Status >= StepStatus.Failed)
                 {
-                    currentStepHandler = await CreateHandlerAsync(step, cancellationToken);
-                }
+                    // 1. Prepare
+                    var instance = await storage.GetWorkflowInstanceAsync(step.WorkflowInstanceId, cancellationToken);
+                    var workflowVersion = await storage.GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
+                    var diagram = workflowVersion.Diagram;
 
-                foreach (var shape in shapes)
-                {
-                    var connection = connections.First(x => x.DestinationShapeGuid == shape.ToObject<Shape>().Guid);
+                    // 2. Get connected polylines (outgoing)
+                    var connections = diagram
+                        .ConnectPolylines
+                        .Where(x => x.DepartureShapeGuid == step.ShapeId)
+                        .ToList();
 
-                    if (!await currentStepHandler.IsAbleToMoveNextAsync(new ConnectionType
+                    var shapes = diagram // Destinations
+                        .Shapes
+                        .Where(x => connections.Select(x => x.DestinationShapeGuid).Contains(x.ToObject<Shape>().Guid))
+                        .ToList();
+
+                    // 3. Get each handlers
+                    var currentShape = diagram.Shapes
+                        .Where(x => x.ToObject<Shape>().Guid == step.ShapeId)
+                        .Select(x => x.ToObject<Shape>())
+                        .First();
+
+                    if (currentStepHandler == null)
                     {
-                        Type = connection.Type,
-                        Arguments = connection.Arguments
-                    }, currentShape, shape.ToObject<Shape>(), cancellationToken))
-                    {
-                        continue;
+                        currentStepHandler = await CreateHandlerAsync(step, cancellationToken);
                     }
 
-                    // 4. Create or get next step
-                    var nextStepId = (await storage.GetStepByShapeId(instance.Id, shape.ToObject<Shape>().Guid, cancellationToken))?.Id;
-                    if (!nextStepId.HasValue)
+                    foreach (var shape in shapes)
                     {
-                        nextStepId = await storage.CreateWorkflowStepAsync(instance.Id, new WorkflowInstanceStep
+                        var connection = connections.First(x => x.DestinationShapeGuid == shape.ToObject<Shape>().Guid);
+
+                        if (!await currentStepHandler.IsAbleToMoveNextAsync(new ConnectionType
                         {
-                            Arguments = shape.ToObject<Shape>().Arguments,
-                            Status = StepStatus.NotStarted,
-                            Type = shape.ToObject<Shape>().Node,
-                            WorkflowInstanceId = instance.Id,
-                            ShapeId = shape.ToObject<Shape>().Guid
-                        }, cancellationToken);
-                    }
+                            Type = connection.Type,
+                            ConnectionArguments = connection.Arguments
+                        }, currentShape, shape.ToObject<Shape>(), cancellationToken))
+                        {
+                            continue;
+                        }
 
-                    // 5. Determine if all the next step's previous steps are finished
-                    var nextStep = await storage.GetWorkflowInstanceStepAsync(nextStepId.Value, cancellationToken);
-                    if (nextStep.Status >= StepStatus.Failed)
-                    {
-                        continue;
+                        // 4. Create or get next step
+                        var nextStepId = (await storage.GetStepByShapeId(instance.Id, shape.ToObject<Shape>().Guid, cancellationToken))?.Id;
+                        if (!nextStepId.HasValue)
+                        {
+                            nextStepId = await storage.CreateWorkflowStepAsync(instance.Id, new WorkflowInstanceStep
+                            {
+                                Arguments = shape.ToObject<Shape>().Arguments,
+                                Status = StepStatus.NotStarted,
+                                Type = shape.ToObject<Shape>().Node,
+                                WorkflowInstanceId = instance.Id,
+                                ShapeId = shape.ToObject<Shape>().Guid
+                            }, cancellationToken);
+                        }
+
+                        // 5. Determine if all the next step's previous steps are finished
+                        var nextStep = await storage.GetWorkflowInstanceStepAsync(nextStepId.Value, cancellationToken);
+                        if (nextStep.Status >= StepStatus.Failed)
+                        {
+                            continue;
+                        }
+                        var steps = await storage.GetPreviousStepsAsync(nextStepId.Value, cancellationToken);
+                        using var handler = await CreateHandlerAsync(nextStep, cancellationToken);
+                        var allFinished = steps.ShapeIds.Count() == steps.Steps.Count()
+                            && steps.Steps.All(x => x.Status >= StepStatus.Failed);
+                        var connectionType = new ConnectionType
+                        {
+                            Type = connection.Type,
+                            ConnectionArguments = connection.Arguments
+                        };
+                        await handler.OnPreviousStepFinishedAsync(await GetPreviousStepsAsync(stepId), cancellationToken);
                     }
-                    var steps = await storage.GetPreviousStepsAsync(nextStepId.Value, cancellationToken);
-                    var handler = await CreateHandlerAsync(nextStep, cancellationToken);
-                    var allFinished = steps.ShapeIds.Count() == steps.Steps.Count() 
-                        && steps.Steps.All(x => x.Status >= StepStatus.Failed);
-                    var connectionType = new ConnectionType 
-                    {
-                        Type = connection.Type,
-                        Arguments = connection.Arguments
-                    };
-                    await handler.OnPreviousStepFinishedAsync(step, connectionType, allFinished, cancellationToken);
                 }
+            }
+            finally
+            {
+                currentStepHandler?.Dispose();
             }
 
             return result;
+        }
+
+        public async Task<IEnumerable<ConnectionTypeWithDeparture>> GetPreviousStepsAsync(
+            Guid stepId, 
+            CancellationToken cancellationToken = default)
+        {
+            var step = await storage.GetWorkflowInstanceStepAsync(stepId, cancellationToken);
+            var steps = await storage.GetInstanceStepsAsync(step.WorkflowInstanceId, cancellationToken);
+            var instance = await storage.GetWorkflowInstanceAsync(step.WorkflowInstanceId, cancellationToken);
+            var workflowVersion = await GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
+            var diagram = workflowVersion.Diagram;
+            var currentShapeId = step.ShapeId;
+            var shapes = diagram.Shapes.Select(x => x.ToObject<Shape>());
+            var currentShape = shapes.First(x => x.Guid == currentShapeId);
+            var connections = diagram.ConnectPolylines
+                .Where(x => x.DestinationShapeGuid == currentShapeId)
+                .ToList();
+
+            return connections.Select(x => new ConnectionTypeWithDeparture 
+            {
+                ConnectionArguments = x.Arguments,
+                Type = x.Type,
+                DepartureShapeGuid = x.DepartureShapeGuid,
+                DepartureShape = shapes.First(y => y.Guid == x.DepartureShapeGuid),
+                DepartureStepId = steps.FirstOrDefault(y => y.ShapeId == x.DepartureShapeGuid)?.Id,
+                DepartureStep = steps.FirstOrDefault(y => y.ShapeId == x.DepartureShapeGuid)
+            });
         }
 
         public async Task<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
@@ -535,7 +571,7 @@ namespace Pomelo.Workflow
 
             var handlerType = GetHandlerType(GetStepShape(step, workflowVersion.Diagram).Node);
 
-            return (WorkflowHandlerBase)Activator.CreateInstance(handlerType, this, step);
+            return (WorkflowHandlerBase)Activator.CreateInstance(handlerType, services, this, step);
         }
 
         protected Type GetHandlerType(string name)

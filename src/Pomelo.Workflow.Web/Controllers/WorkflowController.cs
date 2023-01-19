@@ -10,14 +10,14 @@ namespace Pomelo.Workflow.Web.Controllers
     public class WorkflowController : ControllerBase
     {
         [HttpGet]
-        public async ValueTask<IEnumerable<Workflow.Models.Workflow>> GetWorkflows(
+        public async ValueTask<IEnumerable<Pomelo.Workflow.Models.Workflow>> GetWorkflows(
             [FromServices] WorkflowManager wf,
             [FromQuery] string name = null,
             CancellationToken cancellationToken = default)
             => await wf.GetWorkflowsAsync(name, cancellationToken);
 
         [HttpPost]
-        public async ValueTask<Workflow.Models.Workflow> PostWorkflow(
+        public async ValueTask<Pomelo.Workflow.Models.Workflow> PostWorkflow(
             [FromServices] WorkflowManager wf,
             [FromBody] CreateWorkflowRequest request,
             CancellationToken cancellationToken = default)
@@ -27,7 +27,7 @@ namespace Pomelo.Workflow.Web.Controllers
         }
 
         [HttpGet("{workflowId:Guid}")]
-        public async ValueTask<Workflow.Models.Workflow> GetWorkflow(
+        public async ValueTask<Pomelo.Workflow.Models.Workflow> GetWorkflow(
             [FromServices] WorkflowManager wf,
             [FromQuery] Guid workflowId,
             CancellationToken cancellationToken = default)

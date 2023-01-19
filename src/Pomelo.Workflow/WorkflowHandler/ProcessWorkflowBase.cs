@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
 // Licensed under the MIT. See LICENSE in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Pomelo.Workflow.Models;
@@ -9,29 +11,14 @@ using Pomelo.Workflow.Models.ViewModels;
 namespace Pomelo.Workflow.WorkflowHandler
 {
     public abstract class ProcessWorkflowBase : WorkflowHandlerBase
+
     {
         public ProcessWorkflowBase(
+            IServiceProvider services,
             WorkflowManager workflowManager,
             WorkflowInstanceStep step)
-            : base(workflowManager, step)
+            : base(services, workflowManager, step)
         { }
-
-        public override async Task OnPreviousStepFinishedAsync(
-            WorkflowInstanceStep previousStep,
-            ConnectionType connection,
-            bool allPreviousStepsFinished,
-            CancellationToken cancellationToken)
-        {
-            if (allPreviousStepsFinished)
-            {
-                await WorkflowManager.UpdateWorkflowStepAsync(
-                    CurrentStep.Id,
-                    StepStatus.InProgress,
-                    null,
-                    null,
-                    cancellationToken);
-            }
-        }
 
         public override Task OnStepStatusChangedAsync(
             StepStatus newStatus, 

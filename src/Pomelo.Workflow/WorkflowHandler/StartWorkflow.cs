@@ -3,6 +3,8 @@
 
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,15 +14,14 @@ namespace Pomelo.Workflow.WorkflowHandler
     public class StartWorkflowHandler : WorkflowHandlerBase
     {
         public StartWorkflowHandler(
-            WorkflowManager workflowManager, 
-            WorkflowInstanceStep step) 
-            : base(workflowManager, step) 
+            IServiceProvider services,
+            WorkflowManager workflowManager,
+            WorkflowInstanceStep step)
+            : base(services, workflowManager, step)
         { }
 
         public override Task OnPreviousStepFinishedAsync(
-            WorkflowInstanceStep previousStep,
-            ConnectionType connection,
-            bool allPreviousStepsFinished,
+            IEnumerable<ConnectionTypeWithDeparture> finishedSteps,
             CancellationToken cancellationToken)
         {
             return Task.CompletedTask;

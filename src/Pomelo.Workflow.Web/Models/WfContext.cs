@@ -12,6 +12,8 @@ namespace Pomelo.Workflow.Web.Models
         public WfContext(DbContextOptions<WfContext> opt) : base(opt)
         { }
 
+        public DbSet<Approval> Approvals { get; set; }
+
         public DbSet<DbWorkflow> Workflows { get; set; }
 
         public DbSet<DbWorkflowVersion> WorkflowVersions { get; set; }
