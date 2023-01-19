@@ -9,6 +9,7 @@ using Pomelo.Workflow.Models.EntityFramework;
 using Pomelo.Workflow.Models.ViewModels;
 using Pomelo.Workflow.Storage;
 using Pomelo.Workflow.WorkflowHandler;
+using System.Collections.Immutable;
 using System.Reflection;
 
 namespace Pomelo.Workflow
@@ -297,6 +298,7 @@ namespace Pomelo.Workflow
                 .UpdateWorkflowStepAsync(stepId, status, updateArgumentsDelegate, error, cancellationToken);
 
             var step = await storage.GetWorkflowInstanceStepAsync(stepId, cancellationToken);
+
             if (result.PreviousStatus != result.NewStatus)
             {
                 var handler = await CreateHandlerAsync(step, cancellationToken);
@@ -316,25 +318,30 @@ namespace Pomelo.Workflow
                     .ConnectPolylines
                     .Where(x => x.DepartureShapeGuid == step.ShapeId)
                     .ToList();
-                var shapes = diagram
+
+                var shapes = diagram // Destinations
                     .Shapes
                     .Where(x => connections.Select(x => x.DestinationShapeGuid).Contains(x.ToObject<Shape>().Guid))
                     .ToList();
 
                 // 3. Get each handlers
-                foreach(var shape in shapes)
+                var currentShape = diagram.Shapes
+                    .Where(x => x.ToObject<Shape>().Guid == step.ShapeId)
+                    .Select(x => x.ToObject<Shape>())
+                    .First();
+
+                var handlerType = GetHandlerType(currentShape.Node);
+                var method = handlerType.GetMethods().FirstOrDefault(x => x.IsStatic && x.Name == "IsAbleToMoveNextAsync");
+
+                foreach (var shape in shapes)
                 {
-                    var node = shape.ToObject<Shape>().Node;
-                    var handlerType = GetHandlerType(node);
-                    var method = handlerType.GetMethods().FirstOrDefault(x => x.IsStatic && x.Name == "IsAbleToConnectToCurrentStepAsync");
                     var isAbleToConnect = true;
+                    var connection = connections.First(x => x.DestinationShapeGuid == shape.ToObject<Shape>().Guid);
                     if (method != null)
                     {
-                        var connection = connections.First(x => x.DestinationShapeGuid == shape.ToObject<Shape>().Guid);
                         isAbleToConnect = await (ValueTask<bool>)method.Invoke(null, new object[]
                         {
-                            connection.Type,
-                            connection.Arguments,
+                            new ConnectionType { Type = connection.Type, Arguments = connection.Arguments },
                             shape,
                             step,
                             cancellationToken
@@ -359,7 +366,7 @@ namespace Pomelo.Workflow
                         }, cancellationToken);
                     }
 
-                    // 5. Determine if all the previous steps are finished
+                    // 5. Determine if all the next step's previous steps are finished
                     var nextStep = await storage.GetWorkflowInstanceStepAsync(nextStepId.Value, cancellationToken);
                     if (nextStep.Status >= StepStatus.Failed)
                     {
@@ -369,7 +376,12 @@ namespace Pomelo.Workflow
                     var handler = await CreateHandlerAsync(nextStep, cancellationToken);
                     var allFinished = steps.ShapeIds.Count() == steps.Steps.Count() 
                         && steps.Steps.All(x => x.Status >= StepStatus.Failed);
-                    await handler.OnPreviousStepFinishedAsync(step, allFinished, cancellationToken);
+                    var connectionType = new ConnectionType 
+                    {
+                        Type = connection.Type,
+                        Arguments = connection.Arguments
+                    };
+                    await handler.OnPreviousStepFinishedAsync(step, connectionType, allFinished, cancellationToken);
                 }
             }
 

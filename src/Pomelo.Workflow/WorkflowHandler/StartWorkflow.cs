@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Pomelo.Workflow.Models;
+using Pomelo.Workflow.Models.ViewModels;
 
 namespace Pomelo.Workflow.WorkflowHandler
 {
@@ -17,6 +18,7 @@ namespace Pomelo.Workflow.WorkflowHandler
 
         public override ValueTask OnPreviousStepFinishedAsync(
             WorkflowInstanceStep previousStep,
+            ConnectionType connection,
             bool allPreviousStepsFinished, 
             CancellationToken cancellationToken)
         {

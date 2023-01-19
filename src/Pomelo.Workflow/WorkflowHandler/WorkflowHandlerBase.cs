@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Pomelo.Workflow.Models;
+using Pomelo.Workflow.Models.ViewModels;
 
 namespace Pomelo.Workflow.WorkflowHandler
 {
@@ -21,16 +22,15 @@ namespace Pomelo.Workflow.WorkflowHandler
 
         public abstract ValueTask OnStepStatusChangedAsync(StepStatus newStatus, StepStatus previousStatus, CancellationToken cancellationToken);
 
-        public abstract ValueTask OnPreviousStepFinishedAsync(WorkflowInstanceStep previousStep, bool allPreviousStepsFinished, CancellationToken cancellationToken);
+        public abstract ValueTask OnPreviousStepFinishedAsync(WorkflowInstanceStep previousStep, ConnectionType connection, bool allPreviousStepsFinished, CancellationToken cancellationToken);
 
-        public static ValueTask<bool> IsAbleToConnectToCurrentStepAsync(
-            string connectType,
-            Dictionary<string, JToken> connectArguments,
-            Shape shape,
-            WorkflowInstanceStep previousStep,
-            CancellationToken cancellationToken = default)
-        {
-            return ValueTask.FromResult(false);
-        }
+        //public static ValueTask<bool> IsAbleToMoveNextAsync(
+        //    ConnectionType connectionType,
+        //    Shape currentNode,
+        //    WorkflowInstanceStep currentStep,
+        //    CancellationToken cancellationToken = default)
+        //{
+        //    return ValueTask.FromResult(true);
+        //}
     }
 }
