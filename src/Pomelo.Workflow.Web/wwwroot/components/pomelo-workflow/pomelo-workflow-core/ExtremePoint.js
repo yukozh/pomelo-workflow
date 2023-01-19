@@ -35,4 +35,3 @@ class ExtremePoint extends Point_1.Point {
     }
 }
 exports.ExtremePoint = ExtremePoint;
-//# sourceMappingURL=ExtremePoint.js.map

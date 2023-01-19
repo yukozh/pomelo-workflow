@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
 // Licensed under the MIT. See LICENSE in the project root for license information.
 
-using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
-using System.Runtime.CompilerServices;
+using Newtonsoft.Json.Linq;
 
 namespace Pomelo.Workflow.Storage
 {
@@ -13,102 +16,102 @@ namespace Pomelo.Workflow.Storage
     /// </summary>
     public interface IWorkflowStorageProvider
     {
-        ValueTask<IEnumerable<Models.Workflow>> GetWorkflowsAsync(
-            string name = null, 
+        Task<IEnumerable<Models.Workflow>> GetWorkflowsAsync(
+            string name = null,
             CancellationToken cancellationToken = default);
 
-        ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
+        Task<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
             Guid workflowId, 
             CancellationToken cancellationToken = default);
 
-        ValueTask<WorkflowVersion> GetWorkflowVersionAsync(
+        Task<WorkflowVersion> GetWorkflowVersionAsync(
             Guid workflowId, 
             int version, 
             CancellationToken cancellationToken);
 
-        ValueTask<Models.Workflow> GetWorkflowAsync(
+        Task<Models.Workflow> GetWorkflowAsync(
             Guid workflowId,
             CancellationToken cancellationToken = default);
 
-        ValueTask DeleteWorkflowAsync(
+        Task DeleteWorkflowAsync(
             Guid workflowId, 
             CancellationToken cancellationToken = default);
 
-        ValueTask UpdateWorkflowAsync(
+        Task UpdateWorkflowAsync(
             Guid workflowId, 
             UpdateWorkflowRequest request, 
             CancellationToken cancellationToken = default);
 
-        ValueTask<Guid> CreateWorkflowAsync(
+        Task<Guid> CreateWorkflowAsync(
             CreateWorkflowRequest request, 
             CancellationToken cancellationToken = default);
 
-        ValueTask<int> CreateWorkflowVersion(
+        Task<int> CreateWorkflowVersion(
             Guid workflowId, 
             CreateWorkflowVersionRequest request, 
             CancellationToken cancellationToken = default);
 
-        ValueTask<int?> GetLatestVersionAsync(
+        Task<int?> GetLatestVersionAsync(
             Guid workflowId,
             WorkflowVersionStatus? status = WorkflowVersionStatus.Available,
             CancellationToken cancellationToken = default);
 
-        ValueTask UpdateWorkflowVersionStatusAsync(
+        Task UpdateWorkflowVersionStatusAsync(
             Guid workflowId,
             int version, 
             WorkflowVersionStatus status, 
             CancellationToken cancellationToken = default);
 
-        ValueTask<Guid> CreateWorkflowInstanceAsync(
+        Task<Guid> CreateWorkflowInstanceAsync(
             Guid id,
             int version,
             Dictionary<string, JToken> arguments,
             CancellationToken cancellationToken = default);
 
-        ValueTask<Guid> CreateWorkflowStepAsync(
+        Task<Guid> CreateWorkflowStepAsync(
             Guid instanceId,
             WorkflowInstanceStep step,
             CancellationToken cancellationToken = default);
 
-        ValueTask<WorkflowInstance> GetWorkflowInstanceAsync(
+        Task<WorkflowInstance> GetWorkflowInstanceAsync(
             Guid instanceId,
             CancellationToken cancellationToken = default);
 
-        ValueTask<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
+        Task<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
             Guid instanceId,
             WorkflowStatus status,
             Action<Dictionary<string, JToken>> updateArgumentsDelegate,
             CancellationToken cancellationToken = default);
 
-        ValueTask<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
+        Task<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
             Guid stepId,
             StepStatus status,
             Action<Dictionary<string, JToken>> updateArgumentsDelegate,
             string error = null,
             CancellationToken cancellationToken = default);
 
-        ValueTask<WorkflowInstanceStep> GetStepByShapeId(
+        Task<WorkflowInstanceStep> GetStepByShapeId(
             Guid instanceId,
             Guid shapeId,
             CancellationToken cancellationToken = default);
 
-        ValueTask<WorkflowInstanceStep> GetWorkflowInstanceStepAsync(
+        Task<WorkflowInstanceStep> GetWorkflowInstanceStepAsync(
             Guid stepId,
             CancellationToken cancellationToken = default);
 
-        ValueTask<GetPreviousStepsResult> GetPreviousStepsAsync(
+        Task<GetPreviousStepsResult> GetPreviousStepsAsync(
             Guid stepId,
             CancellationToken cancellationToken = default);
 
-        ValueTask UpdateWorkflowInstanceUpdateTimeAsync(
+        Task UpdateWorkflowInstanceUpdateTimeAsync(
             Guid instanceId,
             CancellationToken cancellationToken = default);
 
-        ValueTask<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
+        Task<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
             Guid instanceId, 
             CancellationToken cancellationToken = default);
 
-        ValueTask<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
+        Task<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
             Guid workflowId,
             int? version,
             CancellationToken cancellationToken = default);

@@ -172,4 +172,3 @@ class Rectangle extends Shape {
     }
 }
 exports.Rectangle = Rectangle;
-//# sourceMappingURL=Shape.js.map

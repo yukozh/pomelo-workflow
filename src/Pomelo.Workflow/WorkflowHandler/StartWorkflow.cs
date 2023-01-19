@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
 // Licensed under the MIT. See LICENSE in the project root for license information.
 
-using Microsoft.Extensions.DependencyInjection;
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Pomelo.Workflow.WorkflowHandler
 {
@@ -16,16 +17,16 @@ namespace Pomelo.Workflow.WorkflowHandler
             : base(workflowManager, step) 
         { }
 
-        public override ValueTask OnPreviousStepFinishedAsync(
+        public override Task OnPreviousStepFinishedAsync(
             WorkflowInstanceStep previousStep,
             ConnectionType connection,
-            bool allPreviousStepsFinished, 
+            bool allPreviousStepsFinished,
             CancellationToken cancellationToken)
         {
-            return ValueTask.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        public override async ValueTask OnStepStatusChangedAsync(
+        public override async Task OnStepStatusChangedAsync(
             StepStatus newStatus,
             StepStatus previousStatus,
             CancellationToken cancellationToken)

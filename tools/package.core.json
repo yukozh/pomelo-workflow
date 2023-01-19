@@ -1,0 +1,22 @@
+{
+  "name": "pomelo-workflow-core",
+  "version": "1.0.0",
+  "description": "Pomelo customize workflow library",
+  "main": "pomelo.workflow.js",
+  "bin": {
+    "pomelo-workflow": "pomelo.workflow.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yukozh/pomelo-workflow.git"
+  },
+  "author": "Yuko Zheng",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yukozh/pomelo-workflow/issues"
+  },
+  "homepage": "https://github.com/yukozh/pomelo-workflow#readme"
+}

@@ -16,4 +16,3 @@ class RectangleModel extends ShapeModel {
     }
 }
 exports.RectangleModel = RectangleModel;
-//# sourceMappingURL=ShapeModel.js.map

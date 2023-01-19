@@ -1,5 +1,5 @@
 ﻿var lifecycleManager = require('./lifecycleManager').lifecycleManager;
-var pomeloWf = require('./pomelo-workflow/pomelo.workflow');
+var pomeloWf = require('./pomelo-workflow-core/pomelo.workflow');
 var rand = require('./rand').rand;
 var pomeloWfConfig = require('/assets/js/pomelo-wf.config');
 
@@ -10,8 +10,6 @@ for (var i = 0; i < pomeloWfConfig.nodes.length; ++i) {
 }
 var template = '<div v-on:click=\"onClicked\" v-bind:id=\"id\">\r\n    <div class=\"pomelo-wf-diagram\" v-bind:id=\"id + \'-inner\'\">\r\n        <svg v-if=\"diagram\" v-bind:width=\"width" v-bind:height=\"height\" v-bind:data-diagram=\"diagram.getGuid()\" style=\"pointer-events: all;\" version=\"1.1\"\r\n             xmlns=\"http:\/\/www.w3.org\/2000\/svg\">\r\n            <!-- Connected Polylines -->\r\n            <polyline v-on:mouseover="onPolylineMouseOver($event, polyline)" v-on:mouseout="onPolylineMouseOut($event, polyline)" @click="onPolylineClicked($event, polyline)" v-bind:stroke-dasharray="(active == polyline || polyline.dashed) ? \'4 2\' : undefined" v-for=\"polyline in diagram.getConnectPolylines()\"\r\n                      v-bind:data-polyline=\"polyline.getGuid()\" v-bind:points=\"polyline.path.points.map(x => x.x + \',\' + x.y).join(\' \')\"\r\n                      v-bind:style=\"`fill:none;stroke:${polyline.getColor()};stroke-width:${diagram.getConfig().connectPolylineStrokeWidth}`\" \/>\r\n\r\n            <!-- Shapes -->\r\n            <polyline v-for=\"shape in diagram.getShapes()\" v-if=\"diagram.getConfig().renderShape\"\r\n                      v-bind:data-shape=\"shape.getGuid()\" v-bind:points=\"`${shape.points.map(x => x.x + \',\' + x.y).join(\' \')} ${shape.points[0].x},${shape.points[0].y}`\"\r\n                      v-bind:style=\"`fill:none;stroke:${diagram.getConfig().shapeStrokeColor};stroke-width:${shape.diagram.getConfig().shapeStrokeWidth}`\" \/>\r\n            <!-- Connecting -->\r\n            <polyline v-if=\"connectFrom\"\r\n                      stroke-dasharray=\"4 2\"\r\n                      v-bind:points=\"`${connectFrom.toPoint().x},${connectFrom.toPoint().y} ${mousePosition.x},${mousePosition.y}`\"\r\n                      v-bind:style=\"`fill:none;stroke:${connectInfo.color};stroke-width:${diagram.getConfig().shapeStrokeWidth}`\" \/>\r\n        <\/svg>\r\n    <\/div>\r\n    <div class=\"pomelo-wf-elements\">\r\n        <div v-for=\"shape in diagram.getShapes()\"\r\n             v-bind:id=\"shape.getGuid()\"\r\n             v-bind:style=\"`position: absolute; top: ${shape.points[0].y}px; left: ${shape.points[0].x}px; width:${shape.width}px; height:${shape.height}px;`\">\r\n            {COMPONENTS}\r\n        <\/div>\r\n    <\/div>\r\n<\/div>';
 template = template.replaceAll('{COMPONENTS}', components);
-
-console.log(template);
 
 function isAnchor(el) {
     while (el != null) {

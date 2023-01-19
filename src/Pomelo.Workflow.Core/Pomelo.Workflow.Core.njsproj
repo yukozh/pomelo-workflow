@@ -35,9 +35,6 @@
   <ItemGroup>
     <None Include="pomelo.workflow.ts" />
     <Content Include="package.json" />
-    <Content Include="pomelo.json">
-      <SubType>Code</SubType>
-    </Content>
     <Content Include="README.md" />
     <Content Include="tsconfig.json" />
   </ItemGroup>

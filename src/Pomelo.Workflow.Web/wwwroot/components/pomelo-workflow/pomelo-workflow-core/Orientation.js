@@ -61,4 +61,3 @@ class Orientation {
     }
 }
 exports.Orientation = Orientation;
-//# sourceMappingURL=Orientation.js.map

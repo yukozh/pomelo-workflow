@@ -1,1 +1,0 @@
-tsc --build tsconfig-release.json

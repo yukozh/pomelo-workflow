@@ -3,6 +3,8 @@
 
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Pomelo.Workflow.WorkflowHandler
 {
@@ -15,10 +17,10 @@ namespace Pomelo.Workflow.WorkflowHandler
             : base(workflowManager, step)
         { }
 
-        public override async ValueTask OnPreviousStepFinishedAsync(
+        public override async Task OnPreviousStepFinishedAsync(
             WorkflowInstanceStep previousStep,
             ConnectionType connection,
-            bool allPreviousStepsFinished, 
+            bool allPreviousStepsFinished,
             CancellationToken cancellationToken)
         {
             if (allPreviousStepsFinished)
@@ -28,12 +30,12 @@ namespace Pomelo.Workflow.WorkflowHandler
             }
         }
 
-        public override ValueTask OnStepStatusChangedAsync(
+        public override Task OnStepStatusChangedAsync(
             StepStatus newStatus,
             StepStatus previousStatus,
             CancellationToken cancellationToken)
         {
-            return ValueTask.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 }

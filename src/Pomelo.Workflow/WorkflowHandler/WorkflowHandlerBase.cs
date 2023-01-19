@@ -3,6 +3,8 @@
 
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Pomelo.Workflow.WorkflowHandler
 {
@@ -18,22 +20,22 @@ namespace Pomelo.Workflow.WorkflowHandler
             CurrentStep = step;
         }
 
-        public abstract ValueTask OnStepStatusChangedAsync(
+        public abstract Task OnStepStatusChangedAsync(
             StepStatus newStatus,
             StepStatus previousStatus,
             CancellationToken cancellationToken);
 
-        public abstract ValueTask OnPreviousStepFinishedAsync(
+        public abstract Task OnPreviousStepFinishedAsync(
             WorkflowInstanceStep previousStep,
             ConnectionType connection,
             bool allPreviousStepsFinished, 
             CancellationToken cancellationToken);
 
-        public virtual ValueTask<bool> IsAbleToMoveNextAsync(
+        public virtual Task<bool> IsAbleToMoveNextAsync(
             ConnectionType connectionToNextStep,
             Shape currentNode,
             Shape nextNode,
             CancellationToken cancellationToken = default)
-            => ValueTask.FromResult(true);
+            => Task.FromResult(true);
     }
 }

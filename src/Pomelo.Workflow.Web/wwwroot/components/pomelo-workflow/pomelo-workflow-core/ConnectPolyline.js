@@ -603,4 +603,3 @@ style="fill:none;stroke:${this.getColor()};stroke-width:${this.diagram.getConfig
     }
 }
 exports.ConnectPolyline = ConnectPolyline;
-//# sourceMappingURL=ConnectPolyline.js.map

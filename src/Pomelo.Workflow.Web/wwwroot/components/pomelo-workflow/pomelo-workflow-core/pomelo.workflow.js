@@ -34,4 +34,3 @@ const Shape_1 = require("./Shape");
     exports.Orientation = Orientation_1.Orientation;
     return exports;
 })(module && module.exports ? module.exports : window.PomeloWF);
-//# sourceMappingURL=pomelo.workflow.js.map

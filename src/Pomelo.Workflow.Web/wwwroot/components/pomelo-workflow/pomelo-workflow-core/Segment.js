@@ -140,4 +140,3 @@ class Segment extends Polyline_1.PolylineBase {
     }
 }
 exports.Segment = Segment;
-//# sourceMappingURL=Segment.js.map

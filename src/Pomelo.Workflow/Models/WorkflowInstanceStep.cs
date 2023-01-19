@@ -2,6 +2,8 @@
 // Licensed under the MIT. See LICENSE in the project root for license information.
 
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 
 namespace Pomelo.Workflow.Models
 {

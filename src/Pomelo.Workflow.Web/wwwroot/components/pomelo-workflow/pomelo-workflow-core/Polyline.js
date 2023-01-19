@@ -48,4 +48,3 @@ exports.PolylineBase = PolylineBase;
 class Polyline extends PolylineBase {
 }
 exports.Polyline = Polyline;
-//# sourceMappingURL=Polyline.js.map

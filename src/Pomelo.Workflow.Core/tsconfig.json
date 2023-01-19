@@ -3,13 +3,12 @@
     "module": "commonjs",
     "target": "ES6",
     "lib": [ "ES6", "dom" ],
-    "sourceMap": true,
+    "sourceMap": false,
     "outDir": "dist"
   },
   "exclude": [
     "node_modules",
     "Tests",
-    "tsconfig.json",
-    "package.json"
+    "tsconfig.json"
   ]
 }

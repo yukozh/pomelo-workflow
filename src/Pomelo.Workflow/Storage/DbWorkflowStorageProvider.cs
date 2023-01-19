@@ -1,11 +1,16 @@
 ﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
 // Licensed under the MIT. See LICENSE in the project root for license information.
 
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.EntityFramework;
 using Pomelo.Workflow.Models.ViewModels;
 using Newtonsoft.Json.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Pomelo.Workflow.Storage
@@ -21,7 +26,7 @@ namespace Pomelo.Workflow.Storage
             this.db = db;
         }
 
-        public async ValueTask<Guid> CreateWorkflowAsync(CreateWorkflowRequest request, CancellationToken cancellationToken)
+        public async Task<Guid> CreateWorkflowAsync(CreateWorkflowRequest request, CancellationToken cancellationToken)
         {
             var workflow = new DbWorkflow
             {
@@ -34,9 +39,9 @@ namespace Pomelo.Workflow.Storage
             return workflow.Id;
         }
 
-        public async ValueTask<int> CreateWorkflowVersion(
+        public async Task<int> CreateWorkflowVersion(
             Guid workflowId, 
-            CreateWorkflowVersionRequest request, 
+            CreateWorkflowVersionRequest request,
             CancellationToken cancellationToken)
         {
             if (!await db.Workflows.AsNoTracking().AnyAsync(x => x.Id == workflowId, cancellationToken))
@@ -56,7 +61,7 @@ namespace Pomelo.Workflow.Storage
             return workflowVersion.Version;
         }
 
-        public async ValueTask DeleteWorkflowAsync(
+        public async Task DeleteWorkflowAsync(
             Guid workflowId, 
             CancellationToken cancellationToken = default)
         {
@@ -72,12 +77,12 @@ namespace Pomelo.Workflow.Storage
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        public async ValueTask<Models.Workflow> GetWorkflowAsync(
+        public async Task<Models.Workflow> GetWorkflowAsync(
             Guid workflowId, 
             CancellationToken cancellationToken = default)
             => await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId, cancellationToken);
 
-        public async ValueTask<IEnumerable<Models.Workflow>> GetWorkflowsAsync(
+        public async Task<IEnumerable<Models.Workflow>> GetWorkflowsAsync(
             string name = null, 
             CancellationToken cancellationToken = default)
         {
@@ -91,14 +96,14 @@ namespace Pomelo.Workflow.Storage
             return await workflows.ToListAsync(cancellationToken);
         }
 
-        public async ValueTask<WorkflowVersion> GetWorkflowVersionAsync(
+        public async Task<WorkflowVersion> GetWorkflowVersionAsync(
             Guid workflowId, 
             int version, 
             CancellationToken cancellationToken)
             => await db.WorkflowVersions
                 .FirstOrDefaultAsync(x => x.WorkflowId == workflowId && x.Version == version, cancellationToken);
 
-        public async ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
+        public async Task<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
             Guid workflowId,
             CancellationToken cancellationToken = default)
             => await db.WorkflowVersions
@@ -110,7 +115,7 @@ namespace Pomelo.Workflow.Storage
                     Version = x.Version
                 }).ToListAsync(cancellationToken);
 
-        public async ValueTask UpdateWorkflowAsync(
+        public async Task UpdateWorkflowAsync(
             Guid workflowId, 
             UpdateWorkflowRequest request,
             CancellationToken cancellationToken)
@@ -123,7 +128,7 @@ namespace Pomelo.Workflow.Storage
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        public async ValueTask<int?> GetLatestVersionAsync(
+        public async Task<int?> GetLatestVersionAsync(
             Guid workflowId,
             WorkflowVersionStatus? status = WorkflowVersionStatus.Available,
             CancellationToken cancellationToken = default)
@@ -142,7 +147,7 @@ namespace Pomelo.Workflow.Storage
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async ValueTask UpdateWorkflowVersionStatusAsync(
+        public async Task UpdateWorkflowVersionStatusAsync(
             Guid workflowId, 
             int version, 
             WorkflowVersionStatus status, 
@@ -161,7 +166,7 @@ namespace Pomelo.Workflow.Storage
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        public async ValueTask<Guid> CreateWorkflowInstanceAsync(
+        public async Task<Guid> CreateWorkflowInstanceAsync(
             Guid workflowId,
             int version,
             Dictionary<string, JToken> arguments,
@@ -187,7 +192,7 @@ namespace Pomelo.Workflow.Storage
             return instance.Id;
         }
 
-        public async ValueTask<Guid> CreateWorkflowStepAsync(
+        public async Task<Guid> CreateWorkflowStepAsync(
             Guid instanceId,
             WorkflowInstanceStep step,
             CancellationToken cancellationToken)
@@ -207,13 +212,13 @@ namespace Pomelo.Workflow.Storage
             return _step.Id;
         }
 
-        public async ValueTask<WorkflowInstance> GetWorkflowInstanceAsync(
+        public async Task<WorkflowInstance> GetWorkflowInstanceAsync(
             Guid instanceId, 
             CancellationToken cancellationToken)
             => await db.WorkflowInstances
                 .FirstOrDefaultAsync(x => x.Id == instanceId, cancellationToken);
 
-        public async ValueTask<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
+        public async Task<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
             Guid instanceId,
             WorkflowStatus status, 
             Action<Dictionary<string, JToken>> updateArgumentsDelegate, 
@@ -241,7 +246,7 @@ namespace Pomelo.Workflow.Storage
             return ret;
         }
 
-        public async ValueTask<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
+        public async Task<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
             Guid stepId, 
             StepStatus status, 
             Action<Dictionary<string, JToken>> updateArgumentsDelegate, 
@@ -274,7 +279,7 @@ namespace Pomelo.Workflow.Storage
             return ret;
         }
 
-        public async ValueTask<WorkflowInstanceStep> GetStepByShapeId(
+        public async Task<WorkflowInstanceStep> GetStepByShapeId(
             Guid instanceId, 
             Guid shapeId, 
             CancellationToken cancellationToken = default)
@@ -282,12 +287,12 @@ namespace Pomelo.Workflow.Storage
             .FirstOrDefaultAsync(x => x.WorkflowInstanceId == instanceId 
                 && x.ShapeId == shapeId, cancellationToken);
 
-        public async ValueTask<WorkflowInstanceStep> GetWorkflowInstanceStepAsync(
+        public async Task<WorkflowInstanceStep> GetWorkflowInstanceStepAsync(
             Guid stepId,
             CancellationToken cancellationToken = default)
             => await db.WorkflowInstanceSteps.AsNoTracking().FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
 
-        public async ValueTask<GetPreviousStepsResult> GetPreviousStepsAsync(
+        public async Task<GetPreviousStepsResult> GetPreviousStepsAsync(
             Guid stepId,
             CancellationToken cancellationToken = default)
         {
@@ -310,7 +315,7 @@ namespace Pomelo.Workflow.Storage
             return ret;
         }
 
-        public async ValueTask UpdateWorkflowInstanceUpdateTimeAsync(
+        public async Task UpdateWorkflowInstanceUpdateTimeAsync(
             Guid instanceId, 
             CancellationToken cancellationToken = default)
         {
@@ -326,7 +331,7 @@ namespace Pomelo.Workflow.Storage
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        public async ValueTask<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
+        public async Task<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
             Guid instanceId, 
             CancellationToken cancellationToken = default)
             => await db.WorkflowInstanceSteps
@@ -334,7 +339,7 @@ namespace Pomelo.Workflow.Storage
                 .OrderBy(x => x.CreatedAt)
                 .ToListAsync(cancellationToken);
 
-        public async ValueTask<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
+        public async Task<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
             Guid workflowId,
             int? version,
             CancellationToken cancellationToken = default)

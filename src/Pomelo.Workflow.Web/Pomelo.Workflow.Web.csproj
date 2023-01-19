@@ -6,9 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\components\pomelo-workflow\pomelo-workflow\**" />
     <Compile Remove="wwwroot\node\**" />
+    <Content Remove="wwwroot\components\pomelo-workflow\pomelo-workflow\**" />
     <Content Remove="wwwroot\node\**" />
+    <EmbeddedResource Remove="wwwroot\components\pomelo-workflow\pomelo-workflow\**" />
     <EmbeddedResource Remove="wwwroot\node\**" />
+    <None Remove="wwwroot\components\pomelo-workflow\pomelo-workflow\**" />
     <None Remove="wwwroot\node\**" />
   </ItemGroup>
 
@@ -17,19 +21,6 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql.Json.Newtonsoft" Version="6.0.2" />
     <PackageReference Include="Pomelo.Vue.Middleware" Version="6.0.0-r20221216015523" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\AnchorModel.js" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\AnchorModel.js.map" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ConnectPolylineModel.js" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ConnectPolylineModel.js.map" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\DiagramModel.js" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\DiagramModel.js.map" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\PointModel.js" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\PointModel.js.map" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ShapeModel.js" />
-    <None Include="wwwroot\components\pomelo-workflow\pomelo-workflow\Models\ShapeModel.js.map" />
   </ItemGroup>
 
   <ItemGroup>

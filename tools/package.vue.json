@@ -1,0 +1,22 @@
+{
+  "name": "pomelo-workflow-pomelo-vue",
+  "version": "1.0.0",
+  "description": "Pomelo customize workflow library for pomelo-vue",
+  "main": "index.js",
+  "bin": {
+    "pomelo-workflow-vue": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yukozh/pomelo-workflow.git"
+  },
+  "author": "Yuko Zheng",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yukozh/pomelo-workflow/issues"
+  },
+  "homepage": "https://github.com/yukozh/pomelo-workflow#readme"
+}
