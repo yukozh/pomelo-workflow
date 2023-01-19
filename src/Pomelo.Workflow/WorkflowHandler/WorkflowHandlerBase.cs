@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
 // Licensed under the MIT. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Pomelo.Workflow.Models;
 
@@ -13,6 +14,7 @@ namespace Pomelo.Workflow.WorkflowHandler
 
         public WorkflowHandlerBase(WorkflowManager workflowManager, WorkflowInstanceStep step)
         {
+            
             WorkflowManager = workflowManager;
             CurrentStep = step;
         }

@@ -1,3 +1,4 @@
 ﻿{
-  "/": "/pages/workflow"
+  "/": "/pages/workflow",
+  "/test": "/pages/test"
 }

@@ -13,7 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.13" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql.Json.Newtonsoft" Version="6.0.2" />
     <PackageReference Include="Pomelo.Vue.Middleware" Version="6.0.0-r20221216015523" />
   </ItemGroup>
 

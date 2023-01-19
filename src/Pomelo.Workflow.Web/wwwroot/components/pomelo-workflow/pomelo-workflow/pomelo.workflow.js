@@ -1,4 +1,6 @@
 "use strict";
+// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
 Object.defineProperty(exports, "__esModule", { value: true });
 const ConnectPolyline_1 = require("./ConnectPolyline");
 const Diagram_1 = require("./Diagram");

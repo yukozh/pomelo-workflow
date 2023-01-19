@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
 // Licensed under the MIT. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Pomelo.Workflow.Models;
 
 namespace Pomelo.Workflow.WorkflowHandler
@@ -8,7 +9,10 @@ namespace Pomelo.Workflow.WorkflowHandler
     [WorkflowHandler("finish")]
     public class FinishWorkflowHandler : WorkflowHandlerBase
     {
-        public FinishWorkflowHandler(WorkflowManager workflowManager, WorkflowInstanceStep step) : base(workflowManager, step) 
+        public FinishWorkflowHandler(
+            WorkflowManager workflowManager,
+            WorkflowInstanceStep step)
+            : base(workflowManager, step)
         { }
 
         public override async ValueTask OnPreviousStepFinishedAsync(

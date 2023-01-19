@@ -1,4 +1,6 @@
 "use strict";
+// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Rectangle = exports.Shape = exports.Anchor = void 0;
 const Point_1 = require("./Point");

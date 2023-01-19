@@ -1,4 +1,6 @@
 "use strict";
+// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConnectPolyline = void 0;
 const Orientation_1 = require("./Orientation");
@@ -29,11 +31,17 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
     getGuid() {
         return this.guid;
     }
+    getColor() {
+        return this.color;
+    }
     setColor(color) {
         this.color = color;
     }
-    getColor() {
-        return this.color;
+    getDashed() {
+        return this.dashed;
+    }
+    setDashed(dashed) {
+        this.dashed = dashed;
     }
     setType(type) {
         this.type = type;
@@ -70,11 +78,11 @@ class ConnectPolyline extends Polyline_1.PolylineBase {
     getPathGenerationResult() {
         return this.pathGeneratedSuccessfully;
     }
-    initFromDepartureAndDestination(departure, destination, fastMode = false) {
+    initFromDepartureAndDestination(departure, destination, fastMode = false, except = []) {
         this.pathGeneratedSuccessfully = false;
         this.departure = departure;
         this.destination = destination;
-        return this.update();
+        return this.update(fastMode, except);
     }
     update(fastMode = false, except = null) {
         this.refreshAnchorPositions();

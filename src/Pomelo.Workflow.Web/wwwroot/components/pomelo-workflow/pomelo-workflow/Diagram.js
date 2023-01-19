@@ -1,4 +1,6 @@
 "use strict";
+// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Diagram = exports.ElementType = exports.DiagramConfiguration = void 0;
 const ConnectPolyline_1 = require("./ConnectPolyline");
@@ -64,7 +66,8 @@ class Diagram {
                 color: cpl.getColor(),
                 path: cpl.getPaths().points,
                 type: cpl.getType(),
-                arguments: cpl.getArguments()
+                arguments: cpl.getArguments(),
+                dashed: cpl.getDashed()
             }))
         };
         return JSON.stringify(ret);
@@ -90,7 +93,7 @@ class Diagram {
         }
         for (let i = 0; i < model.connectPolylines.length; ++i) {
             let cplModel = model.connectPolylines[i];
-            this.createConnectPolyline(cplModel.departureShapeGuid, cplModel.departureAnchorIndex, cplModel.destinationShapeGuid, cplModel.destinationAnchorIndex, cplModel.color, cplModel.type, cplModel.arguments, cplModel.guid || this.generateGuid());
+            this.createConnectPolyline(cplModel.departureShapeGuid, cplModel.departureAnchorIndex, cplModel.destinationShapeGuid, cplModel.destinationAnchorIndex, cplModel.color, cplModel.type, cplModel.arguments, cplModel.dashed, cplModel.guid || this.generateGuid());
         }
     }
     findShapeByGuid(guid) {
@@ -112,11 +115,12 @@ class Diagram {
         this.shapes.push(shape);
         return shape;
     }
-    createConnectPolyline(departureGuid, departureAnchorIndex, destinationGuid, destinationAnchorIndex, color = '#555', type = null, args = null, guid = null) {
+    createConnectPolyline(departureGuid, departureAnchorIndex, destinationGuid, destinationAnchorIndex, color = '#555', type = null, args = null, dashed = false, guid = null) {
         let cpl = new ConnectPolyline_1.ConnectPolyline(guid, this);
         cpl.setColor(color);
         cpl.setType(type);
         cpl.setArguments(args);
+        cpl.setDashed(dashed);
         let departure = this.findShapeByGuid(departureGuid);
         let destination = this.findShapeByGuid(destinationGuid);
         this.connectPolylines.push(cpl);

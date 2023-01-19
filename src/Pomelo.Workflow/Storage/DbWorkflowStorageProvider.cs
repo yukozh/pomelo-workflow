@@ -39,7 +39,7 @@ namespace Pomelo.Workflow.Storage
             CreateWorkflowVersionRequest request, 
             CancellationToken cancellationToken)
         {
-            if (!await db.Workflows.AnyAsync(x => x.Id == workflowId, cancellationToken))
+            if (!await db.Workflows.AsNoTracking().AnyAsync(x => x.Id == workflowId, cancellationToken))
             {
                 throw new KeyNotFoundException(workflowId.ToString());
             }
@@ -167,7 +167,7 @@ namespace Pomelo.Workflow.Storage
             Dictionary<string, JToken> arguments,
             CancellationToken cancellationToken = default)
         {
-            var workflowVersion = db.WorkflowVersions
+            var workflowVersion = await db.WorkflowVersions
                 .FirstOrDefaultAsync(x => x.WorkflowId == workflowId && x.Version == version, cancellationToken);
 
             if (workflowVersion == null)
@@ -278,12 +278,14 @@ namespace Pomelo.Workflow.Storage
             Guid instanceId, 
             Guid shapeId, 
             CancellationToken cancellationToken = default)
-            => await db.WorkflowInstanceSteps.FirstOrDefaultAsync(x => x.ShapeId == shapeId, cancellationToken);
+            => await db.WorkflowInstanceSteps
+            .FirstOrDefaultAsync(x => x.WorkflowInstanceId == instanceId 
+                && x.ShapeId == shapeId, cancellationToken);
 
         public async ValueTask<WorkflowInstanceStep> GetWorkflowInstanceStepAsync(
             Guid stepId,
             CancellationToken cancellationToken = default)
-            => await db.WorkflowInstanceSteps.FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
+            => await db.WorkflowInstanceSteps.AsNoTracking().FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
 
         public async ValueTask<GetPreviousStepsResult> GetPreviousStepsAsync(
             Guid stepId,
@@ -325,12 +327,39 @@ namespace Pomelo.Workflow.Storage
         }
 
         public async ValueTask<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
-            Guid instanceId,
+            Guid instanceId, 
             CancellationToken cancellationToken = default)
             => await db.WorkflowInstanceSteps
                 .Where(x => x.WorkflowInstanceId == instanceId)
                 .OrderBy(x => x.CreatedAt)
                 .ToListAsync(cancellationToken);
+
+        public async ValueTask<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
+            Guid workflowId,
+            int? version,
+            CancellationToken cancellationToken = default)
+        {
+            IQueryable<DbWorkflowInstance> query = db.WorkflowInstances
+                .Where(x => x.WorkflowId == workflowId);
+
+            if (version.HasValue)
+            {
+                query = query.Where(x => x.WorkflowVersion == version.Value);
+            }
+
+            return await query
+                .Select(x => new GetWorkflowInstanceResult
+                {
+                    Id = x.Id,
+                    Status = x.Status,
+                    Arguments = x.Arguments,
+                    CreatedAt = x.CreatedAt,
+                    UpdatedAt = x.UpdatedAt,
+                    WorkflowId = workflowId,
+                    WorkflowVersion = x.WorkflowVersion
+                })
+                .ToListAsync(cancellationToken);
+        }
     }
 
     public static class DbWorkflowStorageProviderExtensions

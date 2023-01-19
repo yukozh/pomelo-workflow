@@ -1,12 +1,16 @@
 ﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
 // Licensed under the MIT. See LICENSE in the project root for license information.
 
+using Newtonsoft.Json;
+
 namespace Pomelo.Workflow.Models
 {
     public class Anchor
     {
-        public double xPercentage { get; set; }
+        [JsonProperty(PropertyName = "xPercentage")]
+        public double XPercentage { get; set; }
 
-        public double yPercentage { get; set; }
+        [JsonProperty(PropertyName = "yPercentage")]
+        public double YPercentage { get; set; }
     }
 }

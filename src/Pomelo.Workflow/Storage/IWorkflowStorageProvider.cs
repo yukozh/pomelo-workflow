@@ -107,5 +107,10 @@ namespace Pomelo.Workflow.Storage
         ValueTask<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
             Guid instanceId, 
             CancellationToken cancellationToken = default);
+
+        ValueTask<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
+            Guid workflowId,
+            int? version,
+            CancellationToken cancellationToken = default);
     }
 }

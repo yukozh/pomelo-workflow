@@ -153,48 +153,48 @@ namespace Pomelo.Workflow
         }
 
         public virtual async ValueTask<Models.Workflow> GetWorkflowAsync(
-            Guid id,
+            Guid workflowId,
             CancellationToken cancellationToken = default)
         {
-            return await storage.GetWorkflowAsync(id, cancellationToken);
+            return await storage.GetWorkflowAsync(workflowId, cancellationToken);
         }
 
         public virtual async ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
-            Guid id,
+            Guid workflowId,
             CancellationToken cancellationToken = default)
         { 
-            return await storage.GetWorkflowVersionsAsync(id, cancellationToken);
+            return await storage.GetWorkflowVersionsAsync(workflowId, cancellationToken);
         }
 
         public virtual async ValueTask<WorkflowVersion> GetWorkflowVersionAsync(
-            Guid id,
+            Guid workflowId,
             int version,
             CancellationToken cancellationToken = default)
         {
-            return await storage.GetWorkflowVersionAsync(id, version, cancellationToken);
+            return await storage.GetWorkflowVersionAsync(workflowId, version, cancellationToken);
         }
 
         public virtual async ValueTask<int?> GetLatestVersionAsync(
-            Guid id,
+            Guid workflowId,
             WorkflowVersionStatus status = WorkflowVersionStatus.Available,
             CancellationToken cancellationToken = default)
         {
-            return await storage.GetLatestVersionAsync(id, status, cancellationToken);
+            return await storage.GetLatestVersionAsync(workflowId, status, cancellationToken);
         }
 
         public virtual async ValueTask<WorkflowVersion> GetLatestWorkflowVersionAsync(
-            Guid id,
+            Guid workflowId,
             WorkflowVersionStatus status = WorkflowVersionStatus.Available,
             CancellationToken cancellationToken = default) 
         {
-            var version = await storage.GetLatestVersionAsync(id, status, cancellationToken);
+            var version = await storage.GetLatestVersionAsync(workflowId, status, cancellationToken);
 
             if (!version.HasValue)
             {
                 throw new InvalidOperationException("The workflow doesn't contain any versions");
             }
 
-            return await GetWorkflowVersionAsync(id, version.Value, cancellationToken);
+            return await GetWorkflowVersionAsync(workflowId, version.Value, cancellationToken);
         }
 
         public virtual async ValueTask<Guid> CreateWorkflowAsync(
@@ -221,17 +221,33 @@ namespace Pomelo.Workflow
         }
 
         public virtual async ValueTask<int> CreateWorkflowVersionAsync(
-            Guid id,
+            Guid workflowId,
             bool withDefaultDiagram = true,
             CancellationToken cancellationToken = default)
         {
-            var template = GenerateDiagram(id, withDefaultDiagram);
+            var template = GenerateDiagram(workflowId, withDefaultDiagram);
 
             var version = await storage.CreateWorkflowVersion(
-                id, 
+                workflowId, 
                 new CreateWorkflowVersionRequest 
                 {
                     Diagram = JsonConvert.DeserializeObject<Diagram>(template)
+                }, cancellationToken);
+
+            return version;
+        }
+
+        public virtual async ValueTask<int> CreateWorkflowVersionAsync(
+            Guid workflowId,
+            Diagram diagram,
+            CancellationToken cancellationToken = default)
+        {
+            diagram.Guid = workflowId;
+            var version = await storage.CreateWorkflowVersion(
+                workflowId,
+                new CreateWorkflowVersionRequest
+                {
+                    Diagram = diagram
                 }, cancellationToken);
 
             return version;
@@ -246,21 +262,21 @@ namespace Pomelo.Workflow
             var workflowVersion = await GetWorkflowVersionAsync(workflowId, version, cancellationToken);
             var diagram = workflowVersion.Diagram;
             var instanceId = await storage.CreateWorkflowInstanceAsync(workflowId, version, arguments, cancellationToken);
-            var start = diagram.Shapes.FirstOrDefault(x => x.Node == "start");
+            var start = diagram.Shapes.FirstOrDefault(x => x.ToObject<Shape>().Node == "start");
             if (start == null) 
             {
                 throw new KeyNotFoundException("Start node was not found in this diagram");
             }
 
-            var mergedArguments = MergeArguments(arguments, start.Arguments);
+            var mergedArguments = MergeArguments(arguments, start.ToObject<Shape>().Arguments);
 
             var step = new DbStep
             {
                 Arguments = mergedArguments,
-                ShapeId = start.Guid,
+                ShapeId = start.ToObject<Shape>().Guid,
                 Status = StepStatus.NotStarted,
                 WorkflowInstanceId = workflowId,
-                Type = start.Node
+                Type = start.ToObject<Shape>().Node
             };
             var stepId = await storage.CreateWorkflowStepAsync(instanceId, step, cancellationToken);
             return new StartNewInstanceResult 
@@ -302,19 +318,19 @@ namespace Pomelo.Workflow
                     .ToList();
                 var shapes = diagram
                     .Shapes
-                    .Where(x => connections.Select(x => x.DestinationShapeGuid).Contains(x.Guid))
+                    .Where(x => connections.Select(x => x.DestinationShapeGuid).Contains(x.ToObject<Shape>().Guid))
                     .ToList();
 
                 // 3. Get each handlers
                 foreach(var shape in shapes)
                 {
-                    var node = shape.Node;
+                    var node = shape.ToObject<Shape>().Node;
                     var handlerType = GetHandlerType(node);
                     var method = handlerType.GetMethods().FirstOrDefault(x => x.IsStatic && x.Name == "IsAbleToConnectToCurrentStepAsync");
                     var isAbleToConnect = true;
                     if (method != null)
                     {
-                        var connection = connections.First(x => x.DestinationShapeGuid == shape.Guid);
+                        var connection = connections.First(x => x.DestinationShapeGuid == shape.ToObject<Shape>().Guid);
                         isAbleToConnect = await (ValueTask<bool>)method.Invoke(null, new object[]
                         {
                             connection.Type,
@@ -330,16 +346,16 @@ namespace Pomelo.Workflow
                     }
 
                     // 4. Create or get next step
-                    var nextStepId = (await storage.GetStepByShapeId(instance.Id, shape.Guid, cancellationToken))?.Id;
+                    var nextStepId = (await storage.GetStepByShapeId(instance.Id, shape.ToObject<Shape>().Guid, cancellationToken))?.Id;
                     if (!nextStepId.HasValue)
                     {
                         nextStepId = await storage.CreateWorkflowStepAsync(instance.Id, new WorkflowInstanceStep
                         {
-                            Arguments = shape.Arguments,
+                            Arguments = shape.ToObject<Shape>().Arguments,
                             Status = StepStatus.NotStarted,
-                            Type = shape.Node,
+                            Type = shape.ToObject<Shape>().Node,
                             WorkflowInstanceId = instance.Id,
-                            ShapeId = shape.Guid
+                            ShapeId = shape.ToObject<Shape>().Guid
                         }, cancellationToken);
                     }
 
@@ -389,9 +405,9 @@ namespace Pomelo.Workflow
                 .GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
 
             var diagram = workflowVersion.Diagram;
-            var startShape = diagram.Shapes.FirstOrDefault(x => x.Node == "start");
+            var startShape = diagram.Shapes.FirstOrDefault(x => x.ToObject<Shape>().Node == "start");
 
-            var startStep = await storage.GetStepByShapeId(instanceId, startShape.Guid, cancellationToken);
+            var startStep = await storage.GetStepByShapeId(instanceId, startShape.ToObject<Shape>().Guid, cancellationToken);
 
             await UpdateWorkflowInstanceAsync(
                 instanceId,
@@ -420,19 +436,36 @@ namespace Pomelo.Workflow
             var steps = await GetInstanceStepsAsync(instanceId, cancellationToken);
             var instance = await storage.GetWorkflowInstanceAsync(instanceId, cancellationToken);
             var workflowVersion = await storage.GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
+            IEnumerable<InstanceShape> shapes = workflowVersion.Diagram.Shapes
+                .Where(x => x.ToObject<Shape>().Type == "Shape")
+                .Select(x => new InstanceShape 
+                {
+                    Anchors = x.ToObject<Shape>().Anchors,
+                    Arguments = x.ToObject<Shape>().Arguments,
+                    Guid = x.ToObject<Shape>().Guid,
+                    Name = x.ToObject<Shape>().Name,
+                    Node = x.ToObject<Shape>().Node,
+                    Points = x.ToObject<Shape>().Points,
+                    Type = x.ToObject<Shape>().Type
+                }).Concat(workflowVersion.Diagram.Shapes
+                .Where(x => x.ToObject<Shape>().Type == "Rectangle")
+                .Select(x => new InstanceRectangle
+                {
+                    Anchors = x.ToObject<Rectangle>().Anchors,
+                    Arguments = x.ToObject<Rectangle>().Arguments,
+                    Guid = x.ToObject<Rectangle>().Guid,
+                    Name = x.ToObject<Rectangle>().Name,
+                    Node = x.ToObject<Rectangle>().Node,
+                    Points = x.ToObject<Rectangle>().Points,
+                    Type = x.ToObject<Rectangle>().Type,
+                    Width = x.ToObject<Rectangle>().Width,
+                    Height = x.ToObject<Rectangle>().Height
+                }));
             var diagram = new InstanceDiagram 
             {
+                InstanceId = instanceId,
                 ConnectPolylines = workflowVersion.Diagram.ConnectPolylines,
-                Shapes = workflowVersion.Diagram.Shapes.Select(x => new InstanceShape 
-                {
-                    Anchors = x.Anchors,
-                    Arguments = x.Arguments,
-                    Guid = x.Guid,
-                    Name = x.Name,
-                    Node = x.Node,
-                    Points = x.Points,
-                    Type = x.Type
-                }).ToList(),
+                Shapes = shapes.ToList(),
                 Status = instance.Status,
                 Guid = workflowVersion.Diagram.Guid,
                 Version = workflowVersion.Diagram.Version
@@ -466,6 +499,12 @@ namespace Pomelo.Workflow
             return diagram;
         }
 
+        public async ValueTask<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
+            Guid workflowId,
+            int? version,
+            CancellationToken cancellationToken = default)
+            => await storage.GetWorkflowInstancesAsync(workflowId, version, cancellationToken);
+
         protected async ValueTask<WorkflowHandlerBase> CreateHandlerAsync(
             WorkflowInstanceStep step, 
             CancellationToken cancellationToken = default)
@@ -491,7 +530,7 @@ namespace Pomelo.Workflow
                 .First();
 
         protected Shape GetStepShape(WorkflowInstanceStep step, Diagram diagram)
-            => diagram.Shapes.FirstOrDefault(x => x.Guid == step.ShapeId);
+            => diagram.Shapes.FirstOrDefault(x => x.ToObject<Shape>().Guid == step.ShapeId)?.ToObject<Shape>();
 
         private Dictionary<string, JToken> MergeArguments(
             Dictionary<string, JToken> args1, 
