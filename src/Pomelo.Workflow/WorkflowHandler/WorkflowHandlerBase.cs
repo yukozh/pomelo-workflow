@@ -30,7 +30,7 @@ namespace Pomelo.Workflow.WorkflowHandler
             CancellationToken cancellationToken);
 
         public abstract Task OnPreviousStepFinishedAsync(
-            IEnumerable<ConnectionTypeWithDeparture> finishedSteps,
+            IEnumerable<ConnectionTypeWithDeparture> stepStatuses,
             CancellationToken cancellationToken);
 
         public virtual Task<bool> IsAbleToMoveNextAsync(

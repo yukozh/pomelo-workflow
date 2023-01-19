@@ -20,7 +20,7 @@ namespace Pomelo.Workflow.Web.Workflow
         }
 
         public override Task OnPreviousStepFinishedAsync(
-            IEnumerable<ConnectionTypeWithDeparture> finishedSteps,
+            IEnumerable<ConnectionTypeWithDeparture> stepStatuses,
             CancellationToken cancellationToken)
         {
             return Task.CompletedTask;

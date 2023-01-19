@@ -22,7 +22,7 @@ namespace Pomelo.Workflow.WorkflowHandler
         { }
 
         public override async Task OnPreviousStepFinishedAsync(
-            IEnumerable<ConnectionTypeWithDeparture> finishedSteps,
+            IEnumerable<ConnectionTypeWithDeparture> stepStatuses,
             CancellationToken cancellationToken)
         {
             var steps = await WorkflowManager.GetInstanceStepsAsync(CurrentStep.WorkflowInstanceId, cancellationToken);
