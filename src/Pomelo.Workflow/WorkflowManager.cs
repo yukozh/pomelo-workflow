@@ -299,9 +299,11 @@ namespace Pomelo.Workflow
 
             var step = await storage.GetWorkflowInstanceStepAsync(stepId, cancellationToken);
 
+            WorkflowHandlerBase currentStepHandler = null;
             if (result.PreviousStatus != result.NewStatus)
             {
                 var handler = await CreateHandlerAsync(step, cancellationToken);
+                currentStepHandler = handler;
                 await handler.OnStepStatusChangedAsync(result.NewStatus, result.PreviousStatus, cancellationToken);
             }
 
@@ -330,24 +332,20 @@ namespace Pomelo.Workflow
                     .Select(x => x.ToObject<Shape>())
                     .First();
 
-                var handlerType = GetHandlerType(currentShape.Node);
-                var method = handlerType.GetMethods().FirstOrDefault(x => x.IsStatic && x.Name == "IsAbleToMoveNextAsync");
+                if (currentStepHandler == null)
+                {
+                    currentStepHandler = await CreateHandlerAsync(step, cancellationToken);
+                }
 
                 foreach (var shape in shapes)
                 {
-                    var isAbleToConnect = true;
                     var connection = connections.First(x => x.DestinationShapeGuid == shape.ToObject<Shape>().Guid);
-                    if (method != null)
+
+                    if (!await currentStepHandler.IsAbleToMoveNextAsync(new ConnectionType
                     {
-                        isAbleToConnect = await (ValueTask<bool>)method.Invoke(null, new object[]
-                        {
-                            new ConnectionType { Type = connection.Type, Arguments = connection.Arguments },
-                            shape,
-                            step,
-                            cancellationToken
-                        });
-                    }
-                    if (!isAbleToConnect)
+                        Type = connection.Type,
+                        Arguments = connection.Arguments
+                    }, currentShape, shape.ToObject<Shape>(), cancellationToken))
                     {
                         continue;
                     }
