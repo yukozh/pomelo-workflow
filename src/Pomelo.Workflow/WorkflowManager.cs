@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
+
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Pomelo.Workflow.Models;

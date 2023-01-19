@@ -1,3 +1,6 @@
+// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
+
 import { Diagram } from "./Diagram";
 import { AbsoluteOrientation, Orientation } from "./Orientation";
 import { Point } from "./Point";

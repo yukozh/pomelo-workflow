@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
+
+using Newtonsoft.Json.Linq;
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
 using System.Runtime.CompilerServices;
