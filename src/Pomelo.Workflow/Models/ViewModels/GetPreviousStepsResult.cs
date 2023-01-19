@@ -2,7 +2,7 @@
 {
     public class GetPreviousStepsResult
     {
-        public IEnumerable<Step> Steps { get; set; }
+        public IEnumerable<WorkflowInstanceStep> Steps { get; set; }
 
         public IEnumerable<Guid> ShapeIds { get; set; }
     }

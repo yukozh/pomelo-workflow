@@ -277,14 +277,14 @@ namespace Pomelo.Workflow
             var result = await storage
                 .UpdateWorkflowStepAsync(stepId, status, updateArgumentsDelegate, error, cancellationToken);
 
-            var step = await storage.GetStepAsync(stepId, cancellationToken);
+            var step = await storage.GetWorkflowInstanceStepAsync(stepId, cancellationToken);
             if (result.PreviousStatus != result.NewStatus)
             {
                 var handler = await CreateHandlerAsync(step, cancellationToken);
                 await handler.OnStepStatusChangedAsync(result.NewStatus, result.PreviousStatus, cancellationToken);
             }
 
-            step = await storage.GetStepAsync(step.Id, cancellationToken);
+            step = await storage.GetWorkflowInstanceStepAsync(step.Id, cancellationToken);
             if (step.Status >= StepStatus.Failed)
             { 
                 // 1. Prepare
@@ -330,7 +330,7 @@ namespace Pomelo.Workflow
                     var nextStepId = (await storage.GetStepByShapeId(instance.Id, shape.Guid, cancellationToken))?.Id;
                     if (!nextStepId.HasValue)
                     {
-                        nextStepId = await storage.CreateWorkflowStepAsync(instance.Id, new Step
+                        nextStepId = await storage.CreateWorkflowStepAsync(instance.Id, new WorkflowInstanceStep
                         {
                             Arguments = shape.Arguments,
                             Status = StepStatus.NotStarted,
@@ -341,7 +341,7 @@ namespace Pomelo.Workflow
                     }
 
                     // 5. Determine if all the previous steps are finished
-                    var nextStep = await storage.GetStepAsync(nextStepId.Value, cancellationToken);
+                    var nextStep = await storage.GetWorkflowInstanceStepAsync(nextStepId.Value, cancellationToken);
                     if (nextStep.Status >= StepStatus.Failed)
                     {
                         continue;
@@ -405,7 +405,7 @@ namespace Pomelo.Workflow
                 cancellationToken);
         }
 
-        public async ValueTask<IEnumerable<Step>> GetInstanceStepsAsync(
+        public async ValueTask<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
             Guid instanceId,
             CancellationToken cancellationToken = default)
             => await storage.GetInstanceStepsAsync(instanceId, cancellationToken);
@@ -464,7 +464,7 @@ namespace Pomelo.Workflow
         }
 
         protected async ValueTask<WorkflowHandlerBase> CreateHandlerAsync(
-            Step step, 
+            WorkflowInstanceStep step, 
             CancellationToken cancellationToken = default)
         {
             var workflowInstance = await storage.GetWorkflowInstanceAsync(
@@ -487,7 +487,7 @@ namespace Pomelo.Workflow
                 .Where(x => x != null && x.IsClass && x.GetCustomAttribute<WorkflowHandlerAttribute>(true)?.Type == name)
                 .First();
 
-        protected Shape GetStepShape(Step step, Diagram diagram)
+        protected Shape GetStepShape(WorkflowInstanceStep step, Diagram diagram)
             => diagram.Shapes.FirstOrDefault(x => x.Guid == step.ShapeId);
 
         private Dictionary<string, JToken> MergeArguments(

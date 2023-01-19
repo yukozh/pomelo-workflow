@@ -15,24 +15,24 @@ namespace Pomelo.Workflow.Storage
             CancellationToken cancellationToken = default);
 
         ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
-            Guid id, 
+            Guid workflowId, 
             CancellationToken cancellationToken = default);
 
         ValueTask<WorkflowVersion> GetWorkflowVersionAsync(
-            Guid id, 
+            Guid workflowId, 
             int version, 
             CancellationToken cancellationToken);
 
         ValueTask<Models.Workflow> GetWorkflowAsync(
-            Guid id,
+            Guid workflowId,
             CancellationToken cancellationToken = default);
 
         ValueTask DeleteWorkflowAsync(
-            Guid id, 
+            Guid workflowId, 
             CancellationToken cancellationToken = default);
 
         ValueTask UpdateWorkflowAsync(
-            Guid id, 
+            Guid workflowId, 
             UpdateWorkflowRequest request, 
             CancellationToken cancellationToken = default);
 
@@ -41,17 +41,17 @@ namespace Pomelo.Workflow.Storage
             CancellationToken cancellationToken = default);
 
         ValueTask<int> CreateWorkflowVersion(
-            Guid id, 
+            Guid workflowId, 
             CreateWorkflowVersionRequest request, 
             CancellationToken cancellationToken = default);
 
         ValueTask<int?> GetLatestVersionAsync(
-            Guid id,
+            Guid workflowId,
             WorkflowVersionStatus? status = WorkflowVersionStatus.Available,
             CancellationToken cancellationToken = default);
 
         ValueTask UpdateWorkflowVersionStatusAsync(
-            Guid id,
+            Guid workflowId,
             int version, 
             WorkflowVersionStatus status, 
             CancellationToken cancellationToken = default);
@@ -64,7 +64,7 @@ namespace Pomelo.Workflow.Storage
 
         ValueTask<Guid> CreateWorkflowStepAsync(
             Guid instanceId,
-            Step step,
+            WorkflowInstanceStep step,
             CancellationToken cancellationToken = default);
 
         ValueTask<WorkflowInstance> GetWorkflowInstanceAsync(
@@ -84,12 +84,12 @@ namespace Pomelo.Workflow.Storage
             string error = null,
             CancellationToken cancellationToken = default);
 
-        ValueTask<Step> GetStepByShapeId(
+        ValueTask<WorkflowInstanceStep> GetStepByShapeId(
             Guid instanceId,
             Guid shapeId,
             CancellationToken cancellationToken = default);
 
-        ValueTask<Step> GetStepAsync(
+        ValueTask<WorkflowInstanceStep> GetWorkflowInstanceStepAsync(
             Guid stepId,
             CancellationToken cancellationToken = default);
 
@@ -101,7 +101,7 @@ namespace Pomelo.Workflow.Storage
             Guid instanceId,
             CancellationToken cancellationToken = default);
 
-        ValueTask<IEnumerable<Step>> GetInstanceStepsAsync(
+        ValueTask<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
             Guid instanceId, 
             CancellationToken cancellationToken = default);
     }

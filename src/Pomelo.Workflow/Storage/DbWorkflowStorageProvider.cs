@@ -31,40 +31,52 @@ namespace Pomelo.Workflow.Storage
             return workflow.Id;
         }
 
-        public async ValueTask<int> CreateWorkflowVersion(Guid id, CreateWorkflowVersionRequest request, CancellationToken cancellationToken)
+        public async ValueTask<int> CreateWorkflowVersion(
+            Guid workflowId, 
+            CreateWorkflowVersionRequest request, 
+            CancellationToken cancellationToken)
         {
-            if (!await db.Workflows.AnyAsync(x => x.Id == id, cancellationToken))
+            if (!await db.Workflows.AnyAsync(x => x.Id == workflowId, cancellationToken))
             {
-                throw new KeyNotFoundException(id.ToString());
+                throw new KeyNotFoundException(workflowId.ToString());
             }
 
             var workflowVersion = new DbWorkflowVersion
             {
                 Diagram = request.Diagram,
-                WorkflowId = id,
-                Version = await db.WorkflowVersions.CountAsync(x => x.WorkflowId == id, cancellationToken) + 1
+                WorkflowId = workflowId,
+                Version = await db.WorkflowVersions
+                    .CountAsync(x => x.WorkflowId == workflowId, cancellationToken) + 1
             };
             db.WorkflowVersions.Add(workflowVersion);
             await db.SaveChangesAsync(cancellationToken);
             return workflowVersion.Version;
         }
 
-        public async ValueTask DeleteWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
+        public async ValueTask DeleteWorkflowAsync(
+            Guid workflowId, 
+            CancellationToken cancellationToken = default)
         {
-            if (await db.WorkflowVersions.AnyAsync(x => x.WorkflowId == id, cancellationToken))
+            if (await db.WorkflowVersions
+                .AnyAsync(x => x.WorkflowId == workflowId, cancellationToken))
             {
                 throw new InvalidOperationException("There are workflow versions already created, cannot delete workflow.");
             }
 
-            var workflow = await db.Workflows.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            var workflow = await db.Workflows
+                .FirstOrDefaultAsync(x => x.Id == workflowId, cancellationToken);
             db.Workflows.Remove(workflow);
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        public async ValueTask<Models.Workflow> GetWorkflowAsync(Guid id, CancellationToken cancellationToken = default)
-            => await db.Workflows.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        public async ValueTask<Models.Workflow> GetWorkflowAsync(
+            Guid workflowId, 
+            CancellationToken cancellationToken = default)
+            => await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId, cancellationToken);
 
-        public async ValueTask<IEnumerable<Models.Workflow>> GetWorkflowsAsync(string name = null, CancellationToken cancellationToken = default)
+        public async ValueTask<IEnumerable<Models.Workflow>> GetWorkflowsAsync(
+            string name = null, 
+            CancellationToken cancellationToken = default)
         {
             IQueryable<DbWorkflow> workflows = db.Workflows;
 
@@ -76,12 +88,18 @@ namespace Pomelo.Workflow.Storage
             return await workflows.ToListAsync(cancellationToken);
         }
 
-        public async ValueTask<WorkflowVersion> GetWorkflowVersionAsync(Guid id, int version, CancellationToken cancellationToken)
-            => await db.WorkflowVersions.FirstOrDefaultAsync(x => x.WorkflowId == id && x.Version == version, cancellationToken);
-
-        public async ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(Guid id, CancellationToken cancellationToken = default)
+        public async ValueTask<WorkflowVersion> GetWorkflowVersionAsync(
+            Guid workflowId, 
+            int version, 
+            CancellationToken cancellationToken)
             => await db.WorkflowVersions
-                .Where(x => x.WorkflowId == id)
+                .FirstOrDefaultAsync(x => x.WorkflowId == workflowId && x.Version == version, cancellationToken);
+
+        public async ValueTask<IEnumerable<GetWorkflowVersionResult>> GetWorkflowVersionsAsync(
+            Guid workflowId,
+            CancellationToken cancellationToken = default)
+            => await db.WorkflowVersions
+                .Where(x => x.WorkflowId == workflowId)
                 .Select(x => new GetWorkflowVersionResult 
                 {
                     Diagram = x.Diagram,
@@ -89,10 +107,13 @@ namespace Pomelo.Workflow.Storage
                     Version = x.Version
                 }).ToListAsync(cancellationToken);
 
-        public async ValueTask UpdateWorkflowAsync(Guid id, UpdateWorkflowRequest request, CancellationToken cancellationToken)
+        public async ValueTask UpdateWorkflowAsync(
+            Guid workflowId, 
+            UpdateWorkflowRequest request,
+            CancellationToken cancellationToken)
         {
             var workflow = await db.Workflows
-                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == workflowId, cancellationToken);
 
             workflow.Name = request.Name;
             workflow.Description = request.Description;
@@ -100,12 +121,12 @@ namespace Pomelo.Workflow.Storage
         }
 
         public async ValueTask<int?> GetLatestVersionAsync(
-            Guid id,
+            Guid workflowId,
             WorkflowVersionStatus? status = WorkflowVersionStatus.Available,
             CancellationToken cancellationToken = default)
         {
             IQueryable<DbWorkflowVersion> workflowVersions = db.WorkflowVersions
-                .Where(x => x.WorkflowId == id);
+                .Where(x => x.WorkflowId == workflowId);
 
             if (status.HasValue)
             {
@@ -119,18 +140,18 @@ namespace Pomelo.Workflow.Storage
         }
 
         public async ValueTask UpdateWorkflowVersionStatusAsync(
-            Guid id, 
+            Guid workflowId, 
             int version, 
             WorkflowVersionStatus status, 
             CancellationToken cancellationToken = default)
         {
             var workflowVersion = await db.WorkflowVersions
-                .Where(x => x.WorkflowId == id && x.Version == version)
+                .Where(x => x.WorkflowId == workflowId && x.Version == version)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (workflowVersion == null)
             {
-                throw new KeyNotFoundException($"The workflow version {id} #{version} was not found");
+                throw new KeyNotFoundException($"The workflow version {workflowId} #{version} was not found");
             }
 
             workflowVersion.Status = status;
@@ -138,24 +159,24 @@ namespace Pomelo.Workflow.Storage
         }
 
         public async ValueTask<Guid> CreateWorkflowInstanceAsync(
-            Guid id,
+            Guid workflowId,
             int version,
             Dictionary<string, JToken> arguments,
             CancellationToken cancellationToken = default)
         {
             var workflowVersion = db.WorkflowVersions
-                .FirstOrDefaultAsync(x => x.WorkflowId == id && x.Version == version, cancellationToken);
+                .FirstOrDefaultAsync(x => x.WorkflowId == workflowId && x.Version == version, cancellationToken);
 
             if (workflowVersion == null)
             {
-                throw new KeyNotFoundException($"The workflow version {id} #{version} was not found");
+                throw new KeyNotFoundException($"The workflow version {workflowId} #{version} was not found");
             }
 
             var instance = new DbWorkflowInstance
             {
                 Arguments = arguments,
                 Status = WorkflowStatus.NotStarted,
-                WorkflowId = id,
+                WorkflowId = workflowId,
                 WorkflowVersion = version
             };
             db.WorkflowInstances.Add(instance);
@@ -165,7 +186,7 @@ namespace Pomelo.Workflow.Storage
 
         public async ValueTask<Guid> CreateWorkflowStepAsync(
             Guid instanceId,
-            Step step,
+            WorkflowInstanceStep step,
             CancellationToken cancellationToken)
         {
             var _step = new DbStep
@@ -250,13 +271,13 @@ namespace Pomelo.Workflow.Storage
             return ret;
         }
 
-        public async ValueTask<Step> GetStepByShapeId(
+        public async ValueTask<WorkflowInstanceStep> GetStepByShapeId(
             Guid instanceId, 
             Guid shapeId, 
             CancellationToken cancellationToken = default)
             => await db.Steps.FirstOrDefaultAsync(x => x.ShapeId == shapeId, cancellationToken);
 
-        public async ValueTask<Step> GetStepAsync(
+        public async ValueTask<WorkflowInstanceStep> GetWorkflowInstanceStepAsync(
             Guid stepId,
             CancellationToken cancellationToken = default)
             => await db.Steps.FirstOrDefaultAsync(x => x.Id == stepId, cancellationToken);
@@ -265,7 +286,7 @@ namespace Pomelo.Workflow.Storage
             Guid stepId,
             CancellationToken cancellationToken = default)
         {
-            var step = await GetStepAsync(stepId, cancellationToken);
+            var step = await GetWorkflowInstanceStepAsync(stepId, cancellationToken);
             var instance = await GetWorkflowInstanceAsync(step.WorkflowInstanceId, cancellationToken);
             var workflowVersion = await GetWorkflowVersionAsync(instance.WorkflowId, instance.WorkflowVersion, cancellationToken);
             var diagram = workflowVersion.Diagram;
@@ -300,7 +321,7 @@ namespace Pomelo.Workflow.Storage
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        public async ValueTask<IEnumerable<Step>> GetInstanceStepsAsync(
+        public async ValueTask<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
             Guid instanceId,
             CancellationToken cancellationToken = default)
             => await db.Steps

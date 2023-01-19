@@ -10,7 +10,7 @@ namespace Pomelo.Workflow.Models
         Succeeded
     }
 
-    public class Step
+    public class WorkflowInstanceStep
     {
         public Guid Id { get; set; }
 
