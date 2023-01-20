@@ -53,8 +53,8 @@ class Diagram {
             return v.toString(16);
         });
     }
-    serializeToJson() {
-        let ret = {
+    toViewModel() {
+        return {
             guid: this.guid,
             shapes: this.shapes.map(shape => shape.toViewModel()),
             connectPolylines: this.connectPolylines.map(cpl => ({
@@ -70,14 +70,15 @@ class Diagram {
                 dashed: cpl.getDashed()
             }))
         };
-        return JSON.stringify(ret);
+    }
+    toJson() {
+        return JSON.stringify(this.toViewModel());
     }
     clean() {
         this.shapes.splice(0, this.shapes.length);
         this.connectPolylines.splice(0, this.connectPolylines.length);
     }
-    deserializeFromJson(json) {
-        let model = JSON.parse(json);
+    load(model) {
         this.clean();
         this.guid = model.guid || this.guid;
         for (let i = 0; i < model.shapes.length; ++i) {
@@ -95,6 +96,9 @@ class Diagram {
             let cplModel = model.connectPolylines[i];
             this.createConnectPolyline(cplModel.departureShapeGuid, cplModel.departureAnchorIndex, cplModel.destinationShapeGuid, cplModel.destinationAnchorIndex, cplModel.color, cplModel.type, cplModel.arguments, cplModel.dashed, cplModel.guid || this.generateGuid());
         }
+    }
+    loadJson(json) {
+        this.load(JSON.parse(json));
     }
     findShapeByGuid(guid) {
         let result = this.shapes.filter(x => x.getGuid().toLowerCase() == guid.toLowerCase());

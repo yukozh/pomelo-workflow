@@ -1,4 +1,5 @@
 ﻿{
   "/": "/pages/workflow",
-  "/test": "/pages/test"
+  "/instances": "/pages/instances",
+  "/approvals": "/pages/approvals"
 }

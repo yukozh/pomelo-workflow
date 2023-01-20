@@ -26,7 +26,7 @@ Component('pomelo-workflow', {
     style: true,
     template: template,
     components: pomeloWfConfig.nodes.map(x => x.path),
-    props: ['config', 'id', 'edit'],
+    props: ['config', 'id', 'edit', 'diagramModel'],
     data() {
         return {
             config: null,
@@ -57,7 +57,22 @@ Component('pomelo-workflow', {
             this.config.padding = 10;
         }
         this.diagram = new pomeloWf.Diagram(this.config);
+        var self = this;
+        this.$watch(() => ({ ...this.diagram }), function () {
+            self.$emit('update:diagramModel', self.diagram.toViewModel());
+        }, { deep: true });
+
+        if (this.$props.diagramModel) {
+            this.diagram.load(this.$props.diagramModel);
+        }
+
         lifecycleManager.register(this.id, this);
+    },
+    watch: {
+        deep: true,
+        '...diagram': function() {
+            this.$emit('update:diagramModel', this.diagram.toViewModel());
+        }
     },
     computed: {
         width() {
@@ -82,7 +97,6 @@ Component('pomelo-workflow', {
         }
     },
     mounted() {
-        window.diagram = this;
         document.addEventListener('mousemove', this.onMouseMoved);
         document.addEventListener('keyup', this.onKeyUp);
     },

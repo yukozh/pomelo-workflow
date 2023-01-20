@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pomelo.Workflow", "src\Pome
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{B112FF8E-89DF-4FFA-83FC-53D6D88EA5A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomelo.Workflow.Tests", "test\Pomelo.Workflow.Tests\Pomelo.Workflow.Tests.csproj", "{BDB39862-FD91-49CE-A528-77F76D55B4DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pomelo.Workflow.Tests", "test\Pomelo.Workflow.Tests\Pomelo.Workflow.Tests.csproj", "{BDB39862-FD91-49CE-A528-77F76D55B4DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

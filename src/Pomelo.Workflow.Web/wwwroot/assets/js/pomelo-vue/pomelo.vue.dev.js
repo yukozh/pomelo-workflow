@@ -15935,6 +15935,9 @@ var Vue = (function (exports) {
 }({}));
 
 // Pomelo
+// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
+
 var Pomelo = (function (exports, options) {
     // Options
     var _options = {

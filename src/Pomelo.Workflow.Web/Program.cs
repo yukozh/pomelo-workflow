@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Converters;
 using Pomelo.Vue.Middleware;
 using Pomelo.Workflow;
+using Pomelo.Workflow.Models.ViewModels;
 using Pomelo.Workflow.Storage;
 using Pomelo.Workflow.Web.Models;
 
@@ -56,6 +57,11 @@ app.UsePomeloVueMiddleware(x =>
     x.MappingBase = "/assets/js/pomelo-vue/";
 });
 using var scope = app.Services.CreateScope();
-await scope.ServiceProvider.GetRequiredService<WfContext>().Database.EnsureCreatedAsync();
+var db = scope.ServiceProvider.GetRequiredService<WfContext>();
+var wf = scope.ServiceProvider.GetRequiredService<WorkflowManager>();
+if (await db.Database.EnsureCreatedAsync())
+{
+    await wf.CreateWorkflowAsync(new CreateWorkflowRequest { Name = "Test Workflow", Description = "Description" });
+}
 
 app.Run();

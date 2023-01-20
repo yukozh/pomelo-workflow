@@ -69,8 +69,8 @@ export class Diagram {
         });
     }
 
-    public serializeToJson(): string {
-        let ret = <DiagramModel>{
+    public toViewModel(): DiagramModel {
+        return <DiagramModel>{
             guid: this.guid,
             shapes: this.shapes.map(shape => shape.toViewModel()),
             connectPolylines: this.connectPolylines.map(cpl => <ConnectPolylineModel>{
@@ -86,8 +86,10 @@ export class Diagram {
                 dashed: cpl.getDashed()
             })
         };
+    }
 
-        return JSON.stringify(ret);
+    public toJson(): string {
+        return JSON.stringify(this.toViewModel());
     }
 
     public clean(): void {
@@ -95,15 +97,13 @@ export class Diagram {
         this.connectPolylines.splice(0, this.connectPolylines.length);
     }
 
-    public deserializeFromJson(json: string): void {
-        let model: DiagramModel = JSON.parse(json);
-
+    public load(model: DiagramModel) {
         this.clean();
 
         this.guid = model.guid || this.guid;
 
         for (let i = 0; i < model.shapes.length; ++i) {
-            let shape:any = model.shapes[i];
+            let shape: any = model.shapes[i];
             let shapeInstance = shape.type == 'Shape'
                 ? this.createShape(shape.points.map(x => new Point(x.x, x.y)), shape.guid || this.generateGuid(), shape.node, shape.arguments)
                 : this.createRect(shape.points[0].x, shape.points[0].y, shape.width, shape.height, shape.guid || this.generateGuid());
@@ -118,6 +118,10 @@ export class Diagram {
             let cplModel = model.connectPolylines[i];
             this.createConnectPolyline(cplModel.departureShapeGuid, cplModel.departureAnchorIndex, cplModel.destinationShapeGuid, cplModel.destinationAnchorIndex, cplModel.color, cplModel.type, cplModel.arguments, cplModel.dashed, cplModel.guid || this.generateGuid());
         }
+    }
+
+    public loadJson(json: string): void {
+        this.load(JSON.parse(json));
     }
 
     public findShapeByGuid(guid: string): Shape | null {

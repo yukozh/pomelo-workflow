@@ -1,15 +1,20 @@
 ﻿var lifecycleManager = require('/components/pomelo-workflow/lifecycleManager').lifecycleManager;
 
 Page({
+    layout: '/shared/layout',
     components: ['/components/pomelo-workflow/index'],
     style: true,
     data() {
         return {
-            active: 'design',
-            json: '',
+            workflow: null,
+            workflowVersion: null
         }
     },
-    created() {
+    async created() {
+        var workflows = await Pomelo.CQ.Get(`/api/workflow`);
+        this.workflow = workflows[0];
+        var versions = await Pomelo.CQ.Get(`/api/workflow/${this.workflow.id}/version`);
+        this.workflowVersion = await Pomelo.CQ.Get(`/api/workflow/${this.workflow.id}/version/${versions[versions.length - 1].version}`);
     },
     mounted() {
     },

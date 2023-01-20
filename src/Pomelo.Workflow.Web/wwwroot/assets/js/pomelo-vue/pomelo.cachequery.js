@@ -1,3 +1,6 @@
+// Copyright (c) Yuko(Yisheng) Zheng. All rights reserved.
+// Licensed under the MIT. See LICENSE in the project root for license information.
+
 if (window.Pomelo) {
     Pomelo.CQ = {};
 }
@@ -35,7 +38,8 @@ var PomeloCQ = (function (exports) {
         },
         onSucceeded: function (ret) {
             return Promise.resolve(ret);
-        }
+        },
+        baseUrl: null
     };
     _combineObject(window.CQOptions || {}, _options);
 
@@ -135,7 +139,7 @@ var PomeloCQ = (function (exports) {
         var self = this;
         return new Promise(function (resolve, reject) {
             _xhrRequest({
-                url: endpoint,
+                url: _options.baseUrl ? (_options.baseUrl + endpoint) : endpoint,
                 type: method,
                 dataType: dataType || 'json',
                 contentType: contentType || 'application/json',
