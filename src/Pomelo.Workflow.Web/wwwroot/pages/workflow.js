@@ -22,6 +22,16 @@ Page({
         add(node, width, height) {
             lifecycleManager.getById('diagram').addNode = { key: node, width: width, height: height };
             lifecycleManager.getById('diagram').mode = 'add';
+        },
+        async publish() {
+            var diagram = this.workflowVersion.diagram;
+            await Pomelo.CQ.Post(`/api/workflow/${this.workflow.id}/version`, diagram);
+            window.location.reload();
+        },
+        async start() {
+            var result = await Pomelo.CQ.Post(`/api/workflow/${this.workflow.id}/version/${this.workflowVersion.version}/instance`, {});
+            await Pomelo.CQ.Post(`/api/workflow/${this.workflow.id}/instance/${result.instanceId}/start`);
+            alert('Instance started: ' + result.instanceId);
         }
     }
 });

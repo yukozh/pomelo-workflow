@@ -40,6 +40,7 @@
         color: #666;
         padding: 0 20px;
         font-size: 20px;
+        text-decoration: none;
     }
 
         .header .tab.active {

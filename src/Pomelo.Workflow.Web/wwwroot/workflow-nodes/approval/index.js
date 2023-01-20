@@ -1,4 +1,4 @@
-Component('decision', {
+Component('approval', {
     style: true,
     props: ['shape', 'arguments'],
     data() {

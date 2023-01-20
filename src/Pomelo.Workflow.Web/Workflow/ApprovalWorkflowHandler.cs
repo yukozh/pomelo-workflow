@@ -19,11 +19,15 @@ namespace Pomelo.Workflow.Web.Workflow
             scope = services.CreateScope();
         }
 
-        public override Task OnPreviousStepFinishedAsync(
+        public override async Task OnPreviousStepFinishedAsync(
             IEnumerable<ConnectionTypeWithDeparture> stepStatuses,
             CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            if (CurrentStep.Status == StepStatus.NotStarted)
+            {
+                await WorkflowManager.UpdateWorkflowStepAsync(
+                    CurrentStep.Id, StepStatus.InProgress, null, null, cancellationToken);
+            }
         }
 
         public override async Task OnStepStatusChangedAsync(
@@ -37,7 +41,7 @@ namespace Pomelo.Workflow.Web.Workflow
                     var db = scope.ServiceProvider.GetRequiredService<WfContext>();
                     db.Approvals.Add(new Approval 
                     {
-                        Title = CurrentStep.Arguments["Title"].ToString(),
+                        Title = CurrentStep.Arguments?["Title"].ToString(),
                         StepId = CurrentStep.Id
                     });
                     await db.SaveChangesAsync(cancellationToken);
