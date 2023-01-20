@@ -41,7 +41,7 @@ namespace Pomelo.Workflow.Web.Workflow
                     var db = scope.ServiceProvider.GetRequiredService<WfContext>();
                     db.Approvals.Add(new Approval 
                     {
-                        Title = CurrentStep.Arguments?["Title"].ToString(),
+                        Title = CurrentStep.Arguments?["Title"]?.ToString(),
                         StepId = CurrentStep.Id
                     });
                     await db.SaveChangesAsync(cancellationToken);
