@@ -4,17 +4,17 @@
         <a class="start-node-anchor-arrow" v-bind:class="{ active: $parent.connectFrom == anchor, connecting: $parent.mode == 'connect' }" v-on:click="link(anchor)" pomelo-wf-anchor v-bind:style="'color: ' + shape.diagram.connectPolylines.filter(x => x.getDestinationAnchor() == anchor)[0].getColor()" v-if="shape.diagram.connectPolylines.some(x => x.getDestinationAnchor() == anchor)" v-bind:style="`top: ${anchor.yPercentage * 100}%; left: ${anchor.xPercentage * 100}%; transform: rotate(${90 * i}deg);`">▼</a>
         <a class="start-node-anchor" v-bind:class="{ active: $parent.connectFrom == anchor, connecting: $parent.mode == 'connect' }" v-on:click="link(anchor)" pomelo-wf-anchor v-else-if="active || $parent.mode == 'connect'" v-bind:style="`top: ${anchor.yPercentage * 100}%; left: ${anchor.xPercentage * 100}%`"></a>
     </template>
-</div>
-<div class="start-node-settings" v-if="active">
-    <div class="start-node-settings-header">
-        <svg t="1672653702709" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5751" width="40" height="40"><path d="M380.677 176.279l390.182 225.272c85.024 49.089 85.024 171.81 0 220.899L380.677 847.721c-85.024 49.089-191.304-12.272-191.304-110.449V286.728c0-98.177 106.28-159.538 191.304-110.449z" fill="#FF7B15" p-id="5752"></path></svg>
-        <span>Start</span>
-    </div>
-    <div class="start-node-settings-body">
-        <div class="start-node-settings-body-section-title">Name</div>
-        <div><input class="start-node-settings-body-textbox" v-model="shape.name" placeholder="Please input name..." /></div>
-    </div>
-    <div class="start-node-settings-footer">
-        <a class="start-node-settings-footer-button" v-on:click="blur">OK</a>
+    <div class="start-node-settings" v-if="active && !$parent.dragStart">
+        <div class="start-node-settings-header">
+            <svg t="1672653702709" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5751" width="40" height="40"><path d="M380.677 176.279l390.182 225.272c85.024 49.089 85.024 171.81 0 220.899L380.677 847.721c-85.024 49.089-191.304-12.272-191.304-110.449V286.728c0-98.177 106.28-159.538 191.304-110.449z" fill="#FF7B15" p-id="5752"></path></svg>
+            <span>Start</span>
+        </div>
+        <div class="start-node-settings-body">
+            <div class="start-node-settings-body-section-title">Name</div>
+            <div><input class="start-node-settings-body-textbox" v-model="shape.name" placeholder="Please input name..." /></div>
+        </div>
+        <div class="start-node-settings-footer">
+            <a class="start-node-settings-footer-button" v-on:click="blur">OK</a>
+        </div>
     </div>
 </div>

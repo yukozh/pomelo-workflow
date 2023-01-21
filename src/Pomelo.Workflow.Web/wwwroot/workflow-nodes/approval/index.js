@@ -28,6 +28,17 @@ Component('approval', {
                 return;
             }
 
+            var target = event.target;
+            while (target != null) {
+                for (var i = 0; i < target.classList.length; ++i) {
+                    if (target.classList[0].indexOf('settings') >= 0) {
+                        return;
+                    }
+                }
+
+                target = target.parentElement;
+            }
+
             this.$parent.active = this.shape;
         },
         link(anchor) {

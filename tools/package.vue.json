@@ -1,6 +1,6 @@
 {
   "name": "pomelo-workflow-pomelo-vue",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Pomelo customize workflow library for pomelo-vue",
   "main": "index.js",
   "bin": {

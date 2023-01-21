@@ -162,6 +162,7 @@ Component('pomelo-workflow', {
                 return;
             }
             shape.move({ x: shape.points[0].x + offset.x, y: shape.points[0].y + offset.y });
+            this.dragStart = null;
         },
         link(anchor, color, type, args) {
             color = color || '#56a333';
