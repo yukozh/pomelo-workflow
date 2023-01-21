@@ -1,0 +1,29 @@
+﻿<div class="sidebar">
+</div>
+<div class="main">
+    <table class="instances-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="approval in approvals">
+                <td>{{ approval.id }}</td>
+                <td>{{ approval.status }}</td>
+                <td>{{ approval.createdAt }}</td>
+                <td>{{ approval.updatedAt }}</td>
+                <td>
+                    <template v-if="approval.status == 'Pending'">
+                        <a class="action-button" v-on:click="approve(approval)">Approve</a>
+                        <a class="action-button" v-on:click="reject(approval)">Reject</a>
+                    </template>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

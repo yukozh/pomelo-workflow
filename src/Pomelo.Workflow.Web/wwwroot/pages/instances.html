@@ -1,0 +1,24 @@
+﻿<div class="sidebar">
+</div>
+<div class="main">
+    <table class="instances-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="instance in instances">
+                <td>{{ instance.id }}</td>
+                <td>{{ instance.status }}</td>
+                <td>{{ instance.createdAt }}</td>
+                <td>
+                    <a v-bind:href="`/instances/${instance.id}`">View</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

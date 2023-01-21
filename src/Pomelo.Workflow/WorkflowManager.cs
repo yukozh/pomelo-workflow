@@ -346,9 +346,9 @@ namespace Pomelo.Workflow
                         currentStepHandler = await CreateHandlerAsync(step, cancellationToken);
                     }
 
-                    foreach (var shape in shapes)
+                    foreach (var connection in connections)
                     {
-                        var connection = connections.First(x => x.DestinationShapeGuid == shape.ToObject<Shape>().Guid);
+                        var shape = shapes.First(x => x.ToObject<Shape>().Guid == connection.DestinationShapeGuid);
 
                         if (!await currentStepHandler.IsAbleToMoveNextAsync(new ConnectionType
                         {
@@ -370,6 +370,12 @@ namespace Pomelo.Workflow
                                 Type = shape.ToObject<Shape>().Node,
                                 WorkflowInstanceId = instance.Id,
                                 ShapeId = shape.ToObject<Shape>().Guid
+                            }, cancellationToken);
+
+                            await storage.CreateWorkflowInstanceConnectionAsync(new WorkflowInstanceConnection 
+                            {
+                                ConnectPolylineId = connection.Guid,
+                                InstanceId = instance.Id,
                             }, cancellationToken);
                         }
 
@@ -415,16 +421,37 @@ namespace Pomelo.Workflow
             var connections = diagram.ConnectPolylines
                 .Where(x => x.DestinationShapeGuid == currentShapeId)
                 .ToList();
+            var instanceConnections = await storage.GetWorkflowInstanceConnectionsAsync(instance.Id, cancellationToken);
 
-            return connections.Select(x => new ConnectionTypeWithDeparture 
+            var ret = new List<ConnectionTypeWithDeparture>(connections.Count);
+            foreach(var connection in connections)
             {
-                ConnectionArguments = x.Arguments,
-                Type = x.Type,
-                DepartureShapeGuid = x.DepartureShapeGuid,
-                DepartureShape = shapes.First(y => y.Guid == x.DepartureShapeGuid),
-                DepartureStepId = steps.FirstOrDefault(y => y.ShapeId == x.DepartureShapeGuid)?.Id,
-                DepartureStep = steps.FirstOrDefault(y => y.ShapeId == x.DepartureShapeGuid)
-            });
+                if (instanceConnections.Any(x => x.ConnectPolylineId == connection.Guid))
+                {
+                    ret.Add(new ConnectionTypeWithDeparture
+                    {
+                        ConnectionArguments = connection.Arguments,
+                        Type = connection.Type,
+                        DepartureShapeGuid = connection.DepartureShapeGuid,
+                        DepartureShape = shapes.First(y => y.Guid == connection.DepartureShapeGuid),
+                        DepartureStepId = steps.FirstOrDefault(y => y.ShapeId == connection.DepartureShapeGuid)?.Id,
+                        DepartureStep = steps.FirstOrDefault(y => y.ShapeId == connection.DepartureShapeGuid)
+                    });
+                }
+                else
+                {
+                    ret.Add(new ConnectionTypeWithDeparture
+                    {
+                        ConnectionArguments = connection.Arguments,
+                        Type = connection.Type,
+                        DepartureShapeGuid = connection.DepartureShapeGuid,
+                        DepartureShape = shapes.First(y => y.Guid == connection.DepartureShapeGuid),
+                        DepartureStepId = null,
+                        DepartureStep = null
+                    });
+                }
+            }
+            return ret;
         }
 
         public async Task<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
@@ -527,13 +554,14 @@ namespace Pomelo.Workflow
                 connection.Dashed = true;
             }
 
+            var instanceConnections = await storage.GetWorkflowInstanceConnectionsAsync(instance.Id, cancellationToken);
             foreach(var step in steps)
             {
                 if (step.Status >= StepStatus.Failed)
                 {
                     foreach (var connection in diagram.ConnectPolylines.Where(x => x.DepartureShapeGuid == step.ShapeId))
                     {
-                        if (steps.Any(x => x.ShapeId == connection.DestinationShapeGuid))
+                        if (instanceConnections.Any(x => x.ConnectPolylineId == connection.Guid))
                         {
                             connection.Dashed = false;
                         }

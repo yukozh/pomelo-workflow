@@ -1,0 +1,50 @@
+﻿.node-item {
+    display: block;
+    color: #777;
+    cursor: pointer;
+}
+
+.node-item > * {
+    vertical-align: middle;
+    font-size: 16px;
+}
+
+.node-item > svg {
+    height: 32px;
+}
+
+.menu {
+    position: fixed;
+    left: 280px;
+    top: 70px;
+    right: 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.menu-button {
+    color: #777;
+    cursor: pointer;
+    line-height: 40px;
+    padding: 0 10px;
+    display: inline-block;
+}
+
+.menu-button > * {
+    vertical-align: middle;
+}
+
+    .menu-button > svg {
+        width: 32px;
+        height: 32px;
+        fill: #777;
+        margin-right: 5px;
+    }
+
+    .menu-button:hover {
+        color: #fff;
+        background: #EE8236;
+    }
+
+    .menu-button:hover svg {
+        fill: #fff;
+    }

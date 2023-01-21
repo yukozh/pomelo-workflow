@@ -1,0 +1,9 @@
+﻿.instances-table {
+    margin: 15px;
+    width: calc(100% - 30px);
+    border-collapse: collapse;
+}
+
+.instances-table th {
+    text-align: left;
+}

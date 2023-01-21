@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using Pomelo.Workflow.Models.EntityFramework;
 
 namespace Pomelo.Workflow.Models
 {
@@ -29,5 +30,7 @@ namespace Pomelo.Workflow.Models
         public WorkflowStatus Status { get; set; }
 
         public Dictionary<string, JToken> Arguments { get; set; }
+
+        public virtual ICollection<DbWorkflowInstanceConnection> Connections { get; set; }
     }
 }

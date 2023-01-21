@@ -20,6 +20,8 @@ namespace Pomelo.Workflow.Tests
 
         public DbSet<DbStep> WorkflowInstanceSteps { get; set; }
 
+        public DbSet<DbWorkflowInstanceConnection> WorkflowInstanceConnections { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -30,7 +32,7 @@ namespace Pomelo.Workflow.Tests
         {
             base.OnConfiguring(optionsBuilder);
 
-            var connStr = "Server=localhost;Uid=root;Pwd=123456;Database=wf-test";
+            var connStr = "Server=localhost;Uid=root;Pwd=123456;Database=wf-unittest";
             optionsBuilder.UseMySql(connStr, ServerVersion.AutoDetect(connStr));
         }
     }

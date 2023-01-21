@@ -17,6 +17,7 @@ Page({
         this.workflowVersion = await Pomelo.CQ.Get(`/api/workflow/${this.workflow.id}/version/${versions[versions.length - 1].version}`);
     },
     mounted() {
+        this.$root.active = 'workflow';
     },
     methods: {
         add(node, width, height) {
@@ -32,6 +33,7 @@ Page({
             var result = await Pomelo.CQ.Post(`/api/workflow/${this.workflow.id}/version/${this.workflowVersion.version}/instance`, {});
             await Pomelo.CQ.Post(`/api/workflow/${this.workflow.id}/instance/${result.instanceId}/start`);
             alert('Instance started: ' + result.instanceId);
+            Pomelo.Redirect(`/instances/${result.instanceId}`);
         }
     }
 });

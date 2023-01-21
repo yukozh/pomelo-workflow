@@ -16,7 +16,7 @@ namespace Pomelo.Workflow.Tests
             var collection = new ServiceCollection();
             collection.AddDbContext<WfContext>(x =>
             {
-                var connStr = "Server=localhost;Uid=root;Pwd=123456;Database=wf-test";
+                var connStr = "Server=localhost;Uid=root;Pwd=123456;Database=wf-unittest";
                 x.UseMySql(connStr, ServerVersion.AutoDetect(connStr), opt =>
                 {
                     opt.UseNewtonsoftJson();

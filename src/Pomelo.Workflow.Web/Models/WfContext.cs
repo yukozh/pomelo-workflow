@@ -21,6 +21,7 @@ namespace Pomelo.Workflow.Web.Models
         public DbSet<DbWorkflowInstance> WorkflowInstances { get; set; }
 
         public DbSet<DbStep> WorkflowInstanceSteps { get; set; }
+        public DbSet<DbWorkflowInstanceConnection> WorkflowInstanceConnections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,5 +1,6 @@
 ﻿{
   "/": "/pages/workflow",
   "/instances": "/pages/instances",
+  "/instances/{id}": "/pages/instance",
   "/approvals": "/pages/approvals"
 }

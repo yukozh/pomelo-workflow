@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Pomelo.Workflow.Models;
 using Pomelo.Workflow.Models.ViewModels;
 using Newtonsoft.Json.Linq;
+using System.ComponentModel;
 
 namespace Pomelo.Workflow.Storage
 {
@@ -114,6 +115,14 @@ namespace Pomelo.Workflow.Storage
         Task<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
             Guid workflowId,
             int? version,
+            CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<WorkflowInstanceConnection>> GetWorkflowInstanceConnectionsAsync(
+            Guid instanceId,
+            CancellationToken cancellationToken = default);
+
+        Task CreateWorkflowInstanceConnectionAsync(
+            WorkflowInstanceConnection request, 
             CancellationToken cancellationToken = default);
     }
 }

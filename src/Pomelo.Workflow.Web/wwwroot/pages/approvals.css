@@ -1,0 +1,15 @@
+﻿.instances-table {
+    margin: 15px;
+    width: calc(100% - 30px);
+    border-collapse: collapse;
+}
+
+.instances-table th {
+    text-align: left;
+}
+
+.action-button {
+    color: #1A76C6;
+    margin-right: 5px;
+    cursor: pointer;
+}

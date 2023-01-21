@@ -49,6 +49,22 @@ namespace Pomelo.Workflow.Web.Workflow
             }
         }
 
+        public override Task<bool> IsAbleToMoveNextAsync(
+            ConnectionType connectionToNextStep,
+            Shape currentNode,
+            Shape nextNode,
+            CancellationToken cancellationToken = default)
+        {
+            if (connectionToNextStep.Type == "yes")
+            {
+                return Task.FromResult(CurrentStep.Status == StepStatus.Succeeded);
+            }
+            else
+            {
+                return Task.FromResult(CurrentStep.Status == StepStatus.Failed);
+            }
+        }
+
         public override void Dispose()
         {
             base.Dispose();

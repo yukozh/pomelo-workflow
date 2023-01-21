@@ -365,6 +365,23 @@ namespace Pomelo.Workflow.Storage
                 })
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<IEnumerable<WorkflowInstanceConnection>> GetWorkflowInstanceConnectionsAsync(
+            Guid instanceId,
+            CancellationToken cancellationToken = default)
+            => await db.WorkflowInstanceConnections
+                .Where(x => x.InstanceId == instanceId)
+                .ToListAsync(cancellationToken);
+
+        public async Task CreateWorkflowInstanceConnectionAsync(WorkflowInstanceConnection request, CancellationToken cancellationToken = default)
+        {
+            db.WorkflowInstanceConnections.Add(new DbWorkflowInstanceConnection 
+            { 
+                ConnectPolylineId = request.ConnectPolylineId,
+                InstanceId = request.InstanceId
+            });
+            await db.SaveChangesAsync(cancellationToken);
+        }
     }
 
     public static class DbWorkflowStorageProviderExtensions
@@ -388,8 +405,14 @@ namespace Pomelo.Workflow.Storage
             builder.Entity<DbWorkflowInstance>(e =>
             {
                 e.HasIndex(x => new { x.WorkflowId, x.WorkflowVersion });
-                e.HasMany(x => x.Steps).WithOne(x => x.WorkflowInstance);
                 e.Property(x => x.Arguments).HasColumnType("json");
+                e.HasMany(x => x.Steps).WithOne(x => x.WorkflowInstance);
+                e.HasMany(x => x.Connections).WithOne(x => x.WorkflowInstance);
+            });
+
+            builder.Entity<DbWorkflowInstanceConnection>(e =>
+            {
+                e.HasKey(x => new { x.InstanceId, x.ConnectPolylineId });
             });
 
             builder.Entity<DbStep>(e =>
