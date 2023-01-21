@@ -128,7 +128,8 @@ style="fill:none;stroke:${this.diagram.getConfig().shapeStrokeColor};stroke-widt
                 yPercentage: anchor.yPercentage
             })),
             node: this.node,
-            arguments: this.arguments
+            arguments: this.arguments,
+            name: this.name
         };
     }
 }

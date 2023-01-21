@@ -109,6 +109,7 @@ export class Diagram {
                 : this.createRect(shape.points[0].x, shape.points[0].y, shape.width, shape.height, shape.guid || this.generateGuid());
             shapeInstance.node = shape.node;
             shapeInstance.arguments = shape.arguments;
+            shapeInstance.name = shape.name;
             for (let j = 0; j < shape.anchors.length; ++j) {
                 shapeInstance.createAnchor(shape.anchors[j].xPercentage, shape.anchors[j].yPercentage);
             }

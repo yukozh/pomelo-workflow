@@ -17,6 +17,10 @@ Component('approval', {
             this.shape.createAnchor(.5, 1);
             this.shape.createAnchor(0, .5);
         }
+
+        if (!this.shape.arguments) {
+            this.shape.arguments = { Title: null };
+        }
     },
     methods: {
         onClicked() {
@@ -43,6 +47,9 @@ Component('approval', {
             } else {
                 this.$parent.link(anchor);
             }
+        },
+        blur() {
+            this.$parent.cancelOperations();
         }
     }
 });

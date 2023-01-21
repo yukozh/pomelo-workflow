@@ -4,7 +4,7 @@ var rand = require('./rand').rand;
 var pomeloWfConfig = require('/assets/js/pomelo-wf.config');
 
 var components = '';
-var component = '<{COMPONENT_NAME} class="pomelo-wf-node" v-if="shape.node == \'{COMPONENT_NAME}\'" v-bind:arguments=\'shape.arguments\' v-bind:shape=\'shape\' draggable=\"true\" @dragstart="onDragStart($event, shape)" @dragend="onDragEnd($event, shape)" \/>';
+var component = '<{COMPONENT_NAME} class="pomelo-wf-node" v-if="shape.node == \'{COMPONENT_NAME}\'" v-bind:arguments=\'shape.arguments\' v-model:shape=\'shape\' draggable=\"true\" @dragstart="onDragStart($event, shape)" @dragend="onDragEnd($event, shape)" \/>';
 for (var i = 0; i < pomeloWfConfig.nodes.length; ++i) {
     components += component.replaceAll('{COMPONENT_NAME}', pomeloWfConfig.nodes[i].key);
 }

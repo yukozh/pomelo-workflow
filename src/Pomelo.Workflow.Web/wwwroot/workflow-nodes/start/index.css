@@ -43,3 +43,61 @@
 .start-node-anchor.active {
     background: #FF7B15!important;
 }
+
+.start-node-settings {
+    position: fixed;
+    top: 140px;
+    bottom: 30px;
+    right: 30px;
+    width: 280px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,.1);
+    z-index: 10;
+}
+
+.start-node-settings-header {
+    border-bottom: 1px solid #ddd;
+    height: 40px;
+    padding: 10px;
+}
+
+.start-node-settings-header > * {
+    vertical-align: middle;
+}
+
+.start-node-settings-footer {
+    position: absolute;
+    border-top: 1px solid #ddd;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px 10px;
+}
+
+.start-node-settings-footer-button {
+    background: #EE8236;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    padding: 5px 8px;
+}
+
+.start-node-settings-body {
+    padding: 10px;
+}
+
+.start-node-settings-body-section-title {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.start-node-settings-body-textbox {
+    display: block;
+    box-sizing: border-box;
+    outline: 0;
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    width: 100%;
+}

@@ -5,6 +5,7 @@
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Title</th>
                 <th>Status</th>
                 <th>Created At</th>
                 <th>Updated At</th>
@@ -14,6 +15,7 @@
         <tbody>
             <tr v-for="approval in approvals">
                 <td>{{ approval.id }}</td>
+                <td>{{ approval.title }}</td>
                 <td>{{ approval.status }}</td>
                 <td>{{ approval.createdAt }}</td>
                 <td>{{ approval.updatedAt }}</td>

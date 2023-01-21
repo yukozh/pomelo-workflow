@@ -38,6 +38,7 @@ export class Shape extends PolylineBase {
     public diagram: Diagram;
     public node: string;
     public arguments: object;
+    public name: string;
 
     public constructor(points: Point[], guid: string | null = null, diagram: Diagram | null = null) {
         super();
@@ -162,7 +163,8 @@ style="fill:none;stroke:${this.diagram.getConfig().shapeStrokeColor};stroke-widt
                 yPercentage: anchor.yPercentage
             }),
             node: this.node,
-            arguments: this.arguments
+            arguments: this.arguments,
+            name: this.name
         }
     }
 }

@@ -6,17 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="wwwroot\components\pomelo-workflow\pomelo-workflow\**" />
-    <Compile Remove="wwwroot\node\**" />
-    <Content Remove="wwwroot\components\pomelo-workflow\pomelo-workflow\**" />
-    <Content Remove="wwwroot\node\**" />
-    <EmbeddedResource Remove="wwwroot\components\pomelo-workflow\pomelo-workflow\**" />
-    <EmbeddedResource Remove="wwwroot\node\**" />
-    <None Remove="wwwroot\components\pomelo-workflow\pomelo-workflow\**" />
-    <None Remove="wwwroot\node\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.13" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql.Json.Newtonsoft" Version="6.0.2" />

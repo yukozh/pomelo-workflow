@@ -33,6 +33,9 @@ Component('finish', {
             } else {
                 this.$parent.link(anchor);
             }
+        },
+        blur() {
+            this.$parent.cancelOperations();
         }
     }
 });

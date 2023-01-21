@@ -33,6 +33,9 @@ Component('start', {
                 alert('This node cannot be destination');
                 this.$parent.cancelOperations();
             }
+        },
+        blur() {
+            this.$parent.cancelOperations();
         }
     }
 });
