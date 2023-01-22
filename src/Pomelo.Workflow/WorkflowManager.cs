@@ -261,7 +261,7 @@ namespace Pomelo.Workflow
             return version;
         }
 
-        public async Task<StartNewInstanceResult> CreateNewWorkflowInstanceAsync(
+        public virtual async Task<StartNewInstanceResult> CreateNewWorkflowInstanceAsync(
             Guid workflowId,
             int version,
             Dictionary<string, JToken> arguments,
@@ -294,7 +294,7 @@ namespace Pomelo.Workflow
             };
         }
 
-        public async Task<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
+        public virtual async Task<UpdateWorkflowStepResult> UpdateWorkflowStepAsync(
             Guid stepId,
             StepStatus status,
             Action<Dictionary<string, JToken>> updateArgumentsDelegate,
@@ -406,7 +406,7 @@ namespace Pomelo.Workflow
             return result;
         }
 
-        public async Task<IEnumerable<ConnectionTypeWithDeparture>> GetPreviousStepsAsync(
+        public virtual async Task<IEnumerable<ConnectionTypeWithDeparture>> GetPreviousStepsAsync(
             Guid stepId, 
             CancellationToken cancellationToken = default)
         {
@@ -454,7 +454,7 @@ namespace Pomelo.Workflow
             return ret;
         }
 
-        public async Task<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
+        public virtual async Task<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
             Guid instanceId,
             WorkflowStatus status,
             Action<Dictionary<string, JToken>> updateArgumentsDelegate,
@@ -466,7 +466,7 @@ namespace Pomelo.Workflow
             return result;
         }
 
-        public async Task StartWorkflowInstanceAsync(
+        public virtual async Task StartWorkflowInstanceAsync(
             Guid instanceId, 
             CancellationToken cancellationToken = default)
         {
@@ -502,12 +502,12 @@ namespace Pomelo.Workflow
                 cancellationToken);
         }
 
-        public async Task<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
+        public virtual async Task<IEnumerable<WorkflowInstanceStep>> GetInstanceStepsAsync(
             Guid instanceId,
             CancellationToken cancellationToken = default)
             => await storage.GetInstanceStepsAsync(instanceId, cancellationToken);
 
-        public async Task<InstanceDiagram> GetInstanceDiagramAsync(
+        public virtual async Task<InstanceDiagram> GetInstanceDiagramAsync(
             Guid instanceId,
             CancellationToken cancellationToken = default)
         {
@@ -578,13 +578,19 @@ namespace Pomelo.Workflow
             return diagram;
         }
 
-        public async Task<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
+        public virtual async Task<IEnumerable<GetWorkflowInstanceResult>> GetWorkflowInstancesAsync(
             Guid workflowId,
             int? version,
             CancellationToken cancellationToken = default)
             => await storage.GetWorkflowInstancesAsync(workflowId, version, cancellationToken);
 
-        protected async Task<WorkflowHandlerBase> CreateHandlerAsync(
+        public virtual async Task<WorkflowInstance> GetWorkflowInstanceAsync(
+            Guid workflowId,
+            int? version,
+            CancellationToken cancellationToken = default)
+            => await storage.GetWorkflowInstanceAsync(workflowId, cancellationToken);
+
+        protected virtual async Task<WorkflowHandlerBase> CreateHandlerAsync(
             WorkflowInstanceStep step, 
             CancellationToken cancellationToken = default)
         {
@@ -602,13 +608,13 @@ namespace Pomelo.Workflow
             return (WorkflowHandlerBase)Activator.CreateInstance(handlerType, services, this, step);
         }
 
-        protected Type GetHandlerType(string name)
+        protected virtual Type GetHandlerType(string name)
             => AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.DefinedTypes)
                 .Where(x => x != null && x.IsClass && x.GetCustomAttribute<WorkflowHandlerAttribute>(true)?.Type == name)
                 .First();
 
-        protected Shape GetStepShape(WorkflowInstanceStep step, Diagram diagram)
+        protected virtual Shape GetStepShape(WorkflowInstanceStep step, Diagram diagram)
             => diagram.Shapes.FirstOrDefault(x => x.ToObject<Shape>().Guid == step.ShapeId)?.ToObject<Shape>();
 
         private Dictionary<string, JToken> MergeArguments(
