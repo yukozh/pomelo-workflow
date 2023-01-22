@@ -586,7 +586,6 @@ namespace Pomelo.Workflow
 
         public virtual async Task<WorkflowInstance> GetWorkflowInstanceAsync(
             Guid workflowId,
-            int? version,
             CancellationToken cancellationToken = default)
             => await storage.GetWorkflowInstanceAsync(workflowId, cancellationToken);
 
