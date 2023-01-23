@@ -109,7 +109,9 @@ Component('pomelo-workflow', {
         onMouseMoved(e) {
             var base = document.querySelector('#' + this.id);
             var rect = base.getBoundingClientRect();
-            var position = { x: e.x - rect.left, y: e.y - rect.top };
+            var scrollTop = base.scrollTop;
+            var scrollLeft = base.scrollLeft;
+            var position = { x: e.x - rect.left + scrollLeft, y: e.y - rect.top + scrollTop };
             this.mousePosition = position;
             this.$forceUpdate();
         },
