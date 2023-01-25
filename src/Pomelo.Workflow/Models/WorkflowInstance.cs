@@ -12,7 +12,8 @@ namespace Pomelo.Workflow.Models
     {
         NotStarted,
         InProgress,
-        Finished
+        Finished,
+        Error
     }
 
     public class WorkflowInstance

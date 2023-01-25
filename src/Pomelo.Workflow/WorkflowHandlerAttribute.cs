@@ -9,9 +9,12 @@ namespace Pomelo.Workflow
     {
         public string Type { get; private set; }
 
-        public WorkflowHandlerAttribute(string type)
+        public int Priority { get; private set; }
+
+        public WorkflowHandlerAttribute(string type, int priority = 0)
         {
             Type = type;
+            Priority = priority;
         }
     }
 }
