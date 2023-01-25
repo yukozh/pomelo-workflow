@@ -311,6 +311,11 @@ namespace Pomelo.Workflow
                 var result = await storage
                     .UpdateWorkflowStepAsync(stepId, status, updateArgumentsDelegate, error, cancellationToken);
 
+                if (status >= StepStatus.Failed)
+                {
+                    await OnWorkflowStepFinishedAsync(stepId, instanceId.Value, step.Status, cancellationToken);
+                }
+
                 WorkflowHandlerBase currentStepHandler = null;
                 if (result.PreviousStatus != result.NewStatus)
                 {
@@ -473,6 +478,11 @@ namespace Pomelo.Workflow
         {
             var result = await storage
                 .UpdateWorkflowInstanceAsync(instanceId, status, updateArgumentsDelegate, cancellationToken);
+
+            if (status > WorkflowStatus.InProgress)
+            {
+                await OnWorkflowFinishedAsync(instanceId, status, cancellationToken);
+            }
 
             return result;
         }
@@ -676,6 +686,23 @@ namespace Pomelo.Workflow
 
         protected virtual Shape GetStepShape(WorkflowInstanceStep step, Diagram diagram)
             => diagram.Shapes.FirstOrDefault(x => x.ToObject<Shape>().Guid == step.ShapeId)?.ToObject<Shape>();
+
+        protected virtual Task OnWorkflowFinishedAsync(
+            Guid instanceId,
+            WorkflowStatus status,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        protected virtual Task OnWorkflowStepFinishedAsync(
+            Guid stepId,
+            Guid instanceId,
+            StepStatus status,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
 
         private Dictionary<string, JToken> MergeArguments(
             Dictionary<string, JToken> args1,
