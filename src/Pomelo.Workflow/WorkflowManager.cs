@@ -412,7 +412,7 @@ namespace Pomelo.Workflow
             }
             catch (Exception ex)
             {
-                await OnExcetionCatchedAsync(ex, instanceId, cancellationToken);
+                await OnExceptionCatchedAsync(ex, instanceId, cancellationToken);
                 return null;
             }
         }
@@ -477,7 +477,7 @@ namespace Pomelo.Workflow
             return result;
         }
 
-        public virtual async Task OnExcetionCatchedAsync(
+        public virtual async Task OnExceptionCatchedAsync(
             Exception ex,
             Guid? instanceId = null,
             CancellationToken cancellationToken = default)
