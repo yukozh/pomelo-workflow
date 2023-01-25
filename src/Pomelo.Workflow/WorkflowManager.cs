@@ -370,7 +370,7 @@ namespace Pomelo.Workflow
                             }
 
                             // 4. Create or get next step
-                            var nextStepId = (await storage.GetStepByShapeId(instance.Id, shape.ToObject<Shape>().Guid, cancellationToken))?.Id;
+                            var nextStepId = (await storage.GetStepByShapeIdAsync(instance.Id, shape.ToObject<Shape>().Guid, cancellationToken))?.Id;
                             if (!nextStepId.HasValue)
                             {
                                 nextStepId = await storage.CreateWorkflowStepAsync(instance.Id, new WorkflowInstanceStep
@@ -523,7 +523,7 @@ namespace Pomelo.Workflow
             var diagram = workflowVersion.Diagram;
             var startShape = diagram.Shapes.FirstOrDefault(x => x.ToObject<Shape>().Node == "start");
 
-            var startStep = await storage.GetStepByShapeId(instanceId, startShape.ToObject<Shape>().Guid, cancellationToken);
+            var startStep = await storage.GetStepByShapeIdAsync(instanceId, startShape.ToObject<Shape>().Guid, cancellationToken);
 
             await UpdateWorkflowInstanceAsync(
                 instanceId,

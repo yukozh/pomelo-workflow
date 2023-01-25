@@ -91,7 +91,7 @@ namespace Pomelo.Workflow.Storage
             string error = null,
             CancellationToken cancellationToken = default);
 
-        Task<WorkflowInstanceStep> GetStepByShapeId(
+        Task<WorkflowInstanceStep> GetStepByShapeIdAsync(
             Guid instanceId,
             Guid shapeId,
             CancellationToken cancellationToken = default);

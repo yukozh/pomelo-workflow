@@ -279,7 +279,7 @@ namespace Pomelo.Workflow.Storage
             return ret;
         }
 
-        public async Task<WorkflowInstanceStep> GetStepByShapeId(
+        public async Task<WorkflowInstanceStep> GetStepByShapeIdAsync(
             Guid instanceId, 
             Guid shapeId, 
             CancellationToken cancellationToken = default)
