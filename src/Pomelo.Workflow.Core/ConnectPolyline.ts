@@ -19,7 +19,6 @@ class bfsState {
         }
         this.path.points.push(newPoint);
         this.depth = depth;
-        console.log(this.path.points);
     }
 }
 
