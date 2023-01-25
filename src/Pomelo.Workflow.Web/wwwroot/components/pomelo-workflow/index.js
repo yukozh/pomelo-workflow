@@ -227,10 +227,15 @@ Component('pomelo-workflow', {
                 return;
             }
 
-            if (this.active && e.key == 'Delete') {
+            if (e.key == 'Delete') {
+                this.deleteSelectedElement();
+                return;
+            }
+        },
+        deleteSelectedElement() {
+            if (this.active) {
                 this.active.remove();
                 this.active = null;
-                return;
             }
         },
         cancelOperations() {
@@ -240,6 +245,7 @@ Component('pomelo-workflow', {
             this.active = null;
             this.connectInfo = null;
             this.mode = 'view';
+            this.addNode = null;
         },
         isDeparture() {
             return this.connectFrom == null;

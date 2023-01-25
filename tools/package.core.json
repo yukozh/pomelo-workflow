@@ -1,6 +1,6 @@
 {
   "name": "pomelo-workflow-core",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Pomelo customize workflow library",
   "main": "pomelo.workflow.js",
   "bin": {
