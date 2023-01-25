@@ -30,3 +30,39 @@
 svg, svg * {
     pointer-events: all!important;
 }
+
+.pomelo-wf-placeholder {
+    position: absolute;
+    background: rgb(128,128,128,.6);
+    z-index: 10;
+}
+
+.pomelo-wf-container.adding {
+    cursor: crosshair !important;
+}
+
+.pomelo-wf-suggestion-x {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    border: 1px dashed #4785F7;
+}
+
+.pomelo-wf-suggestion-x {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0.01px;
+    border: 1px dashed #4785F7;
+    z-index: 10;
+}
+
+.pomelo-wf-suggestion-y {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 0.01px;
+    border: 1px dashed #4785F7;
+    z-index: 10;
+}

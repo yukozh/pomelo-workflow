@@ -19,6 +19,7 @@ class bfsState {
         }
         this.path.points.push(newPoint);
         this.depth = depth;
+        console.log(this.path.points);
     }
 }
 
@@ -172,12 +173,12 @@ export class ConnectPolyline extends PolylineBase {
         this.originalShapeSegments = segments;
 
         segments = [];
-        for (let i = 0; i < connectPolylines.length; ++i) {
-            let _segments = ConnectPolyline.polylineToSegments(connectPolylines[i]);
-            for (let j = 0; j < _segments.length; ++j) {
-                segments.push(_segments[j]);
-            }
-        }
+        //for (let i = 0; i < connectPolylines.length; ++i) {
+        //    let _segments = ConnectPolyline.polylineToSegments(connectPolylines[i]);
+        //    for (let j = 0; j < _segments.length; ++j) {
+        //        segments.push(_segments[j]);
+        //    }
+        //}
         this.polylineSegments = segments;
         this.elementSegments = this.polylineSegments.concat(this.expandedShapeSegments);
     }
@@ -290,29 +291,33 @@ export class ConnectPolyline extends PolylineBase {
         let absX = Math.abs(this.destinationPoint.x - point.x);
         let absY = Math.abs(this.destinationPoint.y - point.y);
 
+        if (path.points.length == 1) {
+            orientations.push(Orientation.getOrientationFromTwoPoints(this.departure.toPoint(), path.points[0]));
+        }
+
         if (absX > absY) {
             if (this.destinationPoint.x - point.x > 0) {
-                orientations.push(AbsoluteOrientation.Right);
+                if (orientations.indexOf(AbsoluteOrientation.Right) == -1) orientations.push(AbsoluteOrientation.Right);
             } else {
-                orientations.push(AbsoluteOrientation.Left);
+                if (orientations.indexOf(AbsoluteOrientation.Left) == -1) orientations.push(AbsoluteOrientation.Left);
             }
 
             if (this.destinationPoint.y - point.y > 0) {
-                orientations.push(AbsoluteOrientation.Bottom);
+                if (orientations.indexOf(AbsoluteOrientation.Bottom) == -1) orientations.push(AbsoluteOrientation.Bottom);
             } else {
-                orientations.push(AbsoluteOrientation.Top);
+                if (orientations.indexOf(AbsoluteOrientation.Top) == -1) orientations.push(AbsoluteOrientation.Top);
             }
         } else {
             if (this.destinationPoint.y - point.y > 0) {
-                orientations.push(AbsoluteOrientation.Bottom);
+                if (orientations.indexOf(AbsoluteOrientation.Bottom) == -1) orientations.push(AbsoluteOrientation.Bottom);
             } else {
-                orientations.push(AbsoluteOrientation.Top);
+                if (orientations.indexOf(AbsoluteOrientation.Top) == -1) orientations.push(AbsoluteOrientation.Top);
             }
 
             if (this.destinationPoint.x - point.x > 0) {
-                orientations.push(AbsoluteOrientation.Right);
+                if (orientations.indexOf(AbsoluteOrientation.Right) == -1) orientations.push(AbsoluteOrientation.Right);
             } else {
-                orientations.push(AbsoluteOrientation.Left);
+                if (orientations.indexOf(AbsoluteOrientation.Left) == -1) orientations.push(AbsoluteOrientation.Left);
             }
         }
 
@@ -460,36 +465,34 @@ export class ConnectPolyline extends PolylineBase {
 
             let fixedPoints = [];
             let fixedPoint = this.cutSegment(halfLine, this.padding);
-            if (true) {
-                let border = this.getElementsBorder(this.elementSegments);
-                while (true) {
-                    if (fixedPoint.x < border[0].x - this.padding || fixedPoint.y < border[0].y - this.padding
-                        || fixedPoint.x > border[1].x + this.padding || fixedPoint.y > border[1].y + this.padding) {
-                        break;
-                    }
-
-                    if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path, except)) {
-                        break;
-                    }
-
-                    if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
-                        if (unavailableRange.every(range => fixedPoint.y < range[0] || fixedPoint.y > range[1])) {
-                            if (this.isValidPoint(fixedPoint, path, except)) {
-                                fixedPoints.push(fixedPoint);
-                                break;
-                            }
-                        }
-                    } else {
-                        if (unavailableRange.every(range => fixedPoint.x < range[0] || fixedPoint.x > range[1])) {
-                            if (this.isValidPoint(fixedPoint, path, except)) {
-                                fixedPoints.push(fixedPoint);
-                                break;
-                            }
-                        }
-                    }
-
-                    fixedPoint = this.extendSegment(new Segment(lastPoint, fixedPoint));
+            let elementBorder = this.getElementsBorder(this.elementSegments);
+            while (true) {
+                if (fixedPoint.x < elementBorder[0].x - this.padding || fixedPoint.y < elementBorder[0].y - this.padding
+                    || fixedPoint.x > elementBorder[1].x + this.padding || fixedPoint.y > elementBorder[1].y + this.padding) {
+                    break;
                 }
+
+                if (fixedPoint.equalsTo(this.destinationPoint) && this.isValidPoint(fixedPoint, path, except)) {
+                    break;
+                }
+
+                if (orientation == AbsoluteOrientation.Bottom || orientation == AbsoluteOrientation.Top) {
+                    if (unavailableRange.every(range => fixedPoint.y < range[0] || fixedPoint.y > range[1])) {
+                        if (this.isValidPoint(fixedPoint, path, except)) {
+                            fixedPoints.push(fixedPoint);
+                            break;
+                        }
+                    }
+                } else {
+                    if (unavailableRange.every(range => fixedPoint.x < range[0] || fixedPoint.x > range[1])) {
+                        if (this.isValidPoint(fixedPoint, path, except)) {
+                            fixedPoints.push(fixedPoint);
+                            break;
+                        }
+                    }
+                }
+
+                fixedPoint = this.extendSegment(new Segment(lastPoint, fixedPoint));
             }
 
             points = points.concat(crossedPoints).concat(fixedPoints);
@@ -497,12 +500,12 @@ export class ConnectPolyline extends PolylineBase {
 
         points = points.filter(x => x);
         points = points.filter(x => this.isValidPoint(x, path, except));
-        let origin = this.destinationPoint;
 
         // Greedy: Always try to get closer to the destination
-        points.sort((a, b) => {
-            return Math.sqrt((origin.x - a.x) * (origin.x - a.x) + (origin.y - a.y) * (origin.y - a.y)) - Math.sqrt((origin.x - b.x) * (origin.x - b.x) + (origin.y - b.y) * (origin.y - b.y));
-        });
+        //let origin = this.destinationPoint;
+        //points.sort((a, b) => {
+        //    return Math.sqrt((origin.x - a.x) * (origin.x - a.x) + (origin.y - a.y) * (origin.y - a.y)) - Math.sqrt((origin.x - b.x) * (origin.x - b.x) + (origin.y - b.y) * (origin.y - b.y));
+        //});
 
         return points;
     }
@@ -529,7 +532,7 @@ export class ConnectPolyline extends PolylineBase {
         }
 
         // 3. Avoid turn back
-        if (path.points.length >= 2) {
+        if (path.points.length >= 3) {
             if (path.points[path.points.length - 2].x == path.points[path.points.length - 1].x
                 && path.points[path.points.length - 1].x == point.x) {
                 return false;
