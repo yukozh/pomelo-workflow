@@ -112,7 +112,8 @@ namespace Pomelo.Workflow.Storage
                 {
                     Diagram = x.Diagram,
                     WorkflowId = x.WorkflowId,
-                    Version = x.Version
+                    Version = x.Version,
+                    Status = x.Status
                 }).ToListAsync(cancellationToken);
 
         public async Task UpdateWorkflowAsync(

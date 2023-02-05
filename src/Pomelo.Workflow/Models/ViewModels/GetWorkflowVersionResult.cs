@@ -12,5 +12,7 @@ namespace Pomelo.Workflow.Models.ViewModels
         public int Version { get; set; }
 
         public Diagram Diagram { get; set; }
+
+        public WorkflowVersionStatus Status { get; set; }
     }
 }
