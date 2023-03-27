@@ -41,7 +41,7 @@ namespace Pomelo.Workflow.Tests
                 {
                     Name = "Test",
                     Description = "Test workflow"
-                }, true);
+                }, InitDiagramOption.Default);
                 var newInstanceResult = await wf.CreateNewWorkflowInstanceAsync(wfId, 1, null);
                 await wf.StartWorkflowInstanceAsync(newInstanceResult.InstanceId);
                 var instanceDiagram = await wf.GetInstanceDiagramAsync(newInstanceResult.InstanceId);

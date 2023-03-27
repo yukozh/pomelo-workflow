@@ -22,7 +22,7 @@ namespace Pomelo.Workflow.Web.Controllers
             [FromBody] CreateWorkflowRequest request,
             CancellationToken cancellationToken = default)
         {
-            var wfId = await wf.CreateWorkflowAsync(request, true, cancellationToken);
+            var wfId = await wf.CreateWorkflowAsync(request, InitDiagramOption.Default, cancellationToken);
             return await wf.GetWorkflowAsync(wfId, cancellationToken);
         }
 

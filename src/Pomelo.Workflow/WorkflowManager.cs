@@ -19,6 +19,13 @@ using Pomelo.Workflow.WorkflowHandler;
 
 namespace Pomelo.Workflow
 {
+    public enum InitDiagramOption
+    {
+        None,
+        Empty,
+        Default
+    }
+
     public class WorkflowManager
     {
         protected readonly IWorkflowStorageProvider storage;
@@ -207,14 +214,14 @@ namespace Pomelo.Workflow
 
         public async virtual Task<Guid> CreateWorkflowAsync(
             CreateWorkflowRequest request,
-            bool withDefaultDiagram = true,
+            InitDiagramOption initOption = InitDiagramOption.Default,
             CancellationToken cancellationToken = default)
         {
             var id = await storage.CreateWorkflowAsync(request, cancellationToken);
 
-            if (withDefaultDiagram)
+            if (initOption != InitDiagramOption.None)
             {
-                var template = GenerateDiagram(id);
+                var template = GenerateDiagram(id, initOption == InitDiagramOption.Empty);
 
                 await storage.CreateWorkflowVersion(
                     id,
