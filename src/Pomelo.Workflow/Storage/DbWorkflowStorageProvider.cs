@@ -217,6 +217,7 @@ namespace Pomelo.Workflow.Storage
             Guid instanceId, 
             CancellationToken cancellationToken)
             => await db.WorkflowInstances
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == instanceId, cancellationToken);
 
         public async Task<UpdateWorkflowInstanceResult> UpdateWorkflowInstanceAsync(
