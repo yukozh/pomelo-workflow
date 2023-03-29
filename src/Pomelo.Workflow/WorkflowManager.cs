@@ -317,6 +317,7 @@ namespace Pomelo.Workflow
 
                 var result = await storage
                     .UpdateWorkflowStepAsync(stepId, status, updateArgumentsDelegate, error, cancellationToken);
+                step = await storage.GetWorkflowInstanceStepAsync(stepId, cancellationToken);
 
                 if (status >= StepStatus.Failed)
                 {
