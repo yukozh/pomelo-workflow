@@ -276,8 +276,9 @@ namespace Pomelo.Workflow.Storage
                 step.Error = error;
             }
             updateArgumentsDelegate?.Invoke(step.Arguments);
+            step.UpdatedAt = DateTime.UtcNow;
+            db.Entry(step).State = EntityState.Modified;
             await db.SaveChangesAsync(cancellationToken);
-            await UpdateWorkflowInstanceUpdateTimeAsync(step.WorkflowInstanceId, cancellationToken);
             return ret;
         }
 
