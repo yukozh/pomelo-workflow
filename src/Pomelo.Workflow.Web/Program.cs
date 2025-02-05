@@ -24,7 +24,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddDbContext<WfContext>(x =>
 {
-    var connStr = "Server=localhost;Uid=root;Pwd=123456;Database=wf-test";
+    var connStr = builder.Configuration["Database"];
     x.UseMySql(connStr, ServerVersion.AutoDetect(connStr), opt =>
     {
         opt.UseNewtonsoftJson();
